@@ -7,10 +7,6 @@
 
     <v-spacer></v-spacer>
 
-    <!-- Search Bar -->
-    <v-text-field v-model="searchQuery" prepend-inner-icon="mdi-magnify" placeholder="Search..." variant="outlined"
-      density="compact" style="max-width: 300px" class="mx-4" hide-details></v-text-field>
-
     <!-- Notifications -->
     <v-badge color="error" dot>
       <v-btn icon="mdi-bell" variant="text"></v-btn>
