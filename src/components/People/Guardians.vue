@@ -1,5 +1,5 @@
 <template>
-  <div class="children-content">
+  <div class="guardians-content">
     <!-- Page Header -->
     <div class="page-header mb-6">
       <div>
@@ -19,22 +19,20 @@
               </v-text-field>
             </template>
 
-            <v-data-table :headers="headers" :items="children" :search="search" :loading="loading">
-              <template v-slot:item.birth_date="{ item }">
+            <v-data-table :headers="headers" :items="guardians" :search="search" :loading="loading">
+              <template v-slot:item.name="{ item }">
                 <div>
                   <div>
-                    {{ formatDate(item.birth_date) }}
+                    {{ item.name }}
                   </div>
+
                   <div class="text-caption text-grey">
-                    {{ calculateAgeDetail(item.birth_date) }}
+                    Children:
+                    {{ item.children_names?.length
+                      ? item.children_names.join(', ')
+                    : '-' }}
                   </div>
                 </div>
-              </template>
-              <template v-slot:item.program="{ item }">
-                {{ item.program_name }}
-              </template>
-              <template v-slot:item.created_at="{ item }">
-                {{ formatDate(item.created_at) }}
               </template>
               <template v-slot:item.status_name="{ item }">
                 <v-chip size="small" :color="item.status_code === 1 ? 'green' : 'grey'">
@@ -49,12 +47,12 @@
                     </v-btn>
                   </template>
                   <v-list>
-                    <v-list-item @click="editChild(item)">
+                    <v-list-item @click="editParent(item)">
                       <v-list-item-title>
                         ✏️ Edit
                       </v-list-item-title>
                     </v-list-item>
-                    <v-list-item @click="deleteChild(item.id)">
+                    <v-list-item @click="deleteParent(item.id)">
                       <v-list-item-title>
                         🗑️ Delete
                       </v-list-item-title>
@@ -80,29 +78,25 @@
 import { ref, onMounted } from 'vue'
 import api from '@/services/api' // pakai axios instance kamu
 
-const pageTitle = 'Children'
-const pageSubtitle = 'Manage and view information about children'
-const children = ref([])
+const pageTitle = 'Guardians'
+const pageSubtitle = 'Manage and view information about guardians'
+const guardians = ref([])
 const search = ref('')
 const loading = ref(false)
 
 const headers = [
-  { title: 'ID Number', key: 'id_number' },
   { title: 'Name', key: 'name' },
-  { title: 'Birth Date', key: 'birth_date' },
-  { title: 'Gender', key: 'gender' },
-  { title: 'Program', key: 'program_name' },
-  { title: 'Enrollment Date', key: 'created_at' },
+  { title: 'Phone', key: 'phone' },
+  { title: "Role", key: 'role_name' },
   { title: 'Status', key: 'status_name' },
   { title: '', key: 'actions', sortable: false, align: 'center' }
 ]
 
-const fetchChildren = async () => {
+const fetchGuardians = async () => {
   loading.value = true
   try {
-    const response = await api.get('/children')
-    children.value = response.data
-    //console.log('Fetched children:', children.value)
+    const response = await api.get('/guardians')
+    guardians.value = response.data
   } catch (error) {
     console.error(error)
   } finally {
@@ -110,43 +104,20 @@ const fetchChildren = async () => {
   }
 }
 
-const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('en-US', {
-    month: 'short',
-    day: '2-digit',
-    year: 'numeric'
-  })
-}
-
-const editChild = (item) => {
+const editParent = (item) => {
   console.log('Edit:', item)
   // nanti kita buka dialog edit di sini
 }
 
-const deleteChild = async (id) => {
+const deleteParent = async (id) => {
   if (!confirm('Yakin mau hapus data ini?')) return
 
   try {
-    await api.delete(`/children/${id}`)
-    fetchChildren() // refresh data
+    await api.delete(`/guardians/${id}`)
+    fetchGuardians() // refresh data
   } catch (error) {
     console.error(error)
   }
-}
-
-const calculateAgeDetail = (birthDate) => {
-  const today = new Date()
-  const birth = new Date(birthDate + 'T00:00:00')
-
-  let years = today.getFullYear() - birth.getFullYear()
-  let months = today.getMonth() - birth.getMonth()
-
-  if (months < 0 || (months === 0 && today.getDate() < birth.getDate())) {
-    years--
-    months += 12
-  }
-
-  return `${years} yr, ${months} mo`
 }
 
 const toggleStatus = async (item) => {
@@ -155,21 +126,21 @@ const toggleStatus = async (item) => {
   if (!confirm(`Yakin mau ${isActive ? 'nonaktifkan' : 'aktifkan'} data ini?`)) return
 
   try {
-    await api.put(`/children/${item.id}`, {
+    await api.put(`/guardians/${item.id}`, {
       status_id: isActive ? 2 : 1
     })
 
-    fetchChildren() // refresh table
+    fetchGuardians()
   } catch (error) {
     console.error(error)
   }
 }
 
-onMounted(fetchChildren)
+onMounted(fetchGuardians)
 </script>
 
 <style scoped>
-.children-content {
+.guardians-content {
   width: 100%;
 }
 

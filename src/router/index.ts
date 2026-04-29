@@ -2,7 +2,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import Login from '@/components/Login.vue'
 import Dashboard from '@/components/Dashboard.vue'
 import Children from '@/components/People/Children.vue'
-import Parents from '@/components/People/Parents.vue'
+import Guardians from '@/components/People/Guardians.vue'
 import Staff from '@/components/People/Staff.vue'
 import Applicants from '@/components/Admission/Applicants.vue'
 import Forms from '@/components/Admission/Forms.vue'
@@ -44,7 +44,7 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/parents',
-    component: Parents,
+    component: Guardians,
     meta: { layout: 'app' },
   },
   {

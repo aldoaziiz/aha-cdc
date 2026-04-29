@@ -1,5 +1,5 @@
 <template>
-    <div class="staff-content">
+    <div class="staffs-content">
         <!-- Page Header -->
         <div class="page-header mb-6">
             <div>
@@ -15,9 +15,45 @@
                     <v-card flat>
                         <template v-slot:text>
                             <v-text-field v-model="search" label="Search" prepend-inner-icon="mdi-magnify"
-                                variant="outlined" hide-details single-line></v-text-field>
+                                variant="outlined" hide-details single-line>
+                            </v-text-field>
                         </template>
-                        <v-data-table :headers="headers" :items="desserts" :search="search"></v-data-table>
+
+                        <v-data-table :headers="headers" :items="staffs" :search="search" :loading="loading">
+
+                            <template v-slot:item.status_name="{ item }">
+                                <v-chip size="small" :color="item.status_code === 1 ? 'green' : 'grey'">
+                                    {{ item.status_name }}
+                                </v-chip>
+                            </template>
+                            <template v-slot:item.actions="{ item }">
+                                <v-menu>
+                                    <template #activator="{ props }">
+                                        <v-btn v-bind="props" size="small" color="white">
+                                            Action <v-icon right>mdi-chevron-down</v-icon>
+                                        </v-btn>
+                                    </template>
+                                    <v-list>
+                                        <v-list-item @click="editParent(item)">
+                                            <v-list-item-title>
+                                                ✏️ Edit
+                                            </v-list-item-title>
+                                        </v-list-item>
+                                        <v-list-item @click="deleteParent(item.id)">
+                                            <v-list-item-title>
+                                                🗑️ Delete
+                                            </v-list-item-title>
+                                        </v-list-item>
+                                        <v-list-item @click="toggleStatus(item)">
+                                            <v-list-item-title>
+                                                {{ Number(item.status_code) === 1 ? '🔴 Deactivate' : '🟢 Activate' }}
+                                            </v-list-item-title>
+                                        </v-list-item>
+                                    </v-list>
+                                </v-menu>
+                            </template>
+                        </v-data-table>
+
                     </v-card>
                 </v-card>
             </v-col>
@@ -25,178 +61,75 @@
     </div>
 </template>
 
-<script lang="ts" setup>
-const pageTitle = 'Staff'
-const pageSubtitle = 'Manage and view information about staff'
+<script setup>
+import { ref, onMounted } from 'vue'
+import api from '@/services/api' // pakai axios instance kamu
 
-const getTimeAgo = (i: number) => {
-    const hours = i * 2
-    return `${hours} hours ago`
+const pageTitle = 'Staffs'
+const pageSubtitle = 'Manage and view information about staffs'
+const staffs = ref([])
+const search = ref('')
+const loading = ref(false)
+
+const headers = [
+    { title: 'Name', key: 'name' },
+    { title: 'Title', key: 'title' },
+    { title: 'Email', key: 'email' },
+    { title: 'Role', key: 'role_name' },
+    { title: 'Phone', key: 'phone' },
+    { title: 'Status', key: 'status_name' },
+    { title: '', key: 'actions', sortable: false, align: 'center' }
+]
+
+const fetchStaffs = async () => {
+    loading.value = true
+    try {
+        const response = await api.get('/staffs')
+        staffs.value = response.data
+    } catch (error) {
+        console.error(error)
+    } finally {
+        loading.value = false
+    }
 }
 
-import { ref } from 'vue'
-const search = ref('')
-const headers: any = [
-    {
-        align: 'start',
-        key: 'name',
-        sortable: false,
-        title: 'Name',
-    },
-    { key: 'birthdate', title: 'Birth Date' },
-    { key: 'gender', title: 'Gender' },
-    { key: 'program', title: 'Program' },
-    { key: 'enrollmentdate', title: 'Enrollment Date' },
-    { key: 'status', title: 'Status' },
-    { key: 'action', title: 'Action' },
-]
-const desserts = [
-    {
-        name: 'Frozen Yogurt',
-        birthdate: '2020-01-01',
-        gender: 'Male',
-        program: 'KINDER',
-        enrollmentdate: '2020-01-01',
-        status: 'Active',
-        calories: 159,
-        fat: 6,
-        carbs: 24,
-        protein: 4,
-        iron: 1,
-    },
-    {
-        name: 'Ice cream sandwich',
-        birthdate: '2020-01-02',
-        gender: 'Female',
-        program: 'KINDER',
-        enrollmentdate: '2020-01-02',
-        status: 'Inactive',
-        calories: 237,
-        fat: 9,
-        carbs: 37,
-        protein: 4.3,
-        iron: 1,
-    },
-    {
-        name: 'Eclair',
-        birthdate: '2020-01-03',
-        gender: 'Male',
-        program: 'TODDLER',
-        enrollmentdate: '2020-01-03',
-        status: 'Active',
-        calories: 262,
-        fat: 16,
-        carbs: 23,
-        protein: 6,
-        iron: 7,
-    },
-    {
-        name: 'Cupcake',
-        birthdate: '2020-01-04',
-        gender: 'Female',
-        program: 'KINDER',
-        enrollmentdate: '2020-01-04',
-        status: 'Active',
-        calories: 305,
-        fat: 3.7,
-        carbs: 67,
-        protein: 4.3,
-        iron: 8,
-    },
-    {
-        name: 'Gingerbread',
-        birthdate: '2020-01-05',
-        gender: 'Male',
-        program: 'KINDER',
-        enrollmentdate: '2020-01-05',
-        status: 'Inactive',
-        calories: 356,
-        fat: 16,
-        carbs: 49,
-        protein: 3.9,
-        iron: 16,
-    },
-    {
-        name: 'Jelly bean',
-        birthdate: '2020-01-06',
-        gender: 'Female',
-        program: 'TODDLER',
-        enrollmentdate: '2020-01-06',
-        status: 'Active',
-        calories: 375,
-        fat: 0,
-        carbs: 94,
-        protein: 0,
-        iron: 0,
-    },
-    {
-        name: 'Lollipop',
-        birthdate: '2020-01-07',
-        gender: 'Male',
-        program: 'KINDER',
-        enrollmentdate: '2020-01-07',
-        status: 'Active',
-        calories: 392,
-        fat: 0.2,
-        carbs: 98,
-        protein: 0,
-        iron: 2,
-    },
-    {
-        name: 'Honeycomb',
-        birthdate: '2020-01-08',
-        gender: 'Female',
-        program: 'KINDER',
-        enrollmentdate: '2020-01-08',
-        status: 'Inactive',
-        calories: 408,
-        fat: 3.2,
-        carbs: 87,
-        protein: 6.5,
-        iron: 45,
-    },
-    {
-        name: 'Donut',
-        birthdate: '2020-01-09',
-        gender: 'Male',
-        program: 'TODDLER',
-        enrollmentdate: '2020-01-09',
-        status: 'Active',
-        calories: 452,
-        fat: 25,
-        carbs: 51,
-        protein: 4.9,
-        iron: 22,
-    },
-    {
-        name: 'KitKat',
-        birthdate: '2020-01-10',
-        gender: 'Female',
-        program: 'KINDER',
-        enrollmentdate: '2020-01-10',
-        status: 'Active',
-        calories: 518,
-        fat: 26,
-        carbs: 65,
-        protein: 7,
-        iron: 6,
-    },
-]
+const editParent = (item) => {
+    console.log('Edit:', item)
+    // nanti kita buka dialog edit di sini
+}
+
+const deleteParent = async (id) => {
+    if (!confirm('Yakin mau hapus data ini?')) return
+
+    try {
+        await api.delete(`/staffs/${id}`)
+        fetchStaffs() // refresh data
+    } catch (error) {
+        console.error(error)
+    }
+}
+
+const toggleStatus = async (item) => {
+    const isActive = Number(item.status_code) === 1
+
+    if (!confirm(`Yakin mau ${isActive ? 'nonaktifkan' : 'aktifkan'} data ini?`)) return
+
+    try {
+        await api.put(`/staffs/${item.id}`, {
+            status_id: isActive ? 2 : 1
+        })
+
+        fetchStaffs()
+    } catch (error) {
+        console.error(error)
+    }
+}
+
+onMounted(fetchStaffs)
 </script>
 
 <style scoped>
-.staff-content {
-    width: 100%;
-}
-
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-}
-
-.staff-content {
+.staffs-content {
     width: 100%;
 }
 
