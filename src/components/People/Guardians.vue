@@ -30,13 +30,16 @@
                     Children:
                     {{ item.children_names?.length
                       ? item.children_names.join(', ')
-                    : '-' }}
+                      : '-' }}
                   </div>
                 </div>
               </template>
+              <template v-slot:item.role="{ item }">
+                {{ item.role?.name }}
+              </template>
               <template v-slot:item.status_name="{ item }">
-                <v-chip size="small" :color="item.status_code === 1 ? 'green' : 'grey'">
-                  {{ item.status_name }}
+                <v-chip size="small" :color="item.status.code === 1 ? 'green' : 'grey'">
+                  {{ item.status.name }}
                 </v-chip>
               </template>
               <template v-slot:item.actions="{ item }">
@@ -59,7 +62,7 @@
                     </v-list-item>
                     <v-list-item @click="toggleStatus(item)">
                       <v-list-item-title>
-                        {{ Number(item.status_code) === 1 ? '🔴 Deactivate' : '🟢 Activate' }}
+                        {{ Number(item.status.code) === 1 ? '🔴 Deactivate' : '🟢 Activate' }}
                       </v-list-item-title>
                     </v-list-item>
                   </v-list>
@@ -87,7 +90,7 @@ const loading = ref(false)
 const headers = [
   { title: 'Name', key: 'name' },
   { title: 'Phone', key: 'phone' },
-  { title: "Role", key: 'role_name' },
+  { title: "Role", key: 'role' },
   { title: 'Status', key: 'status_name' },
   { title: '', key: 'actions', sortable: false, align: 'center' }
 ]
@@ -121,7 +124,7 @@ const deleteParent = async (id) => {
 }
 
 const toggleStatus = async (item) => {
-  const isActive = Number(item.status_code) === 1
+  const isActive = Number(item.status.code) === 1
 
   if (!confirm(`Yakin mau ${isActive ? 'nonaktifkan' : 'aktifkan'} data ini?`)) return
 
