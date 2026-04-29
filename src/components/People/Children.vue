@@ -36,8 +36,8 @@
               <template v-slot:item.created_at="{ item }">
                 {{ formatDate(item.created_at) }}
               </template>
-              <template v-slot:item.status_name="{ item }">
-                <v-chip size="small" :color="Number(item.status?.code) === 1 ? 'green' : 'grey'">
+              <template v-slot:item.status="{ item }">
+                <v-chip size="small" :color="Number(item.status?.id) === 1 ? 'green' : 'grey'">
                   {{ item.status?.name }}
                 </v-chip>
               </template>
@@ -61,7 +61,7 @@
                     </v-list-item>
                     <v-list-item @click="toggleStatus(item)">
                       <v-list-item-title>
-                        {{ Number(item.status.code) === 1 ? '🔴 Deactivate' : '🟢 Activate' }}
+                        {{ Number(item.status?.id) === 1 ? '🔴 Deactivate' : '🟢 Activate' }}
                       </v-list-item-title>
                     </v-list-item>
                   </v-list>
@@ -93,7 +93,7 @@ const headers = [
   { title: 'Gender', key: 'gender' },
   { title: 'Program', key: 'program.name' },
   { title: 'Enrollment Date', key: 'created_at' },
-  { title: 'Status', key: 'status_name' },
+  { title: 'Status', key: 'status' },
   { title: '', key: 'actions', sortable: false, align: 'center' }
 ]
 
@@ -150,7 +150,7 @@ const calculateAgeDetail = (birthDate) => {
 }
 
 const toggleStatus = async (item) => {
-  const isActive = Number(item.status.code) === 1
+  const isActive = Number(item.status?.id) === 1
 
   if (!confirm(`Yakin mau ${isActive ? 'nonaktifkan' : 'aktifkan'} data ini?`)) return
 

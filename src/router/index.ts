@@ -43,7 +43,7 @@ const routes: RouteRecordRaw[] = [
     meta: { layout: 'app' },
   },
   {
-    path: '/parents',
+    path: '/guardians',
     component: Guardians,
     meta: { layout: 'app' },
   },

@@ -23,9 +23,9 @@
               <template v-slot:item.role="{ item }">
                 {{ item.role?.name }}
               </template>
-              <template v-slot:item.status_name="{ item }">
-                <v-chip size="small" :color="item.status.code === 1 ? 'green' : 'grey'">
-                  {{ item.status.name }}
+              <template v-slot:item.status="{ item }">
+                <v-chip size="small" :color="item.status?.id === 1 ? 'green' : 'grey'">
+                  {{ item.status?.name }}
                 </v-chip>
               </template>
               <template v-slot:item.actions="{ item }">
@@ -36,19 +36,19 @@
                     </v-btn>
                   </template>
                   <v-list>
-                    <v-list-item @click="editParent(item)">
+                    <v-list-item @click="editStaff(item)">
                       <v-list-item-title>
                         ✏️ Edit
                       </v-list-item-title>
                     </v-list-item>
-                    <v-list-item @click="deleteParent(item.id)">
+                    <v-list-item @click="deleteStaff(item.id)">
                       <v-list-item-title>
                         🗑️ Delete
                       </v-list-item-title>
                     </v-list-item>
                     <v-list-item @click="toggleStatus(item)">
                       <v-list-item-title>
-                        {{ Number(item.status.code) === 1 ? '🔴 Deactivate' : '🟢 Activate' }}
+                        {{ Number(item.status?.id) === 1 ? '🔴 Deactivate' : '🟢 Activate' }}
                       </v-list-item-title>
                     </v-list-item>
                   </v-list>
@@ -79,7 +79,7 @@ const headers = [
   { title: 'Email', key: 'email' },
   { title: 'Role', key: 'role' },
   { title: 'Phone', key: 'phone' },
-  { title: 'Status', key: 'status_name' },
+  { title: 'Status', key: 'status' },
   { title: '', key: 'actions', sortable: false, align: 'center' }
 ]
 
@@ -95,12 +95,12 @@ const fetchStaffs = async () => {
   }
 }
 
-const editParent = (item) => {
+const editStaff = (item) => {
   console.log('Edit:', item)
   // nanti kita buka dialog edit di sini
 }
 
-const deleteParent = async (id) => {
+const deleteStaff = async (id) => {
   if (!confirm('Yakin mau hapus data ini?')) return
 
   try {
@@ -112,7 +112,7 @@ const deleteParent = async (id) => {
 }
 
 const toggleStatus = async (item) => {
-  const isActive = Number(item.status.code) === 1
+  const isActive = Number(item.status?.id) === 1
 
   if (!confirm(`Yakin mau ${isActive ? 'nonaktifkan' : 'aktifkan'} data ini?`)) return
 
