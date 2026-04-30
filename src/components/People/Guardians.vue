@@ -35,11 +35,11 @@
                 </div>
               </template>
               <template v-slot:item.role="{ item }">
-                {{ item.role?.name }}
+                {{ item.role?.name || '-' }}
               </template>
               <template v-slot:item.status="{ item }">
                 <v-chip size="small" :color="item.status?.id === 1 ? 'green' : 'grey'">
-                  {{ item.status?.name }}
+                  {{ item.status?.name || '-' }}
                 </v-chip>
               </template>
               <template v-slot:item.actions="{ item }">
@@ -99,7 +99,7 @@ const fetchGuardians = async () => {
   loading.value = true
   try {
     const response = await api.get('/guardians')
-    guardians.value = response.data
+    guardians.value = response.data.data
   } catch (error) {
     console.error(error)
   } finally {

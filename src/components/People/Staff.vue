@@ -1,5 +1,5 @@
 <template>
-  <div class="staffs-content">
+  <div class="staff-content">
     <!-- Page Header -->
     <div class="page-header mb-6">
       <div>
@@ -19,13 +19,13 @@
               </v-text-field>
             </template>
 
-            <v-data-table :headers="headers" :items="staffs" :search="search" :loading="loading">
-              <template v-slot:item.role="{ item }">
-                {{ item.role?.name }}
+            <v-data-table :headers="headers" :items="staff" :search="search" :loading="loading">
+              <template v-slot:item.staff_role="{ item }">
+                {{ item.staff_role?.name || '-' }}
               </template>
               <template v-slot:item.status="{ item }">
-                <v-chip size="small" :color="item.status?.id === 1 ? 'green' : 'grey'">
-                  {{ item.status?.name }}
+                <v-chip size="small" :color="Number(item.status?.id) === 1 ? 'green' : 'grey'">
+                  {{ item.status?.name || '-' }}
                 </v-chip>
               </template>
               <template v-slot:item.actions="{ item }">
@@ -67,9 +67,9 @@
 import { ref, onMounted } from 'vue'
 import api from '@/services/api' // pakai axios instance kamu
 
-const pageTitle = 'Staffs'
-const pageSubtitle = 'Manage and view information about staffs'
-const staffs = ref([])
+const pageTitle = 'Staff'
+const pageSubtitle = 'Manage and view information about staff'
+const staff = ref([])
 const search = ref('')
 const loading = ref(false)
 
@@ -77,17 +77,17 @@ const headers = [
   { title: 'Name', key: 'name' },
   { title: 'Title', key: 'title' },
   { title: 'Email', key: 'email' },
-  { title: 'Role', key: 'role' },
+  { title: 'Role', key: 'staff_role' },
   { title: 'Phone', key: 'phone' },
   { title: 'Status', key: 'status' },
   { title: '', key: 'actions', sortable: false, align: 'center' }
 ]
 
-const fetchStaffs = async () => {
+const fetchStaff = async () => {
   loading.value = true
   try {
-    const response = await api.get('/staffs')
-    staffs.value = response.data
+    const response = await api.get('/staff')
+    staff.value = response.data.data
   } catch (error) {
     console.error(error)
   } finally {
@@ -104,8 +104,8 @@ const deleteStaff = async (id) => {
   if (!confirm('Yakin mau hapus data ini?')) return
 
   try {
-    await api.delete(`/staffs/${id}`)
-    fetchStaffs() // refresh data
+    await api.delete(`/staff/${id}`)
+    fetchStaff() // refresh data
   } catch (error) {
     console.error(error)
   }
@@ -117,21 +117,21 @@ const toggleStatus = async (item) => {
   if (!confirm(`Yakin mau ${isActive ? 'nonaktifkan' : 'aktifkan'} data ini?`)) return
 
   try {
-    await api.put(`/staffs/${item.id}`, {
+    await api.put(`/staff/${item.id}`, {
       status_id: isActive ? 2 : 1
     })
 
-    fetchStaffs()
+    fetchStaff()
   } catch (error) {
     console.error(error)
   }
 }
 
-onMounted(fetchStaffs)
+onMounted(fetchStaff)
 </script>
 
 <style scoped>
-.staffs-content {
+.staff-content {
   width: 100%;
 }
 

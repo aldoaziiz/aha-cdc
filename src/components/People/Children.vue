@@ -31,14 +31,14 @@
                 </div>
               </template>
               <template v-slot:item.program="{ item }">
-                {{ item.program.name }}
+                {{ item.program?.name || '-' }}
               </template>
               <template v-slot:item.created_at="{ item }">
                 {{ formatDate(item.created_at) }}
               </template>
               <template v-slot:item.status="{ item }">
                 <v-chip size="small" :color="Number(item.status?.id) === 1 ? 'green' : 'grey'">
-                  {{ item.status?.name }}
+                  {{ item.status?.name || '-' }}
                 </v-chip>
               </template>
               <template v-slot:item.actions="{ item }">
@@ -91,7 +91,7 @@ const headers = [
   { title: 'Name', key: 'name' },
   { title: 'Birth Date', key: 'birth_date' },
   { title: 'Gender', key: 'gender' },
-  { title: 'Program', key: 'program.name' },
+  { title: 'Program', key: 'program' },
   { title: 'Enrollment Date', key: 'created_at' },
   { title: 'Status', key: 'status' },
   { title: '', key: 'actions', sortable: false, align: 'center' }
@@ -101,8 +101,7 @@ const fetchChildren = async () => {
   loading.value = true
   try {
     const response = await api.get('/children')
-    children.value = response.data
-    //console.log('Fetched children:', children.value)
+    children.value = response.data.data
   } catch (error) {
     console.error(error)
   } finally {
@@ -159,7 +158,7 @@ const toggleStatus = async (item) => {
       status_id: isActive ? 2 : 1
     })
 
-    fetchChildren() // refresh table
+    fetchChildren()
   } catch (error) {
     console.error(error)
   }
