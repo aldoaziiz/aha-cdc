@@ -313,6 +313,8 @@ watch(selectedChild, (val) => {
   const c = childrenOptions.value.find(i => i.id === val)
   if (!c) return
 
+  console.log('Selected Child:', c)
+
   childPreview.value = c
 
   form.value.child = {
@@ -322,11 +324,11 @@ watch(selectedChild, (val) => {
     birth_date: c.birth_date,
     gender: c.gender,
     address: c.address,
-    birthplace_id: c.birthplace_id,
-    hometown_id: c.hometown_id,
-    school_id: c.school_id,
-    school_class_id: c.school_class_id,
-    school_education_id: c.school_education_id
+    birthplace_id: c.birthplace?.id ?? null,
+    hometown_id: c.hometown?.id ?? null,
+    school_id: c.school?.id ?? null,
+    school_class_id: c.school_class?.id ?? null,
+    school_education_id: c.school_education?.id ?? null
   }
 })
 
