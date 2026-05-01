@@ -10,9 +10,10 @@
         <v-list-item-title>Dashboard</v-list-item-title>
       </v-list-item>
 
+      <!-- master data -->
       <v-list-group>
         <template v-slot:activator="{ props }">
-          <v-list-item v-bind="props" title="People" prepend-icon="mdi-account-box"></v-list-item>
+          <v-list-item v-bind="props" title="Master Data" prepend-icon="mdi-folder"></v-list-item>
         </template>
         <v-list-item @click="setActiveMenu('Children')" :active="activeMenu === 'Children'" title="Children"
           to="/children"></v-list-item>
@@ -20,20 +21,28 @@
           to="/guardians"></v-list-item>
         <v-list-item @click="setActiveMenu('Staff')" :active="activeMenu === 'Staff'" title="Staff"
           to="/staff"></v-list-item>
-      </v-list-group>
-
-      <v-list-group>
-        <template v-slot:activator="{ props }">
-          <v-list-item v-bind="props" title="Admission" prepend-icon="mdi-book-open-variant-outline"></v-list-item>
-        </template>
-        <v-list-item @click="setActiveMenu('Applicants')" :active="activeMenu === 'Applicants'" title="Applicants"
-          to="/applicants"></v-list-item>
-        <v-list-item @click="setActiveMenu('Forms')" :active="activeMenu === 'Forms'" title="Forms"
-          to="/forms"></v-list-item>
         <v-list-item @click="setActiveMenu('Programs')" :active="activeMenu === 'Programs'" title="Programs"
           to="/programs"></v-list-item>
         <v-list-item @click="setActiveMenu('Rooms')" :active="activeMenu === 'Rooms'" title="Rooms"
           to="/rooms"></v-list-item>
+      </v-list-group>
+
+      <!-- transactions -->
+      <v-list-group>
+        <template v-slot:activator="{ props }">
+          <v-list-item v-bind="props" title="Transactions" prepend-icon="mdi-folder-arrow-down-outline"></v-list-item>
+        </template>
+        <v-list-item @click="setActiveMenu('Registrations')" :active="activeMenu === 'Registrations'"
+          title="Registrations" to="/registrations"></v-list-item>
+      </v-list-group>
+
+      <!-- admission -->
+      <v-list-group>
+        <template v-slot:activator="{ props }">
+          <v-list-item v-bind="props" title="Admission" prepend-icon="mdi-book-open-variant-outline"></v-list-item>
+        </template>
+        <v-list-item @click="setActiveMenu('RegistrationsNew')" :active="activeMenu === 'RegistrationsNew'"
+          title="New Registrations" to="/registrations-new"></v-list-item>
       </v-list-group>
 
       <v-list-group>

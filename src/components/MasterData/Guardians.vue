@@ -34,9 +34,6 @@
                   </div>
                 </div>
               </template>
-              <template v-slot:item.role="{ item }">
-                {{ item.role?.name || '-' }}
-              </template>
               <template v-slot:item.status="{ item }">
                 <v-chip size="small" :color="item.status?.id === 1 ? 'green' : 'grey'">
                   {{ item.status?.name || '-' }}
@@ -90,7 +87,6 @@ const loading = ref(false)
 const headers = [
   { title: 'Name', key: 'name' },
   { title: 'Phone', key: 'phone' },
-  { title: 'Role', key: 'role' },
   { title: 'Status', key: 'status' },
   { title: '', key: 'actions', sortable: false, align: 'center' }
 ]

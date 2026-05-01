@@ -1,25 +1,32 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import Login from '@/components/Login.vue'
 import Dashboard from '@/components/Dashboard.vue'
-import Children from '@/components/People/Children.vue'
-import Guardians from '@/components/People/Guardians.vue'
-import Staff from '@/components/People/Staff.vue'
-import Applicants from '@/components/Admission/Applicants.vue'
-import Forms from '@/components/Admission/Forms.vue'
-import Programs from '@/components/Admission/Programs.vue'
-import Rooms from '@/components/Admission/Rooms.vue'
-import Transactions from '@/components/Billing/Transactions.vue'
-import Students from '@/components/Billing/Students.vue'
-import Template from '@/components/Billing/Template.vue'
+
+// master data
+import Children from '@/components/MasterData/Children.vue'
+import Guardians from '@/components/MasterData/Guardians.vue'
+import Staff from '@/components/MasterData/Staff.vue'
+import Programs from '@/components/MasterData/Programs.vue'
+import Rooms from '@/components/MasterData/Rooms.vue'
+
+// transactions
+import Registrations from '@/components/Transactions/Registrations.vue'
+
+// admissions
+import RegistrationsNew from '@/components/Admissions/Registrations.vue'
+
 import Activity from '@/components/Activity.vue'
+
 import Curriculum from '@/components/Learning/Curriculum.vue'
 import LessonPlan from '@/components/Learning/LessonPlan.vue'
 import MilestoneLog from '@/components/Learning/Milestone Log.vue'
 import ProgressReport from '@/components/Learning/ProgressReport.vue'
+
 import ReportAdmission from '@/components/Report/ReportAdmission.vue'
 import ReportAttendance from '@/components/Report/ReportAttendance.vue'
 import ReportLateCheckOut from '@/components/Report/ReportLateCheckOut.vue'
 import ReportActivity from '@/components/Report/ReportActivity.vue'
+
 import HelpSupport from '@/components/HelpSupport.vue'
 
 const routes: RouteRecordRaw[] = [
@@ -37,6 +44,8 @@ const routes: RouteRecordRaw[] = [
     component: Dashboard,
     meta: { layout: 'app' },
   },
+
+  // master data
   {
     path: '/children',
     component: Children,
@@ -53,16 +62,6 @@ const routes: RouteRecordRaw[] = [
     meta: { layout: 'app' },
   },
   {
-    path: '/applicants',
-    component: Applicants,
-    meta: { layout: 'app' },
-  },
-  {
-    path: '/forms',
-    component: Forms,
-    meta: { layout: 'app' },
-  },
-  {
     path: '/programs',
     component: Programs,
     meta: { layout: 'app' },
@@ -72,21 +71,25 @@ const routes: RouteRecordRaw[] = [
     component: Rooms,
     meta: { layout: 'app' },
   },
+  
+  // transactions
   {
-    path: '/transactions',
-    component: Transactions,
+    path: '/registrations',
+    component: Registrations,
     meta: { layout: 'app' },
   },
+
+  // admissions
   {
-    path: '/students',
-    component: Students,
+    path: '/registrations-new',
+    component: RegistrationsNew,
     meta: { layout: 'app' },
   },
-  {
-    path: '/template',
-    component: Template,
-    meta: { layout: 'app' },
-  },
+
+  
+
+
+
   {
     path: '/activity',
     component: Activity,
