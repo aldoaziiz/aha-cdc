@@ -50,11 +50,16 @@
               <!-- GUARDIAN -->
               <template v-slot:item.guardian="{ item }">
                 <div v-if="item.child?.guardians?.length">
-                  <div class="font-weight-medium">
-                    {{ item.child.guardians[0].name }}
-                  </div>
-                  <div class="text-caption text-grey">
-                    {{ item.child.guardians[0].phone }}
+                  <div v-for="g in item.child.guardians" :key="g.id" class="mb-1">
+                    <div class="font-weight-medium">
+                      {{ g.name }}
+                      <span class="text-caption text-grey">
+                        ({{ g.guardian_role?.name || '-' }})
+                      </span>
+                    </div>
+                    <div class="text-caption text-grey">
+                      {{ g.phone }}
+                    </div>
                   </div>
                 </div>
                 <div v-else>-</div>

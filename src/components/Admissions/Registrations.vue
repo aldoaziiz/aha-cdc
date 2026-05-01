@@ -24,7 +24,7 @@
             </v-radio-group>
 
             <v-autocomplete v-model="selectedChild" :items="childrenOptions" item-title="name" item-value="id"
-              label="Select Child" :disabled="childMode === 'new'" clearable />
+              label="Select Child" :disabled="childMode === 'new'" :clearable="childMode !== 'existing'" />
 
             <v-row>
               <v-col cols="12" md="6">
@@ -47,27 +47,31 @@
 
               <v-col cols="12" md="6">
                 <v-autocomplete v-model="form.child.birthplace_id" :items="cities" item-title="name" item-value="id"
-                  label="Birthplace" :rules="[rules.required]" clearable :readonly="childMode === 'existing'" />
+                  label="Birthplace" :rules="[rules.required]" :clearable="childMode !== 'existing'"
+                  :readonly="childMode === 'existing'" />
               </v-col>
 
               <v-col cols="12" md="6">
                 <v-autocomplete v-model="form.child.hometown_id" :items="cities" item-title="name" item-value="id"
-                  label="Hometown" :rules="[rules.required]" clearable :readonly="childMode === 'existing'" />
+                  label="Hometown" :rules="[rules.required]" :clearable="childMode !== 'existing'"
+                  :readonly="childMode === 'existing'" />
               </v-col>
 
               <v-col cols="12" md="6">
                 <v-autocomplete v-model="form.child.school_id" :items="schools" item-title="name" item-value="id"
-                  label="School" clearable :readonly="childMode === 'existing'" />
+                  label="School" :clearable="childMode !== 'existing'" :readonly="childMode === 'existing'" />
               </v-col>
 
               <v-col cols="12" md="6">
                 <v-autocomplete v-model="form.child.school_class_id" :items="schoolClasses" item-title="name"
-                  item-value="id" label="Class" clearable :readonly="childMode === 'existing'" />
+                  item-value="id" label="Class" :clearable="childMode !== 'existing'"
+                  :readonly="childMode === 'existing'" />
               </v-col>
 
               <v-col cols="12" md="6">
                 <v-autocomplete v-model="form.child.school_education_id" :items="schoolEducations" item-title="name"
-                  item-value="id" label="Education" clearable :readonly="childMode === 'existing'" />
+                  item-value="id" label="Education" :clearable="childMode !== 'existing'"
+                  :readonly="childMode === 'existing'" />
               </v-col>
 
               <v-col cols="12" md="6">
@@ -99,7 +103,7 @@
             </v-radio-group>
 
             <v-autocomplete v-model="selectedGuardian" :items="guardiansOptions" item-title="name" item-value="id"
-              label="Select Guardian" :disabled="guardianMode === 'new'" clearable />
+              label="Select Guardian" :disabled="guardianMode === 'new'" :clearable="guardianMode !== 'existing'" />
 
             <v-row>
               <v-col cols="12" md="6">
@@ -117,11 +121,9 @@
                   :readonly="guardianMode === 'existing'" />
               </v-col>
 
-              <v-col cols="12" md="6">
-                <v-autocomplete v-model="form.guardian.guardian_role_id" :items="guardianRoles" item-title="name"
-                  item-value="id" label="Relation" :rules="[rules.required]" clearable
-                  :readonly="guardianMode === 'existing'" />
-              </v-col>
+              <!-- RELATION JANGAN READONLY -->
+              <v-autocomplete v-model="form.guardian.guardian_role_id" :items="guardianRoles" item-title="name"
+                item-value="id" label="Relation" :rules="[rules.required]" clearable />
 
               <v-col cols="12">
                 <v-textarea v-model="form.guardian.address" label="Address" rows="2"
@@ -138,7 +140,8 @@
           <v-card-text>
             <v-row>
               <v-col cols="12">
-                <v-textarea v-model="form.registration.complaint" label="Complaint" rows="2" />
+                <v-textarea v-model="form.registration.complaint" label="Complaint" rows="2"
+                  :rules="[rules.required]" />
               </v-col>
 
               <v-col cols="12" md="6">
@@ -265,6 +268,15 @@ const resetForm = () => {
       payer_id: null
     }
   }
+
+  selectedChild.value = null
+  selectedGuardian.value = null
+
+  childMode.value = 'new'
+  guardianMode.value = 'new'
+
+  childPreview.value = null
+  guardianPreview.value = null
 }
 
 /* =========================
@@ -312,8 +324,6 @@ watch(selectedChild, (val) => {
 
   const c = childrenOptions.value.find(i => i.id === val)
   if (!c) return
-
-  console.log('Selected Child:', c)
 
   childPreview.value = c
 
