@@ -1,150 +1,170 @@
-import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
-import Login from '@/components/Login.vue'
-import Dashboard from '@/components/Dashboard.vue'
+import {
+  createRouter,
+  createWebHistory,
+  type RouteRecordRaw,
+} from "vue-router";
+
+import Login from "@/components/Login.vue";
+import Dashboard from "@/components/Dashboard.vue";
+import BlankLayout from "@/layouts/BlankLayout.vue";
 
 // master data
-import Children from '@/components/MasterData/Children.vue'
-import Guardians from '@/components/MasterData/Guardians.vue'
-import Staff from '@/components/MasterData/Staff.vue'
-import Programs from '@/components/MasterData/Programs.vue'
-import Rooms from '@/components/MasterData/Rooms.vue'
+import Children from "@/components/MasterData/Children.vue";
+import Guardians from "@/components/MasterData/Guardians.vue";
+import Staff from "@/components/MasterData/Staff.vue";
+import Programs from "@/components/MasterData/Programs.vue";
+import Rooms from "@/components/MasterData/Rooms.vue";
 
 // transactions
-import Registrations from '@/components/Transactions/Registrations.vue'
+import Registrations from "@/components/Transactions/Registrations.vue";
 
 // admissions
-import RegistrationsNew from '@/components/Admissions/Registrations.vue'
+import RegistrationsNew from "@/components/Admissions/Registrations.vue";
 
-import Activity from '@/components/Activity.vue'
+// billing
+import Billing from "@/components/Billing.vue";
+import Invoice from "@/components/Invoice.vue";
 
-import Curriculum from '@/components/Learning/Curriculum.vue'
-import LessonPlan from '@/components/Learning/LessonPlan.vue'
-import MilestoneLog from '@/components/Learning/Milestone Log.vue'
-import ProgressReport from '@/components/Learning/ProgressReport.vue'
+import Activity from "@/components/Activity.vue";
 
-import ReportAdmission from '@/components/Report/ReportAdmission.vue'
-import ReportAttendance from '@/components/Report/ReportAttendance.vue'
-import ReportLateCheckOut from '@/components/Report/ReportLateCheckOut.vue'
-import ReportActivity from '@/components/Report/ReportActivity.vue'
+import Curriculum from "@/components/Learning/Curriculum.vue";
+import LessonPlan from "@/components/Learning/LessonPlan.vue";
+import MilestoneLog from "@/components/Learning/Milestone Log.vue";
+import ProgressReport from "@/components/Learning/ProgressReport.vue";
 
-import HelpSupport from '@/components/HelpSupport.vue'
+import ReportAdmission from "@/components/Report/ReportAdmission.vue";
+import ReportAttendance from "@/components/Report/ReportAttendance.vue";
+import ReportLateCheckOut from "@/components/Report/ReportLateCheckOut.vue";
+import ReportActivity from "@/components/Report/ReportActivity.vue";
+
+import HelpSupport from "@/components/HelpSupport.vue";
 
 const routes: RouteRecordRaw[] = [
   {
-    path: '/',
-    redirect: '/login',
+    path: "/",
+    redirect: "/login",
   },
   {
-    path: '/login',
+    path: "/login",
     component: Login,
-    meta: { layout: 'blank' },
+    meta: { layout: "blank" },
   },
   {
-    path: '/dashboard',
+    path: "/dashboard",
     component: Dashboard,
-    meta: { layout: 'app' },
+    meta: { layout: "app" },
   },
 
   // master data
   {
-    path: '/children',
+    path: "/children",
     component: Children,
-    meta: { layout: 'app' },
+    meta: { layout: "app" },
   },
   {
-    path: '/guardians',
+    path: "/guardians",
     component: Guardians,
-    meta: { layout: 'app' },
+    meta: { layout: "app" },
   },
   {
-    path: '/staff',
+    path: "/staff",
     component: Staff,
-    meta: { layout: 'app' },
+    meta: { layout: "app" },
   },
   {
-    path: '/programs',
+    path: "/programs",
     component: Programs,
-    meta: { layout: 'app' },
+    meta: { layout: "app" },
   },
   {
-    path: '/rooms',
+    path: "/rooms",
     component: Rooms,
-    meta: { layout: 'app' },
+    meta: { layout: "app" },
   },
-  
+
   // transactions
   {
-    path: '/registrations',
+    path: "/registrations",
     component: Registrations,
-    meta: { layout: 'app' },
+    meta: { layout: "app" },
   },
 
   // admissions
   {
-    path: '/registrations-new',
+    path: "/registrations-new",
     component: RegistrationsNew,
-    meta: { layout: 'app' },
+    meta: { layout: "app" },
   },
 
-  
+  // billing
+  {
+    path: "/billing",
+    component: Billing,
+    meta: { layout: "app" },
+  },
 
-
+  // invoice details
+  {
+    path: "/invoices/:id",
+    component: Invoice,
+    meta: { layout: "blank" },
+  },
 
   {
-    path: '/activity',
+    path: "/activity",
     component: Activity,
-    meta: { layout: 'app' },
+    meta: { layout: "app" },
   },
   {
-    path: '/curriculum',
+    path: "/curriculum",
     component: Curriculum,
-    meta: { layout: 'app' },
+    meta: { layout: "app" },
   },
   {
-    path: '/lesson-plan',
+    path: "/lesson-plan",
     component: LessonPlan,
-    meta: { layout: 'app' },
+    meta: { layout: "app" },
   },
   {
-    path: '/milestone-log',
+    path: "/milestone-log",
     component: MilestoneLog,
-    meta: { layout: 'app' },
+    meta: { layout: "app" },
   },
   {
-    path: '/progress-report',
+    path: "/progress-report",
     component: ProgressReport,
-    meta: { layout: 'app' },
+    meta: { layout: "app" },
   },
   {
-    path: '/report-admission',
+    path: "/report-admission",
     component: ReportAdmission,
-    meta: { layout: 'app' },
+    meta: { layout: "app" },
   },
   {
-    path: '/report-attendance',
+    path: "/report-attendance",
     component: ReportAttendance,
-    meta: { layout: 'app' },
+    meta: { layout: "app" },
   },
   {
-    path: '/report-late-check-out',
+    path: "/report-late-check-out",
     component: ReportLateCheckOut,
-    meta: { layout: 'app' },
+    meta: { layout: "app" },
   },
   {
-    path: '/report-activity',
+    path: "/report-activity",
     component: ReportActivity,
-    meta: { layout: 'app' },
+    meta: { layout: "app" },
   },
   {
-    path: '/help-support',
+    path: "/help-support",
     component: HelpSupport,
-    meta: { layout: 'app' },
-  }
-]
+    meta: { layout: "app" },
+  },
+];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-})
+});
 
-export default router
+export default router;

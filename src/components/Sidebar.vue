@@ -45,17 +45,13 @@
           title="New Registrations" to="/registrations-new"></v-list-item>
       </v-list-group>
 
-      <v-list-group>
-        <template v-slot:activator="{ props }">
-          <v-list-item v-bind="props" title="Billing" prepend-icon="mdi-wallet-bifold-outline"></v-list-item>
+      <!-- billing -->
+      <v-list-item @click="setActiveMenu('Billing')" :active="activeMenu === 'Billing'" to="/billing">
+        <template v-slot:prepend>
+          <v-icon>mdi-wallet-bifold-outline</v-icon>
         </template>
-        <v-list-item @click="setActiveMenu('Transactions')" :active="activeMenu === 'Transactions'" title="Transactions"
-          to="/transactions"></v-list-item>
-        <v-list-item @click="setActiveMenu('Students')" :active="activeMenu === 'Students'" title="Students"
-          to="/students"></v-list-item>
-        <v-list-item @click="setActiveMenu('Template')" :active="activeMenu === 'Template'" title="Template"
-          to="/template"></v-list-item>
-      </v-list-group>
+        <v-list-item-title>Billing</v-list-item-title>
+      </v-list-item>
 
       <v-list-item @click="setActiveMenu('Activity')" :active="activeMenu === 'Activity'" to="/activity">
         <template v-slot:prepend>

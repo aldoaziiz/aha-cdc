@@ -1,11 +1,11 @@
 <template>
-  <div class="registrations-content">
+  <div class="billing-content">
     <!-- Header -->
     <div class="page-header mb-6">
       <div>
-        <h1 class="text-h4 font-weight-bold mb-2">Registrations</h1>
+        <h1 class="text-h4 font-weight-bold mb-2">Billing</h1>
         <p class="text-body2 text-grey">
-          Manage and view registration data
+          Manage and view billing data
         </p>
       </div>
     </div>
@@ -23,7 +23,7 @@
             </template>
 
             <!-- Data Table -->
-            <v-data-table :headers="headers" :items="registrations" :search="search" :loading="loading">
+            <v-data-table :headers="headers" :items="billing" :search="search" :loading="loading">
 
               <!-- CHILD -->
               <template v-slot:item.child="{ item }">
@@ -72,9 +72,20 @@
 
               <!-- PAYMENT STATUS -->
               <template v-slot:item.payment_status.id="{ item }">
-                <v-chip :color="getStatusColor(item.payment_status?.id)" variant="tonal" size="small" class="mb-1">
-                  {{ item.payment_status?.name || '-' }}
-                </v-chip>
+                <div class="d-flex flex-column align-center">
+
+                  <!-- STATUS -->
+                  <v-chip :color="getStatusColor(item.payment_status?.id)" variant="tonal" size="small" class="mb-1">
+                    {{ item.payment_status?.name || '-' }}
+                  </v-chip>
+
+                  <!-- RECEIPT LINK -->
+                  <v-btn v-if="item.payment_status?.id === 2" variant="text" density="compact" size="small"
+                    class="pa-0 text-primary" @click="previewReceipt(item)">
+                    View Receipt
+                  </v-btn>
+
+                </div>
               </template>
 
               <!-- ACTION -->
@@ -88,13 +99,16 @@
                   </template>
 
                   <v-list>
-                    <v-list-item @click="view(item)">
-                      <v-list-item-title>👁 View</v-list-item-title>
+                    <v-list-item @click="createInvoice(item)">
+                      <v-list-item-title>Invoice</v-list-item-title>
                     </v-list-item>
-                    <v-list-item @click="edit(item)">
-                      <v-list-item-title>✏️ Edit</v-list-item-title>
+                    <v-list-item v-if="item.payment_status?.id === 2" @click="markAsPaid(item)">
+                      <v-list-item-title class="text-green">
+                        Mark as Paid
+                      </v-list-item-title>
                     </v-list-item>
                   </v-list>
+
                 </v-menu>
               </template>
 
@@ -104,22 +118,41 @@
         </v-card>
       </v-col>
     </v-row>
+
+    <v-dialog v-model="receiptDialog" max-width="500">
+      <v-card>
+        <v-card-title>Payment Receipt</v-card-title>
+
+        <v-card-text>
+          <v-img :src="receiptUrl" />
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer />
+          <v-btn text @click="receiptDialog = false">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import api from '@/services/api'
+import { useRouter } from 'vue-router'
 
-const registrations = ref([])
+const router = useRouter()
+const billing = ref([])
 const search = ref('')
 const loading = ref(false)
+const receiptDialog = ref(false)
+const receiptUrl = ref('')
 
 const headers = [
-  { title: 'Registration No', key: 'registration_number' },
+  { title: 'Reg. Number', key: 'registration_number' },
   { title: 'Child', key: 'child' },
   { title: 'Age', key: 'age' },
-  { title: 'Complaint', key: 'complaint' },
   { title: 'Program', key: 'program' },
   { title: 'Guardian', key: 'guardian' },
   { title: 'Registration Date', key: 'created_at' },
@@ -127,17 +160,26 @@ const headers = [
   { title: '', key: 'actions', sortable: false, align: 'center' }
 ]
 
+
 // FETCH DATA
 const fetchData = async () => {
   loading.value = true
   try {
     const res = await api.get('/registrations')
-    registrations.value = res.data.data
+    billing.value = res.data.data
   } catch (err) {
     console.error(err)
   } finally {
     loading.value = false
   }
+}
+
+// payment status color
+const getStatusColor = (id) => {
+  if (id === 1) return 'warning' // Unpaid (kuning)
+  if (id === 2) return 'grey'    // Waiting
+  if (id === 3) return 'green'   // Paid
+  return 'grey'
 }
 
 // FORMAT DATE
@@ -169,26 +211,38 @@ const calculateAge = (birthDate) => {
 }
 
 // ACTION
-const view = (item) => {
-  console.log('View:', item)
+const createInvoice = (item) => {
+  router.push(`/invoices/${item.id}`)
 }
 
-const edit = (item) => {
-  console.log('Edit:', item)
+const previewReceipt = (item) => {
+  receiptUrl.value = getReceiptUrl(item.payment_receipt)
+  receiptDialog.value = true
 }
 
-const getStatusColor = (id) => {
-  if (id === 1) return 'warning' // Unpaid (kuning)
-  if (id === 2) return 'grey'    // Waiting
-  if (id === 3) return 'green'   // Paid
-  return 'grey'
+const getReceiptUrl = (path) => {
+  return `http://localhost:8000/storage/${path}`
+}
+
+const markAsPaid = async (item) => {
+
+  if (!confirm('Are you sure you want to mark this as paid?')) return
+
+  try {
+    await api.put(`/registrations/${item.id}/mark-paid`)
+
+    fetchData()
+
+  } catch (err) {
+    console.error(err)
+  }
 }
 
 onMounted(fetchData)
 </script>
 
 <style scoped>
-.registrations-content {
+.billing-content {
   width: 100%;
 }
 

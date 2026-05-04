@@ -30,9 +30,6 @@
                   </div>
                 </div>
               </template>
-              <template v-slot:item.program="{ item }">
-                {{ item.program?.name || '-' }}
-              </template>
               <template v-slot:item.created_at="{ item }">
                 {{ formatDate(item.created_at) }}
               </template>
@@ -91,7 +88,6 @@ const headers = [
   { title: 'Name', key: 'name' },
   { title: 'Birth Date', key: 'birth_date' },
   { title: 'Gender', key: 'gender' },
-  { title: 'Program', key: 'program' },
   { title: 'Enrollment Date', key: 'created_at' },
   { title: 'Status', key: 'status' },
   { title: '', key: 'actions', sortable: false, align: 'center' }
@@ -123,7 +119,7 @@ const editChild = (item) => {
 }
 
 const deleteChild = async (id) => {
-  if (!confirm('Yakin mau hapus data ini?')) return
+  if (!confirm('Are you sure you want to delete this child?')) return
 
   try {
     await api.delete(`/children/${id}`)
@@ -151,7 +147,7 @@ const calculateAgeDetail = (birthDate) => {
 const toggleStatus = async (item) => {
   const isActive = Number(item.status?.id) === 1
 
-  if (!confirm(`Yakin mau ${isActive ? 'nonaktifkan' : 'aktifkan'} data ini?`)) return
+  if (!confirm(`Are you sure you want to ${isActive ? 'deactivate' : 'activate'} this child?`)) return
 
   try {
     await api.put(`/children/${item.id}`, {
