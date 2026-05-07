@@ -19,21 +19,9 @@
               </v-text-field>
             </template>
 
-            <v-data-table :headers="headers" :items="guardians" :search="search" :loading="loading">
-              <template v-slot:item.name="{ item }">
-                <div>
-                  <div>
-                    {{ item.name }}
-                  </div>
+            <v-data-table-server :headers="headers" :items="guardians" :items-length="totalItems" :loading="loading"
+              :page="page" :items-per-page="itemsPerPage" @update:options="onOptionsChange">
 
-                  <div class="text-caption text-grey">
-                    Children:
-                    {{item.children?.length
-                      ? item.children.map(child => child.name).join(', ')
-                      : '-'}}
-                  </div>
-                </div>
-              </template>
               <template v-slot:item.status="{ item }">
                 <v-chip size="small" :color="item.status?.id === 1 ? 'green' : 'grey'">
                   {{ item.status?.name || '-' }}
@@ -65,7 +53,7 @@
                   </v-list>
                 </v-menu>
               </template>
-            </v-data-table>
+            </v-data-table-server>
 
           </v-card>
         </v-card>
@@ -75,33 +63,64 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, onUnmounted } from 'vue'
+import debounce from 'lodash/debounce'
 import api from '@/services/api' // pakai axios instance kamu
 
 const pageTitle = 'Guardians'
 const pageSubtitle = 'Manage and view information about guardians'
+
 const guardians = ref([])
 const search = ref('')
 const loading = ref(false)
 
+const page = ref(1)
+const itemsPerPage = ref(10)
+const totalItems = ref(0)
+
 const headers = [
+  { title: 'ID No', key: 'id_number' },
   { title: 'Name', key: 'name' },
+  { title: 'Address', key: 'address' },
   { title: 'Phone', key: 'phone' },
   { title: 'Status', key: 'status' },
   { title: '', key: 'actions', sortable: false, align: 'center' }
 ]
 
-const fetchGuardians = async () => {
+const fetchData = async () => {
   loading.value = true
+
   try {
-    const response = await api.get('/guardians')
-    guardians.value = response.data.data
-  } catch (error) {
-    console.error(error)
+    const res = await api.get('/guardians', {
+      params: {
+        page: page.value,
+        per_page: itemsPerPage.value,
+        search: search.value
+      }
+    })
+
+    guardians.value = res.data.data
+    totalItems.value = res.data.total
+
+  } catch (err) {
+    console.error(err)
   } finally {
     loading.value = false
   }
 }
+
+const debouncedFetch = debounce(() => {
+  page.value = 1
+  fetchData()
+}, 500)
+
+watch(search, () => {
+  debouncedFetch()
+})
+
+onUnmounted(() => {
+  debouncedFetch.cancel()
+})
 
 const editGuardian = (item) => {
   console.log('Edit:', item)
@@ -113,7 +132,7 @@ const deleteGuardian = async (id) => {
 
   try {
     await api.delete(`/guardians/${id}`)
-    fetchGuardians() // refresh data
+    fetchData() // refresh data
   } catch (error) {
     console.error(error)
   }
@@ -129,13 +148,20 @@ const toggleStatus = async (item) => {
       status_id: isActive ? 2 : 1
     })
 
-    fetchGuardians()
+    fetchData()
   } catch (error) {
     console.error(error)
   }
 }
 
-onMounted(fetchGuardians)
+const onOptionsChange = (options) => {
+  page.value = options.page
+  itemsPerPage.value = options.itemsPerPage
+
+  fetchData()
+}
+
+onMounted(fetchData)
 </script>
 
 <style scoped>

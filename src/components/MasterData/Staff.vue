@@ -19,7 +19,8 @@
               </v-text-field>
             </template>
 
-            <v-data-table :headers="headers" :items="staff" :search="search" :loading="loading">
+            <v-data-table-server :headers="headers" :items="staff" :items-length="totalItems" :loading="loading"
+              :page="page" :items-per-page="itemsPerPage" @update:options="onOptionsChange">
               <template v-slot:item.staff_role="{ item }">
                 {{ item.staff_role?.name || '-' }}
               </template>
@@ -54,7 +55,7 @@
                   </v-list>
                 </v-menu>
               </template>
-            </v-data-table>
+            </v-data-table-server>
 
           </v-card>
         </v-card>
@@ -64,18 +65,23 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, onUnmounted } from 'vue'
+import debounce from 'lodash/debounce'
 import api from '@/services/api' // pakai axios instance kamu
 
 const pageTitle = 'Staff'
 const pageSubtitle = 'Manage and view information about staff'
+
 const staff = ref([])
 const search = ref('')
 const loading = ref(false)
 
+const page = ref(1)
+const itemsPerPage = ref(10)
+const totalItems = ref(0)
+
 const headers = [
   { title: 'Name', key: 'name' },
-  { title: 'Title', key: 'title' },
   { title: 'Email', key: 'email' },
   { title: 'Role', key: 'staff_role' },
   { title: 'Phone', key: 'phone' },
@@ -83,13 +89,23 @@ const headers = [
   { title: '', key: 'actions', sortable: false, align: 'center' }
 ]
 
-const fetchStaff = async () => {
+const fetchData = async () => {
   loading.value = true
+
   try {
-    const response = await api.get('/staff')
-    staff.value = response.data.data
-  } catch (error) {
-    console.error(error)
+    const res = await api.get('/staff', {
+      params: {
+        page: page.value,
+        per_page: itemsPerPage.value,
+        search: search.value
+      }
+    })
+
+    staff.value = res.data.data
+    totalItems.value = res.data.total
+
+  } catch (err) {
+    console.error(err)
   } finally {
     loading.value = false
   }
@@ -105,7 +121,7 @@ const deleteStaff = async (id) => {
 
   try {
     await api.delete(`/staff/${id}`)
-    fetchStaff() // refresh data
+    fetchData() // refresh data
   } catch (error) {
     console.error(error)
   }
@@ -121,13 +137,33 @@ const toggleStatus = async (item) => {
       status_id: isActive ? 2 : 1
     })
 
-    fetchStaff()
+    fetchData()
   } catch (error) {
     console.error(error)
   }
 }
 
-onMounted(fetchStaff)
+const onOptionsChange = (options) => {
+  page.value = options.page
+  itemsPerPage.value = options.itemsPerPage
+
+  fetchData()
+}
+
+const debouncedFetch = debounce(() => {
+  page.value = 1
+  fetchData()
+}, 500)
+
+watch(search, () => {
+  debouncedFetch()
+})
+
+onUnmounted(() => {
+  debouncedFetch.cancel()
+})
+
+onMounted(fetchData)
 </script>
 
 <style scoped>

@@ -23,9 +23,8 @@
             </template>
 
             <!-- Data Table -->
-            <v-data-table :headers="headers" :items="registrations" :search="search" :loading="loading">
-
-              <!-- CHILD -->
+            <v-data-table-server :headers="headers" :items="registrations" :items-length="totalItems" :loading="loading"
+              :page="page" :items-per-page="itemsPerPage" @update:options="onOptionsChange" <!-- CHILD -->
               <template v-slot:item.child="{ item }">
                 <div>
                   <div class="font-weight-medium">
@@ -94,11 +93,16 @@
                     <v-list-item @click="edit(item)">
                       <v-list-item-title>✏️ Edit</v-list-item-title>
                     </v-list-item>
+                    <v-list-item @click="schedule(item)">
+                      <v-list-item-title>
+                        🗓️ Create Schedule
+                      </v-list-item-title>
+                    </v-list-item>
                   </v-list>
                 </v-menu>
               </template>
 
-            </v-data-table>
+            </v-data-table-server>
 
           </v-card>
         </v-card>
@@ -108,12 +112,34 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import api from '@/services/api'
+import debounce from 'lodash/debounce'
+import { onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const registrations = ref([])
 const search = ref('')
 const loading = ref(false)
+
+const page = ref(1)
+const itemsPerPage = ref(10)
+const totalItems = ref(0)
+
+const debouncedFetch = debounce(() => {
+  page.value = 1 // 🔥 reset ke halaman 1 saat search
+  fetchData()
+}, 500)
+
+watch(search, () => {
+  debouncedFetch()
+})
+
+const schedule = (item) => {
+  router.push(`/registrations/${item.id}/schedule`)
+}
 
 const headers = [
   { title: 'Registration No', key: 'registration_number' },
@@ -131,8 +157,17 @@ const headers = [
 const fetchData = async () => {
   loading.value = true
   try {
-    const res = await api.get('/registrations')
+    const res = await api.get('/registrations', {
+      params: {
+        page: page.value,
+        per_page: itemsPerPage.value,
+        search: search.value
+      }
+    })
+
     registrations.value = res.data.data
+    totalItems.value = res.data.total
+
   } catch (err) {
     console.error(err)
   } finally {
@@ -183,6 +218,16 @@ const getStatusColor = (id) => {
   if (id === 3) return 'green'   // Paid
   return 'grey'
 }
+
+const onOptionsChange = (options) => {
+  page.value = options.page
+  itemsPerPage.value = options.itemsPerPage
+  fetchData()
+}
+
+onUnmounted(() => {
+  debouncedFetch.cancel()
+})
 
 onMounted(fetchData)
 </script>

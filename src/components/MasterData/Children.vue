@@ -19,7 +19,8 @@
               </v-text-field>
             </template>
 
-            <v-data-table :headers="headers" :items="children" :search="search" :loading="loading">
+            <v-data-table-server :headers="headers" :items="children" :items-length="totalItems" :loading="loading"
+              :page="page" :items-per-page="itemsPerPage" @update:options="onOptionsChange">
               <template v-slot:item.birth_date="{ item }">
                 <div>
                   <div>
@@ -34,7 +35,7 @@
                 {{ formatDate(item.created_at) }}
               </template>
               <template v-slot:item.status="{ item }">
-                <v-chip size="small" :color="Number(item.status?.id) === 1 ? 'green' : 'grey'">
+                <v-chip size="small" :color="Number(item.status_id) === 1 ? 'green' : 'grey'">
                   {{ item.status?.name || '-' }}
                 </v-chip>
               </template>
@@ -64,7 +65,7 @@
                   </v-list>
                 </v-menu>
               </template>
-            </v-data-table>
+            </v-data-table-server>
 
           </v-card>
         </v-card>
@@ -74,8 +75,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, onUnmounted } from 'vue'
+import debounce from 'lodash/debounce'
 import api from '@/services/api' // pakai axios instance kamu
+
 
 const pageTitle = 'Children'
 const pageSubtitle = 'Manage and view information about children'
@@ -83,23 +86,37 @@ const children = ref([])
 const search = ref('')
 const loading = ref(false)
 
+const page = ref(1)
+const itemsPerPage = ref(10)
+const totalItems = ref(0)
+
 const headers = [
   { title: 'ID Number', key: 'id_number' },
   { title: 'Name', key: 'name' },
   { title: 'Birth Date', key: 'birth_date' },
   { title: 'Gender', key: 'gender' },
   { title: 'Enrollment Date', key: 'created_at' },
+  { title: 'Address', key: 'address' },
   { title: 'Status', key: 'status' },
   { title: '', key: 'actions', sortable: false, align: 'center' }
 ]
 
-const fetchChildren = async () => {
+const fetchData = async () => {
   loading.value = true
   try {
-    const response = await api.get('/children')
-    children.value = response.data.data
-  } catch (error) {
-    console.error(error)
+    const res = await api.get('/children', {
+      params: {
+        page: page.value,
+        per_page: itemsPerPage.value,
+        search: search.value
+      }
+    })
+
+    children.value = res.data.data
+    totalItems.value = res.data.total
+
+  } catch (err) {
+    console.error(err)
   } finally {
     loading.value = false
   }
@@ -123,7 +140,7 @@ const deleteChild = async (id) => {
 
   try {
     await api.delete(`/children/${id}`)
-    fetchChildren() // refresh data
+    fetchData() // refresh data
   } catch (error) {
     console.error(error)
   }
@@ -154,13 +171,32 @@ const toggleStatus = async (item) => {
       status_id: isActive ? 2 : 1
     })
 
-    fetchChildren()
+    fetchData()
   } catch (error) {
     console.error(error)
   }
 }
 
-onMounted(fetchChildren)
+const debouncedFetch = debounce(() => {
+  page.value = 1
+  fetchData()
+}, 500)
+
+const onOptionsChange = (options) => {
+  page.value = options.page
+  itemsPerPage.value = options.itemsPerPage
+  fetchData()
+}
+
+watch(search, () => {
+  debouncedFetch()
+})
+
+onUnmounted(() => {
+  debouncedFetch.cancel()
+})
+
+onMounted(fetchData)
 </script>
 
 <style scoped>

@@ -25,6 +25,9 @@ import RegistrationsNew from "@/components/Admissions/Registrations.vue";
 import Billing from "@/components/Billing.vue";
 import Invoice from "@/components/Invoice.vue";
 
+// schedule
+import Schedule from "@/components/Transactions/Schedule.vue";
+
 import Activity from "@/components/Activity.vue";
 
 import Curriculum from "@/components/Learning/Curriculum.vue";
@@ -108,6 +111,13 @@ const routes: RouteRecordRaw[] = [
     path: "/invoices/:id",
     component: Invoice,
     meta: { layout: "blank" },
+  },
+
+  // Schedule
+  {
+    path: "/registrations/:id/schedule",
+    component: Schedule,
+    meta: { layout: "app" },
   },
 
   {
