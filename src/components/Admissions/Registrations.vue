@@ -1,173 +1,224 @@
 <template>
+
+  <!-- SNACKBAR -->
   <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="3000" location="top right" elevation="2">
     {{ snackbarText }}
   </v-snackbar>
-  <div class="registration-page">
-    <v-container max-width="800">
 
-      <!-- Header -->
-      <div class="mb-8">
-        <h1 class="text-h5 font-weight-bold">FORM DATA PESERTA ASSESMENT BEHAVIOR & LEARNING THERAPY</h1>
-        <p class="text-body2 text-grey">Fill in the information below</p>
+  <div class="registration-content">
+
+    <!-- HEADER -->
+    <div class="page-header mb-8">
+
+      <div>
+        <h1 class="text-h4 font-weight-bold mb-2">
+          New Registration for Assessment Behavior & Learning Therapy
+        </h1>
+
+        <p class="text-body2 text-grey">
+          Fill in the information below
+        </p>
       </div>
 
-      <v-form ref="formRef" @submit.prevent="submitForm">
+    </div>
 
-        <!-- ================= CHILD ================= -->
-        <v-card class="mb-6" elevation="1">
-          <v-card-title>Child Information</v-card-title>
-          <v-card-text>
+    <!-- FORM -->
+    <v-form ref="formRef" @submit.prevent="submitForm">
 
-            <v-radio-group v-model="childMode" inline>
-              <v-radio label="New Child" value="new" />
-              <v-radio label="Select Existing" value="existing" />
-            </v-radio-group>
+      <!-- ================= CHILD ================= -->
+      <v-card class="mb-6 rounded-lg" elevation="1">
 
-            <v-autocomplete v-model="selectedChild" :items="childrenOptions" item-title="name" item-value="id"
-              label="Select Child" :disabled="childMode === 'new'" :clearable="childMode !== 'existing'" />
+        <v-card-title>
+          Child Information
+        </v-card-title>
 
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="form.child.name" label="Full Name" :rules="[rules.required]"
-                  :readonly="childMode === 'existing'" />
-              </v-col>
+        <v-card-text>
 
-              <v-col cols="12" md="6">
-                <v-text-field v-model="form.child.nickname" label="Nickname" :readonly="childMode === 'existing'" />
-              </v-col>
+          <v-radio-group v-model="childMode" inline>
+            <v-radio label="New Child" value="new" />
 
-              <v-col cols="12" md="6">
-                <v-text-field v-model="form.child.id_number" label="ID Number" :readonly="childMode === 'existing'" />
-              </v-col>
+            <v-radio label="Select Existing" value="existing" />
+          </v-radio-group>
 
-              <v-col cols="12" md="6">
-                <v-text-field v-model="form.child.birth_date" type="date" label="Birth Date" :rules="[rules.required]"
-                  :readonly="childMode === 'existing'" />
-              </v-col>
+          <v-autocomplete v-model="selectedChild" :items="childrenOptions" item-title="name" item-value="id"
+            label="Select Child" :disabled="childMode === 'new'" :clearable="childMode !== 'existing'" class="mb-4" />
 
-              <v-col cols="12" md="6">
-                <v-autocomplete v-model="form.child.birthplace_id" :items="cities" item-title="name" item-value="id"
-                  label="Birthplace" :rules="[rules.required]" :clearable="childMode !== 'existing'"
-                  :readonly="childMode === 'existing'" />
-              </v-col>
+          <v-row>
 
-              <v-col cols="12" md="6">
-                <v-autocomplete v-model="form.child.hometown_id" :items="cities" item-title="name" item-value="id"
-                  label="Hometown" :rules="[rules.required]" :clearable="childMode !== 'existing'"
-                  :readonly="childMode === 'existing'" />
-              </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field v-model="form.child.name" label="Full Name" :rules="[rules.required]"
+                :readonly="childMode === 'existing'" />
+            </v-col>
 
-              <v-col cols="12" md="6">
-                <v-autocomplete v-model="form.child.school_id" :items="schools" item-title="name" item-value="id"
-                  label="School" :clearable="childMode !== 'existing'" :readonly="childMode === 'existing'" />
-              </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field v-model="form.child.nickname" label="Nickname" :readonly="childMode === 'existing'" />
+            </v-col>
 
-              <v-col cols="12" md="6">
-                <v-autocomplete v-model="form.child.school_class_id" :items="schoolClasses" item-title="name"
-                  item-value="id" label="Class" :clearable="childMode !== 'existing'"
-                  :readonly="childMode === 'existing'" />
-              </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field v-model="form.child.id_number" label="ID Number" :rules="[rules.required]"
+                :readonly="childMode === 'existing'" />
+            </v-col>
 
-              <v-col cols="12" md="6">
-                <v-autocomplete v-model="form.child.school_education_id" :items="schoolEducations" item-title="name"
-                  item-value="id" label="Education" :clearable="childMode !== 'existing'"
-                  :readonly="childMode === 'existing'" />
-              </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field v-model="form.child.birth_date" type="date" label="Birth Date" :rules="[rules.required]"
+                :readonly="childMode === 'existing'" />
+            </v-col>
 
-              <v-col cols="12" md="6">
-                <v-text-field :model-value="age" label="Age" readonly />
-              </v-col>
+            <v-col cols="12" md="6">
+              <v-autocomplete v-model="form.child.birthplace_id" :items="cities" item-title="name" item-value="id"
+                label="Birthplace" :rules="[rules.required]" :clearable="childMode !== 'existing'"
+                :readonly="childMode === 'existing'" />
+            </v-col>
 
-              <v-col cols="12" md="6">
-                <v-select v-model="form.child.gender" :items="['Male', 'Female']" label="Gender"
-                  :rules="[rules.required]" :readonly="childMode === 'existing'" />
-              </v-col>
+            <v-col cols="12" md="6">
+              <v-autocomplete v-model="form.child.hometown_id" :items="cities" item-title="name" item-value="id"
+                label="Hometown" :clearable="childMode !== 'existing'" :readonly="childMode === 'existing'" />
+            </v-col>
 
-              <v-col cols="12">
-                <v-textarea v-model="form.child.address" label="Address" rows="2"
-                  :readonly="childMode === 'existing'" />
-              </v-col>
-            </v-row>
+            <v-col cols="12" md="6">
+              <v-autocomplete v-model="form.child.school_id" :items="schools" item-title="name" item-value="id"
+                label="School" :clearable="childMode !== 'existing'" :readonly="childMode === 'existing'" />
+            </v-col>
 
-          </v-card-text>
-        </v-card>
+            <v-col cols="12" md="6">
+              <v-autocomplete v-model="form.child.school_class_id" :items="schoolClasses" item-title="name"
+                item-value="id" label="Class" :clearable="childMode !== 'existing'"
+                :readonly="childMode === 'existing'" />
+            </v-col>
 
-        <!-- ================= GUARDIAN ================= -->
-        <v-card class="mb-6" elevation="1">
-          <v-card-title>Parent / Guardian</v-card-title>
-          <v-card-text>
+            <v-col cols="12" md="6">
+              <v-autocomplete v-model="form.child.school_education_id" :items="schoolEducations" item-title="name"
+                item-value="id" label="Education" :clearable="childMode !== 'existing'"
+                :readonly="childMode === 'existing'" />
+            </v-col>
 
-            <v-radio-group v-model="guardianMode" inline>
-              <v-radio label="New Guardian" value="new" />
-              <v-radio label="Select Existing" value="existing" />
-            </v-radio-group>
+            <v-col cols="12" md="6">
+              <v-text-field :model-value="age" label="Age" readonly />
+            </v-col>
 
-            <v-autocomplete v-model="selectedGuardian" :items="guardiansOptions" item-title="name" item-value="id"
-              label="Select Guardian" :disabled="guardianMode === 'new'" :clearable="guardianMode !== 'existing'" />
+            <v-col cols="12" md="6">
+              <v-select v-model="form.child.gender" :items="['Male', 'Female']" label="Gender" :rules="[rules.required]"
+                :readonly="childMode === 'existing'" />
+            </v-col>
 
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-text-field v-model="form.guardian.name" label="Name" :rules="[rules.required]"
-                  :readonly="guardianMode === 'existing'" />
-              </v-col>
+            <v-col cols="12">
+              <v-textarea v-model="form.child.address" label="Address" rows="2" :readonly="childMode === 'existing'" />
+            </v-col>
 
-              <v-col cols="12" md="6">
-                <v-text-field v-model="form.guardian.phone" label="Phone" :rules="[rules.required, rules.phone]"
-                  :readonly="guardianMode === 'existing'" />
-              </v-col>
+          </v-row>
 
-              <v-col cols="12" md="6">
-                <v-text-field v-model="form.guardian.id_number" label="ID Number"
-                  :readonly="guardianMode === 'existing'" />
-              </v-col>
+        </v-card-text>
 
-              <!-- RELATION JANGAN READONLY -->
+      </v-card>
+
+      <!-- ================= GUARDIAN ================= -->
+      <v-card class="mb-6 rounded-lg" elevation="1">
+
+        <v-card-title>
+          Parent / Guardian
+        </v-card-title>
+
+        <v-card-text>
+
+          <v-radio-group v-model="guardianMode" inline>
+            <v-radio label="New Guardian" value="new" />
+
+            <v-radio label="Select Existing" value="existing" />
+          </v-radio-group>
+
+          <v-autocomplete v-model="selectedGuardian" :items="guardiansOptions" item-title="name" item-value="id"
+            label="Select Guardian" :disabled="guardianMode === 'new'" :clearable="guardianMode !== 'existing'"
+            class="mb-4" />
+
+          <v-row>
+
+            <v-col cols="12" md="6">
+              <v-text-field v-model="form.guardian.name" label="Name" :rules="[rules.required]"
+                :readonly="guardianMode === 'existing'" />
+            </v-col>
+
+            <v-col cols="12" md="6">
+              <v-text-field v-model="form.guardian.phone" label="Phone" :rules="[rules.required, rules.phone]"
+                :readonly="guardianMode === 'existing'" />
+            </v-col>
+
+            <v-col cols="12" md="6">
+              <v-text-field v-model="form.guardian.id_number" label="ID Number" :rules="[rules.required]"
+                :readonly="guardianMode === 'existing'" />
+            </v-col>
+
+            <v-col cols="12" md="6">
               <v-autocomplete v-model="form.guardian.guardian_role_id" :items="guardianRoles" item-title="name"
                 item-value="id" label="Relation" :rules="[rules.required]" clearable />
+            </v-col>
 
-              <v-col cols="12">
-                <v-textarea v-model="form.guardian.address" label="Address" rows="2"
-                  :readonly="guardianMode === 'existing'" />
-              </v-col>
-            </v-row>
+            <v-col cols="12">
+              <v-textarea v-model="form.guardian.address" label="Address" rows="2"
+                :readonly="guardianMode === 'existing'" />
+            </v-col>
 
-          </v-card-text>
-        </v-card>
+          </v-row>
 
-        <!-- ================= PROGRAM ================= -->
-        <v-card class="mb-6" elevation="1">
-          <v-card-title>Program</v-card-title>
-          <v-card-text>
-            <v-row>
-              <v-col cols="12">
-                <v-textarea v-model="form.registration.complaint" label="Complaint" rows="2"
-                  :rules="[rules.required]" />
-              </v-col>
+        </v-card-text>
 
-              <v-col cols="12" md="6">
-                <v-autocomplete v-model="form.registration.program_id" :items="programs" item-title="name"
-                  item-value="id" label="Program" :rules="[rules.required]" clearable />
-              </v-col>
+      </v-card>
 
-              <v-col cols="12" md="6">
-                <v-autocomplete v-model="form.registration.payer_id" :items="payers" item-title="name" item-value="id"
-                  label="Payment" :rules="[rules.required]" clearable />
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
+      <!-- ================= PROGRAM ================= -->
+      <v-card class="mb-6 rounded-lg" elevation="1">
 
-        <!-- ACTION -->
-        <div class="text-right">
-          <v-btn color="primary" type="submit" :loading="loading" :disabled="loading">
-            Save Registration
-          </v-btn>
-        </div>
+        <v-card-title>
+          Program
+        </v-card-title>
 
-      </v-form>
-    </v-container>
+        <v-card-text>
+
+          <v-row>
+
+            <v-col cols="12">
+              <v-textarea v-model="form.registration.complaint" label="Complaint" rows="2" :rules="[rules.required]" />
+            </v-col>
+
+            <v-col cols="12" md="6">
+              <v-autocomplete v-model="form.registration.program_id" :items="programs" item-title="name" item-value="id"
+                label="Program" :rules="[rules.required]" clearable />
+            </v-col>
+
+            <v-col cols="12" md="6">
+              <v-autocomplete v-model="form.registration.payer_id" :items="payers" item-title="name" item-value="id"
+                label="Payment" :rules="[rules.required]" clearable />
+            </v-col>
+
+          </v-row>
+
+        </v-card-text>
+
+      </v-card>
+
+      <!-- ACTION -->
+      <div class="text-right">
+
+        <v-btn color="primary" type="submit" :loading="loading" :disabled="loading">
+          Save Registration
+        </v-btn>
+
+      </div>
+
+    </v-form>
+
   </div>
 </template>
+
+<style scoped>
+.registration-content {
+  width: 100%;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+</style>
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'

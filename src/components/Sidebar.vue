@@ -34,6 +34,8 @@
         </template>
         <v-list-item @click="setActiveMenu('Registrations')" :active="activeMenu === 'Registrations'"
           title="Registrations" to="/registrations"></v-list-item>
+        <v-list-item @click="setActiveMenu('TherapySessions')" :active="activeMenu === 'TherapySessions'"
+          title="Therapy Sessions" to="/therapy-sessions"></v-list-item>
       </v-list-group>
 
       <!-- admission -->
@@ -53,6 +55,7 @@
         <v-list-item-title>Billing</v-list-item-title>
       </v-list-item>
 
+      <!-- activity -->
       <v-list-item @click="setActiveMenu('Activity')" :active="activeMenu === 'Activity'" to="/activity">
         <template v-slot:prepend>
           <v-icon>mdi-pencil-box-multiple-outline</v-icon>
@@ -60,33 +63,13 @@
         <v-list-item-title>Activity</v-list-item-title>
       </v-list-item>
 
-      <v-list-group>
-        <template v-slot:activator="{ props }">
-          <v-list-item v-bind="props" title="Learning" prepend-icon="mdi-school"></v-list-item>
+      <!-- report -->
+      <v-list-item @click="setActiveMenu('Report')" :active="activeMenu === 'Report'" to="/report">
+        <template v-slot:prepend>
+          <v-icon>mdi-chart-bar</v-icon>
         </template>
-        <v-list-item @click="setActiveMenu('Curriculum')" :active="activeMenu === 'Curriculum'" title="Curriculum"
-          to="/curriculum"></v-list-item>
-        <v-list-item @click="setActiveMenu('LessonPlan')" :active="activeMenu === 'LessonPlan'" title="Lesson Plan"
-          to="/lesson-plan"></v-list-item>
-        <v-list-item @click="setActiveMenu('MilestoneLog')" :active="activeMenu === 'MilestoneLog'"
-          title="Milestone Log" to="/milestone-log"></v-list-item>
-        <v-list-item @click="setActiveMenu('ProgressReport')" :active="activeMenu === 'ProgressReport'"
-          title="Progress Report" to="/progress-report"></v-list-item>
-      </v-list-group>
-
-      <v-list-group>
-        <template v-slot:activator="{ props }">
-          <v-list-item v-bind="props" title="Report" prepend-icon="mdi-chart-bar"></v-list-item>
-        </template>
-        <v-list-item @click="setActiveMenu('ReportAdmission')" :active="activeMenu === 'ReportAdmission'"
-          title="Admission" to="/report-admission"></v-list-item>
-        <v-list-item @click="setActiveMenu('ReportAttendance')" :active="activeMenu === 'ReportAttendance'"
-          title="Attendance" to="/report-attendance"></v-list-item>
-        <v-list-item @click="setActiveMenu('ReportLateCheckOut')" :active="activeMenu === 'ReportLateCheckOut'"
-          title="Late Check-Out" to="/report-late-check-out"></v-list-item>
-        <v-list-item @click="setActiveMenu('ReportActivity')" :active="activeMenu === 'ReportActivity'" title="Activity"
-          to="/report-activity"></v-list-item>
-      </v-list-group>
+        <v-list-item-title>Report</v-list-item-title>
+      </v-list-item>
 
     </v-list>
 

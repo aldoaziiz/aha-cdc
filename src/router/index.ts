@@ -17,6 +17,7 @@ import Rooms from "@/components/MasterData/Rooms.vue";
 
 // transactions
 import Registrations from "@/components/Transactions/Registrations.vue";
+import TherapySessions from "@/components/Transactions/TherapySessions.vue";
 
 // admissions
 import RegistrationsNew from "@/components/Admissions/Registrations.vue";
@@ -28,17 +29,10 @@ import Invoice from "@/components/Invoice.vue";
 // schedule
 import Schedule from "@/components/Transactions/Schedule.vue";
 
+// activity create
 import Activity from "@/components/Activity.vue";
-
-import Curriculum from "@/components/Learning/Curriculum.vue";
-import LessonPlan from "@/components/Learning/LessonPlan.vue";
-import MilestoneLog from "@/components/Learning/Milestone Log.vue";
-import ProgressReport from "@/components/Learning/ProgressReport.vue";
-
-import ReportAdmission from "@/components/Report/ReportAdmission.vue";
-import ReportAttendance from "@/components/Report/ReportAttendance.vue";
-import ReportLateCheckOut from "@/components/Report/ReportLateCheckOut.vue";
-import ReportActivity from "@/components/Report/ReportActivity.vue";
+import ActivityCreate from "@/components/ActivityCreate.vue";
+import ActivityEdit from "@/components/ActivityEdit.vue";
 
 import HelpSupport from "@/components/HelpSupport.vue";
 
@@ -91,6 +85,11 @@ const routes: RouteRecordRaw[] = [
     component: Registrations,
     meta: { layout: "app" },
   },
+  {
+    path: "/therapy-sessions",
+    component: TherapySessions,
+    meta: { layout: "app" },
+  },
 
   // admissions
   {
@@ -120,51 +119,23 @@ const routes: RouteRecordRaw[] = [
     meta: { layout: "app" },
   },
 
+  // Activity
   {
     path: "/activity",
     component: Activity,
     meta: { layout: "app" },
   },
   {
-    path: "/curriculum",
-    component: Curriculum,
+    path: "/activity/create",
+    component: ActivityCreate,
     meta: { layout: "app" },
   },
   {
-    path: "/lesson-plan",
-    component: LessonPlan,
+    path: "/activity/:id/edit",
+    component: ActivityEdit,
     meta: { layout: "app" },
   },
-  {
-    path: "/milestone-log",
-    component: MilestoneLog,
-    meta: { layout: "app" },
-  },
-  {
-    path: "/progress-report",
-    component: ProgressReport,
-    meta: { layout: "app" },
-  },
-  {
-    path: "/report-admission",
-    component: ReportAdmission,
-    meta: { layout: "app" },
-  },
-  {
-    path: "/report-attendance",
-    component: ReportAttendance,
-    meta: { layout: "app" },
-  },
-  {
-    path: "/report-late-check-out",
-    component: ReportLateCheckOut,
-    meta: { layout: "app" },
-  },
-  {
-    path: "/report-activity",
-    component: ReportActivity,
-    meta: { layout: "app" },
-  },
+
   {
     path: "/help-support",
     component: HelpSupport,
