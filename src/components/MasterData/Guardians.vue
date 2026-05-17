@@ -35,14 +35,19 @@
                     </v-btn>
                   </template>
                   <v-list>
-                    <v-list-item @click="editGuardian(item)">
+                    <v-list-item @click="openDetails(item)">
                       <v-list-item-title>
-                        ✏️ Edit
+                        Details
+                      </v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="goToEdit(item.id)">
+                      <v-list-item-title>
+                        Edit
                       </v-list-item-title>
                     </v-list-item>
                     <v-list-item @click="deleteGuardian(item.id)">
                       <v-list-item-title>
-                        🗑️ Delete
+                        Delete
                       </v-list-item-title>
                     </v-list-item>
                     <v-list-item @click="toggleStatus(item)">
@@ -59,27 +64,102 @@
         </v-card>
       </v-col>
     </v-row>
+
+    <v-dialog v-model="detailsDialog" max-width="700" scrollable>
+      <v-card rounded="xl">
+        <v-card-title class="d-flex justify-space-between align-center">
+          <div class="text-h6 font-weight-bold">Guardian Details</div>
+          <v-btn icon variant="text" @click="detailsDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-divider />
+
+        <v-card-text v-if="detailsLoading" class="py-6 d-flex justify-center align-center" style="min-height: 250px;">
+          <div class="text-center">
+            <v-progress-circular indeterminate color="primary" size="48" class="mb-4" />
+            <div class="text-body-2 text-grey">Loading guardian details...</div>
+          </div>
+        </v-card-text>
+
+        <v-card-text v-else-if="selectedGuardian" class="py-6">
+          <v-row>
+            <v-col cols="12" md="6">
+              <div class="detail-label">ID Number</div>
+              <div class="detail-value">{{ selectedGuardian.id_number || '-' }}</div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-label">Full Name</div>
+              <div class="detail-value">{{ selectedGuardian.name || '-' }}</div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-label">Phone</div>
+              <div class="detail-value">{{ selectedGuardian.phone || '-' }}</div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-label">Address</div>
+              <div class="detail-value">{{ selectedGuardian.address || '-' }}</div>
+            </v-col>
+
+            <!-- CHILDREN -->
+            <v-col cols="12">
+
+              <div class="detail-label">
+                Children
+              </div>
+              <div v-if="selectedGuardian.children?.length">
+
+                <div v-for="children in selectedGuardian.children" :key="children.id" class="children-item">
+
+                  <div class="detail-value">
+                    {{ children.name }}
+                  </div>
+
+                </div>
+
+              </div>
+
+              <div v-else class="detail-value">
+                -
+              </div>
+
+            </v-col>
+          </v-row>
+        </v-card-text>
+
+        <v-card-text v-else class="py-6">
+          <div class="text-body-2 text-grey">No guardian details available.</div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import debounce from 'lodash/debounce'
 import api from '@/services/api' // pakai axios instance kamu
 
+const router = useRouter()
 const pageTitle = 'Guardians'
 const pageSubtitle = 'Manage and view information about guardians'
 
 const guardians = ref([])
 const search = ref('')
 const loading = ref(false)
+const detailsDialog = ref(false)
+const selectedGuardian = ref(null)
+const detailsLoading = ref(false)
 
 const page = ref(1)
 const itemsPerPage = ref(10)
 const totalItems = ref(0)
+const sortBy = ref([])
 
 const headers = [
-  { title: 'ID No', key: 'id_number' },
+  { title: 'ID No.', key: 'id_number' },
   { title: 'Name', key: 'name' },
   { title: 'Address', key: 'address' },
   { title: 'Phone', key: 'phone' },
@@ -95,7 +175,13 @@ const fetchData = async () => {
       params: {
         page: page.value,
         per_page: itemsPerPage.value,
-        search: search.value
+        search: search.value,
+
+        sort_by:
+          sortBy.value[0]?.key,
+
+        sort_order:
+          sortBy.value[0]?.order
       }
     })
 
@@ -122,9 +208,21 @@ onUnmounted(() => {
   debouncedFetch.cancel()
 })
 
-const editGuardian = (item) => {
-  console.log('Edit:', item)
-  // nanti kita buka dialog edit di sini
+const openDetails = async (item) => {
+  detailsLoading.value = true
+  try {
+    const res = await api.get(`/guardians/${item.id}`)
+    selectedGuardian.value = res.data
+    detailsDialog.value = true
+  } catch (err) {
+    console.error('Error fetching guardian details:', err)
+  } finally {
+    detailsLoading.value = false
+  }
+}
+
+const goToEdit = (id) => {
+  router.push(`/guardians/${id}/edit`)
 }
 
 const deleteGuardian = async (id) => {
@@ -136,6 +234,15 @@ const deleteGuardian = async (id) => {
   } catch (error) {
     console.error(error)
   }
+}
+
+const formatDate = (date) => {
+  if (!date) return '-'
+  return new Date(date).toLocaleDateString('en-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  })
 }
 
 const toggleStatus = async (item) => {
@@ -154,17 +261,48 @@ const toggleStatus = async (item) => {
   }
 }
 
-const onOptionsChange = (options) => {
+const onOptionsChange = (
+  options
+) => {
+
   page.value = options.page
-  itemsPerPage.value = options.itemsPerPage
+
+  itemsPerPage.value =
+    options.itemsPerPage
+
+  sortBy.value =
+    options.sortBy
 
   fetchData()
+
 }
 
 onMounted(fetchData)
 </script>
 
 <style scoped>
+.children-item {
+  margin-bottom: 12px;
+}
+
+.children-item:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  font-size: 12px;
+  color: rgb(120, 120, 120);
+
+  margin-bottom: 4px;
+}
+
+.detail-value {
+  font-size: 15px;
+  font-weight: 500;
+
+  word-break: break-word;
+}
+
 .guardians-content {
   width: 100%;
 }

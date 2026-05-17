@@ -59,8 +59,18 @@ const routes: RouteRecordRaw[] = [
     meta: { layout: "app" },
   },
   {
+    path: "/children/:id/edit",
+    component: () => import("@/components/MasterData/ChildEdit.vue"),
+    meta: { layout: "app" },
+  },
+  {
     path: "/guardians",
     component: Guardians,
+    meta: { layout: "app" },
+  },
+  {
+    path: "/guardians/:id/edit",
+    component: () => import("@/components/MasterData/GuardianEdit.vue"),
     meta: { layout: "app" },
   },
   {
