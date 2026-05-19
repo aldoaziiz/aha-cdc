@@ -31,9 +31,9 @@
                   <div class="font-weight-medium">
                     {{ item.child?.name }}
                   </div>
-                  <div class="text-caption text-grey">
+                  <!-- <div class="text-caption text-grey">
                     {{ formatDate(item.child?.birth_date) }}
-                  </div>
+                  </div> -->
                 </div>
               </template>
 
@@ -48,7 +48,7 @@
               </template>
 
               <!-- GUARDIAN -->
-              <template v-slot:item.guardian="{ item }">
+              <!-- <template v-slot:item.guardian="{ item }">
                 <div v-if="item.child?.guardians?.length">
                   <div v-for="g in item.child.guardians" :key="g.id" class="mb-1">
                     <div class="font-weight-medium">
@@ -63,7 +63,7 @@
                   </div>
                 </div>
                 <div v-else>-</div>
-              </template>
+              </template> -->
 
               <!-- REGISTRATION DATE -->
               <template v-slot:item.created_at="{ item }">
@@ -72,7 +72,6 @@
 
               <!-- PAYMENT STATUS -->
               <template v-slot:item.payment_status.id="{ item }">
-                <div class="d-flex flex-column align-center">
 
                   <!-- STATUS -->
                   <v-chip :color="getStatusColor(item.payment_status?.id)" variant="tonal" size="small" class="mb-1">
@@ -85,7 +84,6 @@
                     View Receipt
                   </v-btn>
 
-                </div>
               </template>
 
               <!-- ACTION -->
@@ -150,12 +148,11 @@ const receiptDialog = ref(false)
 const receiptUrl = ref('')
 
 const headers = [
-  { title: 'Reg. Number', key: 'registration_number' },
-  { title: 'Child', key: 'child' },
-  { title: 'Age', key: 'age' },
-  { title: 'Program', key: 'program' },
-  { title: 'Guardian', key: 'guardian' },
+  { title: 'Registration No.', key: 'registration_number' },
   { title: 'Registration Date', key: 'created_at' },
+  { title: 'Child Name', key: 'child' },
+  { title: 'Program', key: 'program' },
+  // { title: 'Guardian', key: 'guardian' },
   { title: 'Payment Status', key: 'payment_status.id' },
   { title: '', key: 'actions', sortable: false, align: 'center' }
 ]
@@ -185,7 +182,7 @@ const getStatusColor = (id) => {
 // FORMAT DATE
 const formatDate = (date) => {
   if (!date) return '-'
-  return new Date(date).toLocaleDateString('en-US', {
+  return new Date(date).toLocaleDateString('en-ID', {
     month: 'short',
     day: '2-digit',
     year: 'numeric'

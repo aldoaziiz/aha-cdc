@@ -30,10 +30,12 @@
                   <div class="font-weight-medium">
                     {{ item.child?.name }}
                   </div>
-                  <div class="text-caption text-grey">
-                    {{ formatDate(item.child?.birth_date) }}
-                  </div>
                 </div>
+              </template>
+
+              <!-- BIRTH DATE -->
+              <template v-slot:item.child.birth_date="{ item }">
+                {{ formatDate(item.child?.birth_date) }}
               </template>
 
               <!-- AGE -->
@@ -47,14 +49,14 @@
               </template>
 
               <!-- GUARDIAN -->
-              <template v-slot:item.guardian="{ item }">
+              <!-- <template v-slot:item.guardian="{ item }">
                 <div v-if="item.child?.guardians?.length">
                   <div v-for="g in item.child.guardians" :key="g.id" class="mb-1">
                     <div class="font-weight-medium">
                       {{ g.name }}
-                      <span class="text-caption text-grey">
-                        ({{ g.guardian_role?.name || '-' }})
-                      </span>
+                    </div>
+                    <div class="text-caption text-blue">
+                      {{ g.guardian_role?.name || '-' }}
                     </div>
                     <div class="text-caption text-grey">
                       {{ g.phone }}
@@ -62,7 +64,7 @@
                   </div>
                 </div>
                 <div v-else>-</div>
-              </template>
+              </template> -->
 
               <!-- REGISTRATION DATE -->
               <template v-slot:item.created_at="{ item }">
@@ -87,16 +89,14 @@
                   </template>
 
                   <v-list>
-                    <v-list-item @click="view(item)">
-                      <v-list-item-title>👁 View</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item @click="edit(item)">
-                      <v-list-item-title>✏️ Edit</v-list-item-title>
-                    </v-list-item>
                     <v-list-item @click="schedule(item)">
                       <v-list-item-title>
-                        🗓️ Create Schedule
+                        View Schedule
                       </v-list-item-title>
+                    </v-list-item>
+
+                    <v-list-item @click="edit(item)">
+                      <v-list-item-title>Edit</v-list-item-title>
                     </v-list-item>
                   </v-list>
                 </v-menu>
@@ -127,6 +127,7 @@ const loading = ref(false)
 const page = ref(1)
 const itemsPerPage = ref(10)
 const totalItems = ref(0)
+const sortBy = ref([])
 
 const debouncedFetch = debounce(() => {
   page.value = 1 // 🔥 reset ke halaman 1 saat search
@@ -142,13 +143,11 @@ const schedule = (item) => {
 }
 
 const headers = [
-  { title: 'Registration No', key: 'registration_number' },
-  { title: 'Child', key: 'child' },
-  { title: 'Age', key: 'age' },
-  { title: 'Complaint', key: 'complaint' },
-  { title: 'Program', key: 'program' },
-  { title: 'Guardian', key: 'guardian' },
+  { title: 'Registration No.', key: 'registration_number' },
   { title: 'Registration Date', key: 'created_at' },
+  { title: 'Child Name', key: 'child' },
+  { title: 'Program', key: 'program' },
+  // { title: 'Guardian', key: 'guardian' },
   { title: 'Payment Status', key: 'payment_status.id' },
   { title: '', key: 'actions', sortable: false, align: 'center' }
 ]
@@ -161,7 +160,9 @@ const fetchData = async () => {
       params: {
         page: page.value,
         per_page: itemsPerPage.value,
-        search: search.value
+        search: search.value,
+        sort_by: sortBy.value[0]?.key,
+        sort_order: sortBy.value[0]?.order
       }
     })
 
@@ -178,7 +179,7 @@ const fetchData = async () => {
 // FORMAT DATE
 const formatDate = (date) => {
   if (!date) return '-'
-  return new Date(date).toLocaleDateString('en-US', {
+  return new Date(date).toLocaleDateString('en-ID', {
     month: 'short',
     day: '2-digit',
     year: 'numeric'
@@ -204,12 +205,9 @@ const calculateAge = (birthDate) => {
 }
 
 // ACTION
-const view = (item) => {
-  console.log('View:', item)
-}
 
 const edit = (item) => {
-  console.log('Edit:', item)
+  router.push(`/registrations/${item.id}/edit`)
 }
 
 const getStatusColor = (id) => {
@@ -222,6 +220,7 @@ const getStatusColor = (id) => {
 const onOptionsChange = (options) => {
   page.value = options.page
   itemsPerPage.value = options.itemsPerPage
+  sortBy.value = options.sortBy
   fetchData()
 }
 

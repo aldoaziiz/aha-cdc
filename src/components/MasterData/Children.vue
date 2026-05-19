@@ -22,7 +22,7 @@
             <template v-slot:text>
               <v-text-field
                 v-model="search"
-                label="Search"
+                label="Search Name"
                 prepend-inner-icon="mdi-magnify"
                 variant="outlined"
                 hide-details
@@ -85,9 +85,9 @@
                       <v-list-item-title>Edit</v-list-item-title>
                     </v-list-item>
 
-                    <v-list-item @click="deleteChild(item.id)">
+                    <!-- <v-list-item @click="deleteChild(item.id)">
                       <v-list-item-title>Delete</v-list-item-title>
-                    </v-list-item>
+                    </v-list-item> -->
 
                     <v-list-item @click="toggleStatus(item)">
                       <v-list-item-title>
@@ -202,6 +202,10 @@
                     {{ guardian.name }}
                   </div>
 
+                  <div class="text-body-2 text-primary">
+                    {{ getGuardianRoleName(guardian.pivot?.guardian_role_id) }}
+                  </div>
+
                   <div class="text-body-2 text-grey">
                     {{ guardian.phone || '-' }}
                   </div>
@@ -298,6 +302,7 @@ const detailsDialog = ref(false)
 const selectedChild = ref(null)
 const detailsLoading = ref(false)
 const sortBy = ref([])
+const guardianRoles = ref([])
 
 const openDetails = async (child) => {
   detailsLoading.value = true
@@ -345,7 +350,25 @@ const fetchData = async () => {
   }
 }
 
+const fetchGuardianRoles = async () => {
+  try {
+    const res = await api.get('/guardian-roles')
+
+    guardianRoles.value = res.data.data
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const getGuardianRoleName = (roleId) => {
+  const role = guardianRoles.value.find((item) => item.id === roleId)
+
+  return role?.name || '-'
+}
+
 const formatDate = (date) => {
+  if (!date) return '-'
+
   return new Date(date).toLocaleDateString('en-ID', {
     day: '2-digit',
     month: 'short',
@@ -369,10 +392,14 @@ const deleteChild = async (id) => {
 }
 
 const calculateAgeDetail = (birthDate) => {
+  if (!birthDate) return '-'
+
   const today = new Date()
+
   const birth = new Date(birthDate + 'T00:00:00')
 
   let years = today.getFullYear() - birth.getFullYear()
+
   let months = today.getMonth() - birth.getMonth()
 
   if (months < 0 || (months === 0 && today.getDate() < birth.getDate())) {
@@ -420,7 +447,10 @@ onUnmounted(() => {
   debouncedFetch.cancel()
 })
 
-onMounted(fetchData)
+onMounted(async () => {
+  await fetchGuardianRoles()
+  fetchData()
+})
 </script>
 
 <style scoped>

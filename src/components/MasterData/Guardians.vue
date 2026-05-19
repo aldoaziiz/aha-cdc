@@ -6,6 +6,10 @@
         <h1 class="text-h4 font-weight-bold mb-2">{{ pageTitle }}</h1>
         <p class="text-body2 text-grey">{{ pageSubtitle }}</p>
       </div>
+
+      <v-btn color="primary" prepend-icon="mdi-plus" @click="router.push('/guardians/create')">
+        New Guardian
+      </v-btn>
     </div>
 
     <!-- Data Table -->
@@ -14,14 +18,25 @@
         <v-card elevation="1">
           <v-card flat>
             <template v-slot:text>
-              <v-text-field v-model="search" label="Search" prepend-inner-icon="mdi-magnify" variant="outlined"
-                hide-details single-line>
-              </v-text-field>
+              <v-text-field
+                v-model="search"
+                label="Search Name"
+                prepend-inner-icon="mdi-magnify"
+                variant="outlined"
+                hide-details
+                single-line
+              ></v-text-field>
             </template>
 
-            <v-data-table-server :headers="headers" :items="guardians" :items-length="totalItems" :loading="loading"
-              :page="page" :items-per-page="itemsPerPage" @update:options="onOptionsChange">
-
+            <v-data-table-server
+              :headers="headers"
+              :items="guardians"
+              :items-length="totalItems"
+              :loading="loading"
+              :page="page"
+              :items-per-page="itemsPerPage"
+              @update:options="onOptionsChange"
+            >
               <template v-slot:item.status="{ item }">
                 <v-chip size="small" :color="item.status?.id === 1 ? 'green' : 'grey'">
                   {{ item.status?.name || '-' }}
@@ -31,25 +46,24 @@
                 <v-menu>
                   <template #activator="{ props }">
                     <v-btn v-bind="props" size="small" color="white">
-                      Action <v-icon right>mdi-chevron-down</v-icon>
+                      Action
+                      <v-icon right>mdi-chevron-down</v-icon>
                     </v-btn>
                   </template>
                   <v-list>
                     <v-list-item @click="openDetails(item)">
-                      <v-list-item-title>
-                        Details
-                      </v-list-item-title>
+                      <v-list-item-title>Details</v-list-item-title>
                     </v-list-item>
                     <v-list-item @click="goToEdit(item.id)">
-                      <v-list-item-title>
-                        Edit
-                      </v-list-item-title>
+                      <v-list-item-title>Edit</v-list-item-title>
                     </v-list-item>
-                    <v-list-item @click="deleteGuardian(item.id)">
+
+                    <!-- <v-list-item @click="deleteGuardian(item.id)">
                       <v-list-item-title>
                         Delete
                       </v-list-item-title>
-                    </v-list-item>
+                    </v-list-item> -->
+
                     <v-list-item @click="toggleStatus(item)">
                       <v-list-item-title>
                         {{ Number(item.status?.id) === 1 ? '🔴 Deactivate' : '🟢 Activate' }}
@@ -59,7 +73,6 @@
                 </v-menu>
               </template>
             </v-data-table-server>
-
           </v-card>
         </v-card>
       </v-col>
@@ -76,7 +89,11 @@
 
         <v-divider />
 
-        <v-card-text v-if="detailsLoading" class="py-6 d-flex justify-center align-center" style="min-height: 250px;">
+        <v-card-text
+          v-if="detailsLoading"
+          class="py-6 d-flex justify-center align-center"
+          style="min-height: 250px"
+        >
           <div class="text-center">
             <v-progress-circular indeterminate color="primary" size="48" class="mb-4" />
             <div class="text-body-2 text-grey">Loading guardian details...</div>
@@ -104,26 +121,20 @@
 
             <!-- CHILDREN -->
             <v-col cols="12">
-
-              <div class="detail-label">
-                Children
-              </div>
+              <div class="detail-label">Children</div>
               <div v-if="selectedGuardian.children?.length">
-
-                <div v-for="children in selectedGuardian.children" :key="children.id" class="children-item">
-
+                <div
+                  v-for="children in selectedGuardian.children"
+                  :key="children.id"
+                  class="children-item"
+                >
                   <div class="detail-value">
                     {{ children.name }}
                   </div>
-
                 </div>
-
               </div>
 
-              <div v-else class="detail-value">
-                -
-              </div>
-
+              <div v-else class="detail-value">-</div>
             </v-col>
           </v-row>
         </v-card-text>
@@ -164,7 +175,7 @@ const headers = [
   { title: 'Address', key: 'address' },
   { title: 'Phone', key: 'phone' },
   { title: 'Status', key: 'status' },
-  { title: '', key: 'actions', sortable: false, align: 'center' }
+  { title: '', key: 'actions', sortable: false, align: 'center' },
 ]
 
 const fetchData = async () => {
@@ -177,17 +188,14 @@ const fetchData = async () => {
         per_page: itemsPerPage.value,
         search: search.value,
 
-        sort_by:
-          sortBy.value[0]?.key,
+        sort_by: sortBy.value[0]?.key,
 
-        sort_order:
-          sortBy.value[0]?.order
-      }
+        sort_order: sortBy.value[0]?.order,
+      },
     })
 
     guardians.value = res.data.data
     totalItems.value = res.data.total
-
   } catch (err) {
     console.error(err)
   } finally {
@@ -241,7 +249,7 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString('en-ID', {
     day: '2-digit',
     month: 'short',
-    year: 'numeric'
+    year: 'numeric',
   })
 }
 
@@ -252,7 +260,7 @@ const toggleStatus = async (item) => {
 
   try {
     await api.put(`/guardians/${item.id}`, {
-      status_id: isActive ? 2 : 1
+      status_id: isActive ? 2 : 1,
     })
 
     fetchData()
@@ -261,20 +269,14 @@ const toggleStatus = async (item) => {
   }
 }
 
-const onOptionsChange = (
-  options
-) => {
-
+const onOptionsChange = (options) => {
   page.value = options.page
 
-  itemsPerPage.value =
-    options.itemsPerPage
+  itemsPerPage.value = options.itemsPerPage
 
-  sortBy.value =
-    options.sortBy
+  sortBy.value = options.sortBy
 
   fetchData()
-
 }
 
 onMounted(fetchData)
@@ -294,6 +296,38 @@ onMounted(fetchData)
   color: rgb(120, 120, 120);
 
   margin-bottom: 4px;
+}
+
+.detail-value {
+  font-size: 15px;
+  font-weight: 500;
+
+  word-break: break-word;
+}
+
+.guardians-content {
+  width: 100%;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 16px;
+
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-header .v-btn {
+    width: 100%;
+  }
 }
 
 .detail-value {

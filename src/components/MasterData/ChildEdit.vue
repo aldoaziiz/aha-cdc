@@ -180,6 +180,7 @@
             <v-autocomplete
               v-model="selectedGuardianId"
               :items="guardians"
+              :item-props="guardianItemProps"
               item-title="name"
               item-value="id"
               label="Add Guardian"
@@ -398,6 +399,14 @@ const getGuardianRoleName = (roleId) => {
   const role = guardianRoles.value.find((item) => item.id === roleId)
 
   return role?.name || '-'
+}
+
+const guardianItemProps = (item) => {
+  return {
+    title: item.name || '-',
+
+    subtitle: `ID: ${item.id_number || '-'}`,
+  }
 }
 
 // ======================

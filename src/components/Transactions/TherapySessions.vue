@@ -195,6 +195,7 @@ const search = ref('')
 const page = ref(1)
 const itemsPerPage = ref(10)
 const totalItems = ref(0)
+const sortBy = ref([])
 
 const snackbar = ref(false)
 const snackbarText = ref('')
@@ -242,7 +243,9 @@ const fetchSessions = async () => {
         search: search.value,
 
         therapy_date: filters.value.date,
-        therapist_id: filters.value.therapist_id
+        therapist_id: filters.value.therapist_id,
+        sort_by: sortBy.value[0]?.key,
+        sort_order: sortBy.value[0]?.order
       }
     })
 
@@ -292,6 +295,7 @@ const onOptionsChange = (options) => {
 
   page.value = options.page
   itemsPerPage.value = options.itemsPerPage
+  sortBy.value = options.sortBy
 
   fetchSessions()
 }

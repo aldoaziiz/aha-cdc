@@ -1,152 +1,198 @@
 <template>
   <div class="schedule-content">
-
     <!-- HEADER -->
     <div class="page-header mb-6">
       <div>
-        <h1 class="text-h4 font-weight-bold mb-2">
-          Schedule Therapy Session
-        </h1>
+        <h1 class="text-h4 font-weight-bold mb-2">Schedule Therapy Session</h1>
 
-        <p class="text-body-2 text-grey">
-          Create therapy session schedule
-        </p>
+        <p class="text-body-2 text-grey">Create therapy session schedule</p>
       </div>
     </div>
 
-    <!-- PATIENT INFO -->
+    <!-- Registration Information -->
     <v-card elevation="1" class="mb-4 rounded-lg">
-      <v-card-title>
-        Patient Information
-      </v-card-title>
-
+      <v-card-title>Registration Information</v-card-title>
+      <v-divider></v-divider>
       <v-card-text>
-
         <v-row>
-
-          <!-- CHILD -->
           <v-col cols="12" md="4">
-
-            <div class="text-caption text-grey">
-              Child
+            <div class="text-caption text-grey">Registration No.</div>
+            <div class="font-weight-medium">
+              {{ registration.registration_number || '-' }}
             </div>
+          </v-col>
 
+          <v-col cols="12" md="4">
+            <div class="text-caption text-grey">Registration Date</div>
+            <div class="font-weight-medium">
+              {{ formatDate(registration.created_at) || '-' }}
+            </div>
+          </v-col>
+
+          <v-col cols="12" md="4">
+            <div class="text-caption text-grey">Child Name</div>
             <div class="font-weight-medium">
               {{ registration.child?.name || '-' }}
             </div>
-
           </v-col>
 
-          <!-- PROGRAM -->
           <v-col cols="12" md="4">
-
-            <div class="text-caption text-grey">
-              Program
+            <div class="text-caption text-grey">Child Birth Date</div>
+            <div class="font-weight-medium">
+              {{ formatDate(registration.child?.birth_date) || '-' }}
             </div>
+          </v-col>
 
+          <v-col cols="12" md="4">
+            <div class="text-caption text-grey">Complaint</div>
+            <div class="font-weight-medium">
+              {{ registration.complaint || '-' }}
+            </div>
+          </v-col>
+
+          <v-col cols="12" md="4">
+            <div class="text-caption text-grey">Program</div>
             <div class="font-weight-medium">
               {{ registration.program?.name || '-' }}
             </div>
-
           </v-col>
 
-          <!-- GUARDIANS -->
           <v-col cols="12" md="4">
-
-            <div class="text-caption text-grey mb-1">
-              Guardians
+            <div class="text-caption text-grey">Payer</div>
+            <div class="font-weight-medium">
+              {{ registration.payer?.name || '-' }}
             </div>
+          </v-col>
 
+          <v-col cols="12" md="4">
+            <div class="text-caption text-grey">Payment Status</div>
+            <v-chip
+              :color="getStatusColor(registration.payment_status?.id)"
+              variant="tonal"
+              size="small"
+              class="mb-1"
+            >
+              {{ registration.payment_status?.name || '-' }}
+            </v-chip>
+          </v-col>
+
+          <v-divider></v-divider>
+
+          <v-col cols="12" md="4">
+            <div class="text-caption text-grey mb-1">Guardians</div>
             <div v-for="g in registration.child?.guardians || []" :key="g.id" class="mb-2">
               <div class="font-weight-medium">
                 {{ g.name }}
               </div>
-
+              <div class="text-caption text-blue">
+                {{ g.guardian_role.name }}
+              </div>
               <div class="text-caption text-grey">
                 {{ g.phone }}
               </div>
             </div>
-
           </v-col>
-
+          
         </v-row>
-
       </v-card-text>
     </v-card>
 
     <!-- FORM -->
     <v-card elevation="1" class="mb-4 rounded-lg">
-
-      <v-card-title>
-        New Schedule
-      </v-card-title>
+      <v-card-title>New Schedule</v-card-title>
+      <v-divider></v-divider>
 
       <v-card-text>
-
         <v-form ref="formRef">
-
           <v-row>
-
             <!-- THERAPIST -->
             <v-col cols="12" md="6">
-              <v-select v-model="form.therapist_id" :items="therapists" item-title="name" item-value="id"
-                label="Therapist" variant="outlined" :rules="requiredRule" />
+              <v-select
+                v-model="form.therapist_id"
+                :items="therapists"
+                item-title="name"
+                item-value="id"
+                label="Therapist"
+                variant="outlined"
+                :rules="requiredRule"
+              />
             </v-col>
 
             <!-- ROOM -->
             <v-col cols="12" md="6">
-              <v-select v-model="form.room_id" :items="rooms" item-title="name" item-value="id" label="Room"
-                variant="outlined" :rules="requiredRule" />
+              <v-select
+                v-model="form.room_id"
+                :items="rooms"
+                item-title="name"
+                item-value="id"
+                label="Room"
+                variant="outlined"
+                :rules="requiredRule"
+              />
             </v-col>
 
             <!-- DATE -->
             <v-col cols="12" md="4">
-              <v-text-field v-model="form.therapy_date" label="Date" type="date" variant="outlined"
-                :rules="requiredRule" />
+              <v-text-field
+                v-model="form.therapy_date"
+                label="Date"
+                type="date"
+                variant="outlined"
+                :rules="requiredRule"
+              />
             </v-col>
 
             <!-- START -->
             <v-col cols="12" md="4">
-              <v-text-field v-model="form.start_time" label="Start Time" type="time" variant="outlined"
-                :rules="requiredRule" />
+              <v-text-field
+                v-model="form.start_time"
+                label="Start Time"
+                type="time"
+                variant="outlined"
+                :rules="requiredRule"
+              />
             </v-col>
 
             <!-- END -->
             <v-col cols="12" md="4">
-              <v-text-field v-model="form.end_time" label="End Time" type="time" variant="outlined"
-                :rules="requiredRule" />
+              <v-text-field
+                v-model="form.end_time"
+                label="End Time"
+                type="time"
+                variant="outlined"
+                :rules="requiredRule"
+              />
             </v-col>
 
             <!-- NOTES -->
             <v-col cols="12">
               <v-textarea v-model="form.notes" label="Notes" variant="outlined" rows="3" />
             </v-col>
-
           </v-row>
-
         </v-form>
-
       </v-card-text>
 
       <v-card-actions>
         <v-spacer />
 
-        <v-btn @click="saveSchedule" color="primary" variant="elevated" :loading="saving" :disabled="saving">
+        <v-btn
+          @click="saveSchedule"
+          color="primary"
+          variant="elevated"
+          :loading="saving"
+          :disabled="saving"
+        >
           Save Schedule
         </v-btn>
       </v-card-actions>
-
     </v-card>
 
     <!-- SESSION HISTORY -->
     <v-card elevation="1" class="rounded-lg">
-
-      <v-card-title>
-        Therapy Sessions
-      </v-card-title>
+      <v-card-title>Therapy Sessions</v-card-title>
+      <v-divider></v-divider>
 
       <v-data-table :headers="headers" :items="sessions" density="comfortable">
-
         <!-- THERAPIST -->
         <template v-slot:item.therapist="{ item }">
           {{ item.therapist?.name || '-' }}
@@ -169,44 +215,29 @@
 
         <!-- ACTION -->
         <template v-slot:item.actions="{ item }">
-
           <v-menu>
-
             <template v-slot:activator="{ props }">
-
               <v-btn variant="tonal" size="small" v-bind="props">
                 Action
 
-                <v-icon end>
-                  mdi-chevron-down
-                </v-icon>
+                <v-icon end>mdi-chevron-down</v-icon>
               </v-btn>
-
             </template>
 
             <v-list density="compact">
-
               <v-list-item @click="deleteSession(item)">
-                <v-list-item-title class="text-error">
-                  Delete
-                </v-list-item-title>
+                <v-list-item-title class="text-error">Delete</v-list-item-title>
               </v-list-item>
-
             </v-list>
-
           </v-menu>
-
         </template>
-
       </v-data-table>
-
     </v-card>
 
     <!-- SNACKBAR -->
     <v-snackbar v-model="snackbar" :color="snackbarColor" location="top right" timeout="3000">
       {{ snackbarText }}
     </v-snackbar>
-
   </div>
 </template>
 
@@ -230,9 +261,7 @@ const saving = ref(false)
 
 const formRef = ref(null)
 
-const requiredRule = [
-  v => !!v || 'This field is required'
-]
+const requiredRule = [(v) => !!v || 'This field is required']
 
 const form = ref({
   therapist_id: null,
@@ -242,7 +271,7 @@ const form = ref({
   start_time: '',
   end_time: '',
 
-  notes: ''
+  notes: '',
 })
 
 const headers = [
@@ -255,8 +284,8 @@ const headers = [
     title: '',
     key: 'actions',
     sortable: false,
-    align: 'center'
-  }
+    align: 'center',
+  },
 ]
 
 // ======================
@@ -264,19 +293,12 @@ const headers = [
 // ======================
 
 const fetchRegistration = async () => {
-
   try {
-
-    const res = await api.get(
-      `/registrations/${route.params.id}`
-    )
+    const res = await api.get(`/registrations/${route.params.id}`)
 
     registration.value = res.data.data
-
   } catch (err) {
-
     console.error(err)
-
   }
 }
 
@@ -285,22 +307,17 @@ const fetchRegistration = async () => {
 // ======================
 
 const fetchTherapists = async () => {
-
   try {
-
     const res = await api.get('/staff', {
       params: {
         staff_role_id: 2,
-        per_page: 100
-      }
+        per_page: 100,
+      },
     })
 
     therapists.value = res.data.data
-
   } catch (err) {
-
     console.error(err)
-
   }
 }
 
@@ -309,21 +326,16 @@ const fetchTherapists = async () => {
 // ======================
 
 const fetchRooms = async () => {
-
   try {
-
     const res = await api.get('/rooms', {
       params: {
-        per_page: 100
-      }
+        per_page: 100,
+      },
     })
 
     rooms.value = res.data.data
-
   } catch (err) {
-
     console.error(err)
-
   }
 }
 
@@ -332,22 +344,34 @@ const fetchRooms = async () => {
 // ======================
 
 const fetchSessions = async () => {
-
   try {
-
     const res = await api.get('/therapy-sessions', {
       params: {
-        registration_id: route.params.id
-      }
+        registration_id: route.params.id,
+      },
     })
 
     sessions.value = res.data.data
-
   } catch (err) {
-
     console.error(err)
-
   }
+}
+
+// FORMAT DATE
+const formatDate = (date) => {
+  if (!date) return '-'
+  return new Date(date).toLocaleDateString('en-ID', {
+    month: 'short',
+    day: '2-digit',
+    year: 'numeric',
+  })
+}
+
+const getStatusColor = (id) => {
+  if (id === 1) return 'warning' // Unpaid (kuning)
+  if (id === 2) return 'grey' // Waiting
+  if (id === 3) return 'green' // Paid
+  return 'grey'
 }
 
 // ======================
@@ -355,17 +379,14 @@ const fetchSessions = async () => {
 // ======================
 
 const saveSchedule = async () => {
-
   const { valid } = await formRef.value.validate()
 
   if (!valid) return
 
   try {
-
     saving.value = true
 
     await api.post('/therapy-sessions', {
-
       registration_id: route.params.id,
 
       therapist_id: form.value.therapist_id,
@@ -375,31 +396,22 @@ const saveSchedule = async () => {
       start_time: form.value.start_time,
       end_time: form.value.end_time,
 
-      notes: form.value.notes
-
+      notes: form.value.notes,
     })
 
-    snackbarText.value =
-      'Schedule created successfully'
+    snackbarText.value = 'Schedule created successfully'
 
     snackbarColor.value = 'success'
     snackbar.value = true
 
     fetchSessions()
-
   } catch (err) {
-
-    snackbarText.value =
-      err.response?.data?.message ||
-      'Failed to create schedule'
+    snackbarText.value = err.response?.data?.message || 'Failed to create schedule'
 
     snackbarColor.value = 'error'
     snackbar.value = true
-
   } finally {
-
     saving.value = false
-
   }
 }
 
@@ -408,29 +420,21 @@ const saveSchedule = async () => {
 // ======================
 
 const deleteSession = async (item) => {
-
   if (!confirm('Delete this session?')) return
 
   try {
-
-    await api.delete(
-      `/therapy-sessions/${item.id}`
-    )
+    await api.delete(`/therapy-sessions/${item.id}`)
 
     snackbarText.value = 'Session deleted'
     snackbarColor.value = 'success'
     snackbar.value = true
 
     fetchSessions()
-
   } catch (err) {
-
-    snackbarText.value =
-      'Failed to delete session'
+    snackbarText.value = 'Failed to delete session'
 
     snackbarColor.value = 'error'
     snackbar.value = true
-
   }
 }
 
@@ -439,12 +443,10 @@ const deleteSession = async (item) => {
 // ======================
 
 onMounted(() => {
-
   fetchRegistration()
   fetchTherapists()
   fetchRooms()
   fetchSessions()
-
 })
 </script>
 

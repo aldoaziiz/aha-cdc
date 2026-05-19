@@ -140,8 +140,8 @@
 </template>
 
 <script lang="ts" setup>
-const pageTitle = 'Admission To-Do'
-const pageSubtitle = 'Total pendaftar yang tertarik untuk mendaftarkan anak mereka.'
+const pageTitle = 'Dashboard'
+const pageSubtitle = 'Halaman Dashboard aplikasi AHA CDC.'
 
 const getTimeAgo = (i: number) => {
   const hours = i * 2
