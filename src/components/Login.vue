@@ -5,7 +5,12 @@
         <!-- Left Section - Branding -->
         <v-col cols="12" sm="6" class="d-none d-sm-flex left-section">
           <div class="branding-content">
-            <img src="@/assets/ahacdc-logo.jpeg" alt="Login Illustration" class="mb-6" style="max-width: 100%; height: auto;" />
+            <img
+              src="@/assets/ahacdc-logo.jpeg"
+              alt="Login Illustration"
+              class="mb-6"
+              style="max-width: 100%; height: auto"
+            />
           </div>
         </v-col>
 
@@ -14,18 +19,13 @@
           <div class="form-wrapper">
             <!-- Header -->
             <div class="text-center mb-8">
-              <v-icon size="48" color="#E6611D" class="mb-4">mdi-account-circle</v-icon>  
+              <v-icon size="48" color="#E6611D" class="mb-4">mdi-account-circle</v-icon>
               <h1 class="text-h3 font-weight-bold mb-4">Selamat Datang</h1>
               <p class="text-body1 mb-8">Silahkan login menggunakan akun Anda</p>
             </div>
 
             <!-- Success Alert -->
-            <v-alert
-              v-if="successMessage"
-              type="success"
-              class="mb-6"
-              closable
-            >
+            <v-alert v-if="successMessage" type="success" class="mb-6" closable>
               {{ successMessage }}
             </v-alert>
 
@@ -74,12 +74,7 @@
                   density="compact"
                   class="flex-grow-0"
                 />
-                <v-btn
-                  variant="text"
-                  size="small"
-                  color="primary"
-                  class="text-none"
-                >
+                <v-btn variant="text" size="small" color="primary" class="text-none">
                   Lupa password?
                 </v-btn>
               </div>
@@ -95,10 +90,7 @@
               >
                 Login
               </v-btn>
-
-              
             </v-form>
-
           </div>
         </v-col>
       </v-row>
@@ -110,8 +102,10 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import type { VForm } from 'vuetify/components'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const email = ref('')
 const password = ref('')
 const rememberMe = ref(false)
@@ -138,27 +132,27 @@ const handleLogin = async () => {
   }
 
   isLoading.value = true
+
   errorMessage.value = ''
+
   successMessage.value = ''
 
   try {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    await authStore.login(
+      email.value,
 
-    // Mock successful login
+      password.value,
+    )
+
     successMessage.value = 'Login successful! Redirecting...'
-    console.log('Login successful for:', email.value)
-    console.log('Remember me:', rememberMe.value)
 
-    // Store user email in localStorage
-    localStorage.setItem('userEmail', email.value)
-
-    // Navigate to dashboard after 1 second
     setTimeout(() => {
       router.push('/dashboard')
     }, 1000)
-  } catch (error) {
-    errorMessage.value = 'Login failed. Please try again.'
+  } catch (err: any) {
+    console.error(err)
+
+    errorMessage.value = err.response?.data?.message || 'Login failed'
   } finally {
     isLoading.value = false
   }

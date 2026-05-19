@@ -49,8 +49,10 @@
 
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 
+const authStore = useAuthStore()
 const router = useRouter()
 const searchQuery = ref('')
 const userEmail = ref('user@example.com')
@@ -71,8 +73,9 @@ const goToSettings = () => {
   console.log('Go to settings')
 }
 
-const handleLogout = () => {
-  localStorage.removeItem('userEmail')
+const handleLogout = async () => {
+  await authStore.logout()
+
   router.push('/login')
 }
 

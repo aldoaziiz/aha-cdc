@@ -11,8 +11,11 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import BlankLayout from './layouts/BlankLayout.vue'
 import AppLayout from './layouts/AppLayout.vue'
+import { onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
+const authStore = useAuthStore()
 
 const layoutComponent = computed(() => {
   const layout = route.meta?.layout as string | undefined
@@ -20,5 +23,9 @@ const layoutComponent = computed(() => {
     return BlankLayout
   }
   return AppLayout
+})
+
+onMounted(() => {
+  authStore.fetchMe()
 })
 </script>

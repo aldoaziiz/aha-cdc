@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 import Login from '@/components/Login.vue'
 import Dashboard from '@/components/Dashboard.vue'
@@ -40,131 +41,132 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     component: Login,
-    meta: { layout: 'blank' },
+    meta: { layout: 'blank', guestOnly: true },
   },
   {
     path: '/dashboard',
     component: Dashboard,
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
 
   // master data
   {
     path: '/children',
     component: Children,
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
   {
     path: '/children/:id/edit',
     component: () => import('@/components/MasterData/ChildEdit.vue'),
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
   {
     path: '/guardians',
     component: Guardians,
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
   {
     path: '/guardians/create',
     component: () => import('@/components/MasterData/GuardianCreate.vue'),
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
   {
     path: '/guardians/:id/edit',
     component: () => import('@/components/MasterData/GuardianEdit.vue'),
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
   {
     path: '/staff',
     component: Staff,
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
   {
     path: '/staff/create',
     component: () => import('@/components/MasterData/StaffCreate.vue'),
+    meta: { layout: 'app', requiresAuth: true },
   },
   {
     path: '/staff/:id/edit',
     component: () => import('@/components/MasterData/StaffEdit.vue'),
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
   {
     path: '/programs',
     component: Programs,
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
   {
     path: '/rooms',
     component: Rooms,
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
 
   // transactions
   {
     path: '/registrations',
     component: Registrations,
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
   {
     path: '/registrations/:id/edit',
     component: () => import('@/components/Transactions/RegistrationEdit.vue'),
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
   {
     path: '/therapy-sessions',
     component: TherapySessions,
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
 
   // admissions
   {
     path: '/registrations-new',
     component: RegistrationsNew,
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
 
   // billing
   {
     path: '/billing',
     component: Billing,
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
 
   // invoice details
   {
     path: '/invoices/:id',
     component: Invoice,
-    meta: { layout: 'blank' },
+    meta: { layout: 'blank', requiresAuth: true },
   },
 
   // Schedule
   {
     path: '/registrations/:id/schedule',
     component: Schedule,
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
 
   // Activity
   {
     path: '/activity',
     component: Activity,
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
   {
     path: '/activity/create',
     component: ActivityCreate,
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
   {
     path: '/activity/:id/edit',
     component: ActivityEdit,
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
 
   {
     path: '/help-support',
     component: HelpSupport,
-    meta: { layout: 'app' },
+    meta: { layout: 'app', requiresAuth: true },
   },
 ]
 
@@ -174,3 +176,33 @@ const router = createRouter({
 })
 
 export default router
+
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore()
+
+  // ======================
+  // FETCH USER
+  // ======================
+
+  if (authStore.token && !authStore.user) {
+    await authStore.fetchMe()
+  }
+
+  // ======================
+  // REQUIRES AUTH
+  // ======================
+
+  if (to.meta.requiresAuth && !authStore.token) {
+    return next('/login')
+  }
+
+  // ======================
+  // GUEST ONLY
+  // ======================
+
+  if (to.meta.guestOnly && authStore.token) {
+    return next('/dashboard')
+  }
+
+  next()
+})
