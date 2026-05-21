@@ -46,127 +46,128 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/dashboard',
     component: Dashboard,
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin', 'guardian', 'therapist'] },
   },
 
   // master data
   {
     path: '/children',
     component: Children,
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
   },
   {
     path: '/children/:id/edit',
     component: () => import('@/components/MasterData/ChildEdit.vue'),
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
   },
   {
     path: '/guardians',
     component: Guardians,
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
   },
   {
     path: '/guardians/create',
     component: () => import('@/components/MasterData/GuardianCreate.vue'),
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
   },
   {
     path: '/guardians/:id/edit',
     component: () => import('@/components/MasterData/GuardianEdit.vue'),
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
   },
   {
     path: '/staff',
     component: Staff,
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
   },
   {
     path: '/staff/create',
     component: () => import('@/components/MasterData/StaffCreate.vue'),
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
   },
   {
     path: '/staff/:id/edit',
     component: () => import('@/components/MasterData/StaffEdit.vue'),
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
   },
   {
     path: '/programs',
     component: Programs,
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
   },
   {
     path: '/rooms',
     component: Rooms,
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
   },
 
   // transactions
   {
     path: '/registrations',
     component: Registrations,
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
   },
   {
     path: '/registrations/:id/edit',
     component: () => import('@/components/Transactions/RegistrationEdit.vue'),
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
   },
   {
     path: '/therapy-sessions',
     component: TherapySessions,
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin', 'therapist'] },
   },
 
   // admissions
   {
     path: '/registrations-new',
     component: RegistrationsNew,
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin', 'guardian'] },
   },
 
   // billing
   {
     path: '/billing',
     component: Billing,
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
   },
 
   // invoice details
   {
     path: '/invoices/:id',
     component: Invoice,
-    meta: { layout: 'blank', requiresAuth: true },
+    meta: { layout: 'blank', requiresAuth: true, allowedRoles: ['admin', 'guardian'] },
   },
 
   // Schedule
   {
     path: '/registrations/:id/schedule',
     component: Schedule,
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin', 'therapist'] },
   },
 
   // Activity
   {
     path: '/activity',
     component: Activity,
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin', 'therapist', 'guardian'] },
   },
   {
     path: '/activity/create',
     component: ActivityCreate,
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin', 'therapist'] },
   },
   {
     path: '/activity/:id/edit',
     component: ActivityEdit,
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin', 'therapist'] },
   },
 
+  // help support
   {
     path: '/help-support',
     component: HelpSupport,
-    meta: { layout: 'app', requiresAuth: true },
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin', 'therapist', 'guardian'] },
   },
 ]
 
@@ -201,6 +202,16 @@ router.beforeEach(async (to, from, next) => {
   // ======================
 
   if (to.meta.guestOnly && authStore.token) {
+    return next('/dashboard')
+  }
+
+  // ======================
+  // ROLE GUARD
+  // ======================
+
+  const allowedRoles = to.meta.allowedRoles as string[] | undefined
+
+  if (allowedRoles && !allowedRoles.includes(authStore.user?.role || '')) {
     return next('/dashboard')
   }
 

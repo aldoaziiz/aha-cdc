@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import api from '@/services/api'
 
 // ======================
@@ -13,7 +13,13 @@ export const useAuthStore = defineStore('auth', () => {
 
   const token = ref(localStorage.getItem('token'))
 
-  const user = ref(null)
+  const user = ref<any>(null)
+
+  const isAdmin = computed(() => user.value?.role === 'admin')
+
+  const isTherapist = computed(() => user.value?.role === 'therapist')
+
+  const isGuardian = computed(() => user.value?.role === 'guardian')
 
   // ======================
   // LOGIN
@@ -84,5 +90,11 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
 
     fetchMe,
+
+    isAdmin,
+
+    isTherapist,
+
+    isGuardian,
   }
 })

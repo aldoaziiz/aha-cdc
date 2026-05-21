@@ -41,7 +41,7 @@
             </v-alert>
 
             <!-- Login Form -->
-            <v-form @submit.prevent="handleLogin" ref="form">
+            <v-form ref="form">
               <v-text-field
                 v-model="email"
                 label="Email"
@@ -81,7 +81,7 @@
 
               <!-- Sign In Button -->
               <v-btn
-                type="submit"
+                @click="handleLogin"
                 block
                 color="#64AF64"
                 size="large"

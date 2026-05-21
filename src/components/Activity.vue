@@ -1,149 +1,116 @@
 <template>
   <div class="activity-page">
-
     <!-- PAGE HEADER -->
     <div class="page-header mb-6">
       <div>
-        <h1 class="text-h4 font-weight-bold mb-2">
-          Activity Feed
-        </h1>
+        <h1 class="text-h4 font-weight-bold mb-2">Activity Feed</h1>
 
         <p class="text-body-2 text-grey">
           Daily activities, therapy moments, and learning updates.
         </p>
       </div>
 
-      <v-btn color="primary" prepend-icon="mdi-plus" size="large" @click="goToCreate">
+      <v-btn
+        v-if="canManageActivity"
+        color="primary"
+        prepend-icon="mdi-plus"
+        size="large"
+        @click="goToCreate"
+      >
         New Post
       </v-btn>
     </div>
 
     <!-- SEARCH -->
     <v-card elevation="1" class="mb-4 rounded-xl">
-
       <v-card-text>
-
-        <v-text-field v-model="search" label="Search Child" prepend-inner-icon="mdi-magnify" variant="outlined"
-          density="comfortable" hide-details clearable @update:modelValue="() => fetchActivities(true)" />
-
+        <v-text-field
+          v-model="search"
+          label="Search Child"
+          prepend-inner-icon="mdi-magnify"
+          variant="outlined"
+          density="comfortable"
+          hide-details
+          clearable
+          @update:modelValue="() => fetchActivities(true)"
+        />
       </v-card-text>
-
     </v-card>
 
     <!-- FEED -->
     <div class="feed-wrapper">
-
       <!-- POST CARD -->
-      <v-card v-for="activity in activities" :key="activity.id" class="mb-4 rounded-xl" elevation="1">
-
+      <v-card
+        v-for="activity in activities"
+        :key="activity.id"
+        class="mb-4 rounded-xl"
+        elevation="1"
+      >
         <v-card-text>
-
           <!-- HEADER -->
           <div class="d-flex justify-space-between align-start mb-4">
-
             <!-- LEFT -->
             <div>
-
               <!-- SESSION DATE -->
               <div class="text-caption text-grey mb-1">
-                {{
-                  formatDate(
-                    activity
-                      .therapy_session
-                      ?.therapy_date
-                  )
-                }}
+                {{ formatDate(activity.therapy_session?.therapy_date) }}
               </div>
 
               <!-- CHILD -->
               <div class="text-h6 font-weight-bold">
-                {{
-                  activity
-                    .therapy_session
-                    ?.registration
-                    ?.child
-                    ?.name
-                }}
+                {{ activity.therapy_session?.registration?.child?.name }}
               </div>
 
               <!-- PROGRAM -->
               <div class="text-body-2 text-grey">
-                {{
-                  activity
-                    .therapy_session
-                    ?.registration
-                    ?.program
-                    ?.name
-                }}
+                {{ activity.therapy_session?.registration?.program?.name }}
               </div>
-
             </div>
 
             <!-- RIGHT -->
-            <div class="d-flex align-center ga-2">
-
+            <div v-if="canManageActivity" class="d-flex align-center ga-2">
               <!-- ACTION MENU -->
               <v-menu>
-
                 <template #activator="{ props }">
-
                   <v-btn icon variant="text" size="small" v-bind="props">
-                    <v-icon>
-                      mdi-dots-vertical
-                    </v-icon>
+                    <v-icon>mdi-dots-vertical</v-icon>
                   </v-btn>
-
                 </template>
 
                 <v-list density="comfortable">
-
                   <!-- EDIT -->
                   <v-list-item @click="goToEdit(activity.id)">
-
-                    <v-list-item-title>
-                      Edit
-                    </v-list-item-title>
-
+                    <v-list-item-title>Edit</v-list-item-title>
                   </v-list-item>
 
                   <!-- DELETE -->
                   <v-list-item @click="deleteActivity(activity.id)">
-
-                    <v-list-item-title class="text-error">
-                      Delete
-                    </v-list-item-title>
-
+                    <v-list-item-title class="text-error">Delete</v-list-item-title>
                   </v-list-item>
-
                 </v-list>
-
               </v-menu>
-
             </div>
-
           </div>
 
           <!-- PHOTOS -->
-          <v-carousel v-if="activity.photos?.length" height="500" hide-delimiter-background delimiter-icon="mdi-circle"
-            class="mb-4 rounded-lg" show-arrows="hover">
-
+          <v-carousel
+            v-if="activity.photos?.length"
+            height="500"
+            hide-delimiter-background
+            delimiter-icon="mdi-circle"
+            class="mb-4 rounded-lg"
+            show-arrows="hover"
+          >
             <v-carousel-item v-for="photo in activity.photos" :key="photo.id">
-
               <v-img :src="storageUrl(photo.photo)" height="100%" contain class="activity-image" />
-
             </v-carousel-item>
-
           </v-carousel>
 
           <!-- VIDEO -->
           <div v-if="activity.video" class="mb-4">
-
             <video controls preload="none" class="activity-video">
-
               <source :src="storageUrl(activity.video)" type="video/mp4" />
-
             </video>
-
           </div>
 
           <!-- THERAPIST -->
@@ -153,10 +120,8 @@
 
           <!-- CAPTION -->
           <div v-if="activity.caption" class="text-body-1 mb-4">
-
             <!-- TEXT -->
             <span>
-
               {{
                 isExpanded(activity.id)
                   ? activity.caption
@@ -164,47 +129,38 @@
                     ? activity.caption.slice(0, 125) + '...'
                     : activity.caption
               }}
-
             </span>
 
             <!-- MORE BUTTON -->
-            <span v-if="activity.caption.length > 125" class="caption-toggle" @click="toggleCaption(activity.id)">
-
-              {{
-                isExpanded(activity.id)
-                  ? 'less'
-                  : 'more'
-              }}
-
+            <span
+              v-if="activity.caption.length > 125"
+              class="caption-toggle"
+              @click="toggleCaption(activity.id)"
+            >
+              {{ isExpanded(activity.id) ? 'less' : 'more' }}
             </span>
-
           </div>
-
         </v-card-text>
-
       </v-card>
 
       <!-- LOAD MORE TRIGGER -->
       <div ref="loadMoreTrigger" class="load-more-trigger">
-
         <v-progress-circular v-if="loadingMore" indeterminate size="28" />
-
       </div>
     </div>
-
   </div>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router'
 
-import {
-  ref,
-  onMounted,
-  onBeforeUnmount
-} from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 
 import api from '@/services/api'
+
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
 
 const activities = ref([])
 
@@ -228,203 +184,127 @@ const loadMoreTrigger = ref(null)
 
 let observer = null
 
+const canManageActivity = computed(() => {
+  return authStore.isAdmin || authStore.isTherapist
+})
+
 const goToCreate = () => {
-
   router.push('/activity/create')
-
 }
 
 const goToEdit = (id) => {
-
-  router.push(
-    `/activity/${id}/edit`
-  )
-
+  router.push(`/activity/${id}/edit`)
 }
 
 const storageUrl = (path) => {
-
   return `http://127.0.0.1:8000/storage/${path}`
 }
 
 const isExpanded = (id) => {
-
   return expandedCaptions.value.includes(id)
-
 }
 
 const toggleCaption = (id) => {
-
   if (isExpanded(id)) {
-
-    expandedCaptions.value =
-      expandedCaptions.value.filter(
-        item => item !== id
-      )
-
+    expandedCaptions.value = expandedCaptions.value.filter((item) => item !== id)
   } else {
-
     expandedCaptions.value.push(id)
-
   }
-
 }
 
 const formatDate = (date) => {
-
-  return new Date(date)
-    .toLocaleDateString(
-      'en-GB',
-      {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }
-    )
+  return new Date(date).toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
 }
 
-const fetchActivities = async (
-  reset = false
-) => {
-
+const fetchActivities = async (reset = false) => {
   try {
-
     if (reset) {
-
       page.value = 1
 
       activities.value = []
-
     }
 
     loading.value = true
 
-    const res = await api.get(
-      '/activities',
-      {
-        params: {
-          page: page.value,
-          per_page: 10,
-          search: search.value
-        }
-      }
-    )
+    const res = await api.get('/activities', {
+      params: {
+        page: page.value,
+        per_page: 10,
+        search: search.value,
+      },
+    })
 
     const newData = res.data.data
 
-    activities.value = [
-      ...activities.value,
-      ...newData
-    ]
+    activities.value = [...activities.value, ...newData]
 
-    lastPage.value =
-      res.data.last_page
-
+    lastPage.value = res.data.last_page
   } catch (err) {
-
     console.error(err)
-
   } finally {
-
     loading.value = false
-
   }
-
 }
 
 const deleteActivity = async (id) => {
-
-  const confirmed = confirm(
-    'Delete this activity?'
-  )
+  const confirmed = confirm('Delete this activity?')
 
   if (!confirmed) return
 
   try {
-
     deleting.value = true
 
-    await api.delete(
-      `/activities/${id}`
-    )
+    await api.delete(`/activities/${id}`)
 
-    activities.value =
-      activities.value.filter(
-        activity => activity.id !== id
-      )
+    activities.value = activities.value.filter((activity) => activity.id !== id)
 
-    alert(
-      'Activity deleted successfully'
-    )
-
+    alert('Activity deleted successfully')
   } catch (err) {
-
     console.error(err)
 
-    alert(
-      'Failed to delete activity'
-    )
-
+    alert('Failed to delete activity')
   } finally {
-
     deleting.value = false
-
   }
-
 }
 
 const loadMore = async () => {
-
   if (loadingMore.value) return
 
-  if (page.value >= lastPage.value)
-    return
+  if (page.value >= lastPage.value) return
 
   try {
-
     loadingMore.value = true
 
     page.value++
 
     await fetchActivities()
-
   } finally {
-
     loadingMore.value = false
-
   }
-
 }
 
 onMounted(async () => {
-
   await fetchActivities()
 
   observer = new IntersectionObserver(
-    entries => {
-
-      if (
-        entries[0].isIntersecting
-      ) {
-
+    (entries) => {
+      if (entries[0].isIntersecting) {
         loadMore()
-
       }
-
     },
     {
-      threshold: 0.5
-    }
+      threshold: 0.5,
+    },
   )
 
   if (loadMoreTrigger.value) {
-
-    observer.observe(
-      loadMoreTrigger.value
-    )
-
+    observer.observe(loadMoreTrigger.value)
   }
-
 })
 
 onBeforeUnmount(() => {
@@ -432,7 +312,6 @@ onBeforeUnmount(() => {
     observer.disconnect()
   }
 })
-
 </script>
 
 <style scoped>
@@ -499,8 +378,7 @@ onBeforeUnmount(() => {
 .photo-grid {
   display: grid;
 
-  grid-template-columns:
-    repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 
   gap: 12px;
 }
@@ -514,7 +392,6 @@ onBeforeUnmount(() => {
 
 :deep(.v-window__left),
 :deep(.v-window__right) {
-
   opacity: 0.35;
 
   transition: opacity 0.2s ease;
@@ -522,25 +399,21 @@ onBeforeUnmount(() => {
 
 :deep(.v-window__left .v-btn),
 :deep(.v-window__right .v-btn) {
-
   width: 32px !important;
   height: 32px !important;
 }
 
 :deep(.v-carousel__controls__item) {
-
   transform: scale(0.7);
 
   opacity: 0.5;
 }
 
 :deep(.v-carousel__controls__item--active) {
-
   opacity: 1;
 }
 
 @media (max-width: 768px) {
-
   .page-header {
     flex-direction: column;
     align-items: stretch;
@@ -566,7 +439,6 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 600px) {
-
   .page-header h1 {
     font-size: 28px !important;
     line-height: 1.2;

@@ -27,9 +27,17 @@ api.interceptors.response.use(
 
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token')
+      const currentPath = window.location.pathname
 
-      window.location.href = '/login'
+      // ======================
+      // SKIP LOGIN PAGE
+      // ======================
+
+      if (currentPath !== '/login') {
+        localStorage.removeItem('token')
+
+        window.location.href = '/login'
+      }
     }
 
     return Promise.reject(error)
