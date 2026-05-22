@@ -1,14 +1,11 @@
 <template>
   <div class="invoice-content">
     <v-card elevation="1" class="pa-6">
-
       <!-- HEADER -->
       <div class="d-flex justify-space-between mb-6">
         <div>
           <h2 class="text-h5 font-weight-bold">Invoice</h2>
-          <div class="text-caption text-grey">
-            AHA! Child Development Center
-          </div>
+          <div class="text-caption text-grey">AHA! Child Development Center</div>
         </div>
 
         <v-chip :color="statusColor" variant="tonal">
@@ -17,19 +14,38 @@
       </div>
 
       <!-- INFO -->
-      <div><strong>Invoice No:</strong> {{ invoiceNumber }}</div>
-      <div><strong>Date:</strong> {{ formatDate(todayDate) }}</div>
+      <div>
+        <strong>Invoice No:</strong>
+        {{ invoiceNumber }}
+      </div>
+      <div>
+        <strong>Date:</strong>
+        {{ formatDate(todayDate) }}
+      </div>
 
       <!-- CHILD -->
       <v-divider class="my-4"></v-divider>
       <div class="text-subtitle-1 font-weight-medium mb-2">Patient Info</div>
 
-      <div><strong>Registration No:</strong> {{ billing.registration_number }}</div>
-      <div><strong>Registration Date:</strong> {{ formatDate(billing.created_at) }}</div>
-      <div><strong>Name:</strong> {{ billing.child?.name }}</div>
-      <div><strong>Age:</strong> {{ age }}</div>
+      <div>
+        <strong>Registration No:</strong>
+        {{ billing.registration_number }}
+      </div>
+      <div>
+        <strong>Registration Date:</strong>
+        {{ formatDate(billing.created_at) }}
+      </div>
+      <div>
+        <strong>Name:</strong>
+        {{ billing.child?.name }}
+      </div>
+      <div>
+        <strong>Age:</strong>
+        {{ age }}
+      </div>
 
-      <div class="mt-2"><strong>Guardian(s):</strong>
+      <div class="mt-2">
+        <strong>Guardian(s):</strong>
         <div v-for="g in billing.child?.guardians || []" :key="g.name">
           <strong>{{ g.name }}</strong>
           ({{ g.guardian_role?.name }}) - {{ g.phone }}
@@ -65,42 +81,40 @@
       <!-- ACTION -->
       <div class="no-print">
         <div class="d-flex justify-end mt-6">
-          <v-btn color="warning" class="mr-2" @click="triggerUpload" :loading="uploading"
-            :disabled="uploading || billing.payment_status?.id === 3">
+          <v-btn
+            color="warning"
+            class="mr-2"
+            @click="triggerUpload"
+            :loading="uploading"
+            :disabled="uploading || billing.payment_status?.id === 3"
+          >
             {{ billing.payment_receipt ? 'Replace Receipt' : 'Upload Receipt' }}
           </v-btn>
 
           <input type="file" ref="fileInput" accept="image/*" hidden @change="handleFile" />
-          <v-btn color="primary" class="mr-2" @click="printInvoice">
-            Print
+          <v-btn color="success" class="mr-2" prepend-icon="mdi-link" @click="generateInvoiceLink">
+            Invoice Link
           </v-btn>
-          <v-btn variant="outlined" @click="$router.back()">
-            Back
-          </v-btn>
+          <v-btn color="primary" class="mr-2" @click="printInvoice">Print</v-btn>
+          <v-btn variant="outlined" @click="$router.back()">Back</v-btn>
         </div>
 
         <!-- PAYMENT RECEIPT -->
         <v-divider class="my-4"></v-divider>
-        <div class="text-subtitle-1 font-weight-medium mb-2">
-          Payment Receipt
-        </div>
+        <div class="text-subtitle-1 font-weight-medium mb-2">Payment Receipt</div>
 
         <div v-if="billing.payment_receipt">
           <v-img :src="getReceiptUrl(billing.payment_receipt)" max-width="300" />
         </div>
 
-        <div v-else class="text-grey">
-          No receipt uploaded
-        </div>
+        <div v-else class="text-grey">No receipt uploaded</div>
       </div>
 
       <v-snackbar v-model="snackbar" :color="snackbarColor" location="top right" timeout="3000">
         {{ snackbarText }}
       </v-snackbar>
-
     </v-card>
   </div>
-
 </template>
 
 <script setup>
@@ -114,10 +128,10 @@ const billing = ref({})
 const todayDate = new Date()
 const fileInput = ref(null)
 const uploading = ref(false)
-
 const snackbar = ref(false)
 const snackbarText = ref('')
 const snackbarColor = ref('success')
+const invoiceLink = ref('')
 
 const getReceiptUrl = (path) => {
   return `http://localhost:8000/storage/${path}`
@@ -136,14 +150,14 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString('en-US', {
     month: 'short',
     day: '2-digit',
-    year: 'numeric'
+    year: 'numeric',
   })
 }
 
 const formatCurrency = (val) => {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
-    currency: 'IDR'
+    currency: 'IDR',
   }).format(val || 0)
 }
 
@@ -190,23 +204,17 @@ const handleFile = async (e) => {
     const compressedBlob = await imageCompression(file, {
       maxSizeMB: 1,
       maxWidthOrHeight: 1280,
-      useWebWorker: true
+      useWebWorker: true,
     })
 
-    const compressedFile = new File(
-      [compressedBlob],
-      file.name,
-      { type: compressedBlob.type }
-    )
+    const compressedFile = new File([compressedBlob], file.name, { type: compressedBlob.type })
 
     const formData = new FormData()
     formData.append('file', compressedFile)
 
-    await api.post(
-      `/registrations/${billing.value.id}/upload-receipt`,
-      formData,
-      { headers: { 'Content-Type': undefined } }
-    )
+    await api.post(`/registrations/${billing.value.id}/upload-receipt`, formData, {
+      headers: { 'Content-Type': undefined },
+    })
 
     // 🔥 SUCCESS
     snackbarText.value = 'Receipt uploaded successfully'
@@ -214,7 +222,6 @@ const handleFile = async (e) => {
     snackbar.value = true
 
     await fetchData()
-
   } catch (err) {
     console.log(err.response?.data)
 
@@ -222,9 +229,24 @@ const handleFile = async (e) => {
     snackbarText.value = 'Upload failed. Please try again.'
     snackbarColor.value = 'error'
     snackbar.value = true
-
   } finally {
     uploading.value = false
+  }
+}
+
+const generateInvoiceLink = async () => {
+  try {
+    const res = await api.post(`/registrations/${billing.value.id}/generate-invoice-link`)
+
+    invoiceLink.value = res.data.invoice_link
+
+    await navigator.clipboard.writeText(invoiceLink.value)
+
+    alert('Invoice link copied')
+  } catch (err) {
+    console.error(err)
+
+    alert('Failed to generate link')
   }
 }
 

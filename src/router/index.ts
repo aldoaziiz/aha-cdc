@@ -46,7 +46,11 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/dashboard',
     component: Dashboard,
-    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin', 'guardian', 'therapist'] },
+    meta: {
+      layout: 'app',
+      requiresAuth: true,
+      allowedRoles: ['admin', 'guardian', 'therapist', 'staff'],
+    },
   },
 
   // master data
@@ -122,7 +126,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/registrations-new',
     component: RegistrationsNew,
-    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin', 'guardian'] },
+    meta: { layout: 'blank' },
   },
 
   // billing
@@ -137,6 +141,17 @@ const routes: RouteRecordRaw[] = [
     path: '/invoices/:id',
     component: Invoice,
     meta: { layout: 'blank', requiresAuth: true, allowedRoles: ['admin', 'guardian'] },
+  },
+  {
+    path: '/invoice-upload/:token',
+
+    name: 'invoice-upload',
+
+    component: () => import('@/components/InvoiceUpload.vue'),
+
+    meta: {
+      layout: 'blank',
+    },
   },
 
   // Schedule

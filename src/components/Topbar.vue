@@ -3,7 +3,7 @@
   <v-app-bar color="primary" dark class="dashboard-header" elevation="2">
     <v-app-bar-nav-icon @click="toggleSidebar"></v-app-bar-nav-icon>
 
-    <v-toolbar-title class="ml-3 font-weight-bold">AHA CDC</v-toolbar-title>
+    <v-toolbar-title class="ml-3 font-weight-bold">{{ userName }}</v-toolbar-title>
 
     <v-spacer></v-spacer>
 
@@ -20,7 +20,13 @@
 
       <v-list>
         <v-list-item>
-          <v-list-item-title>{{ userEmail }}</v-list-item-title>
+          <v-list-item-title>
+            {{ userName }}
+          </v-list-item-title>
+
+          <v-list-item-subtitle>
+            {{ userEmail }}
+          </v-list-item-subtitle>
         </v-list-item>
         <v-divider></v-divider>
         <v-list-item @click="goToProfile">
@@ -48,14 +54,20 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
 const router = useRouter()
-const searchQuery = ref('')
-const userEmail = ref('user@example.com')
+
+const userName = computed(() => {
+  return authStore.user?.name || 'User'
+})
+
+const userEmail = computed(() => {
+  return authStore.user?.email || '-'
+})
 
 const emit = defineEmits<{
   'toggle-sidebar': []
@@ -78,14 +90,6 @@ const handleLogout = async () => {
 
   router.push('/login')
 }
-
-onMounted(() => {
-  // Get user email from localStorage
-  const storedEmail = localStorage.getItem('userEmail')
-  if (storedEmail) {
-    userEmail.value = storedEmail
-  }
-})
 </script>
 
 <style scoped>

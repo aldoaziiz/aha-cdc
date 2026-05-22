@@ -8,7 +8,9 @@
   >
     <v-list dense nav>
       <v-list-item
-        v-if="authStore.isAdmin || authStore.isGuardian || authStore.isTherapist"
+        v-if="
+          authStore.isAdmin || authStore.isGuardian || authStore.isTherapist || authStore.isStaff
+        "
         @click="setActiveMenu('Dashboard')"
         :active="activeMenu === 'Dashboard'"
         to="/dashboard"

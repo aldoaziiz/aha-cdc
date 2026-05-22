@@ -30,6 +30,12 @@
             <v-text-field v-model="form.phone" label="Phone" variant="outlined" />
           </v-col>
 
+          <!-- EMAIL -->
+
+          <v-col cols="12" md="6">
+            <v-text-field v-model="form.email" label="Email" type="email" variant="outlined" />
+          </v-col>
+
           <!-- ADDRESS -->
           <v-col cols="12">
             <v-textarea v-model="form.address" label="Address" variant="outlined" rows="3" />
@@ -88,6 +94,7 @@ const form = ref({
   name: '',
   phone: '',
   address: '',
+  email: '',
 })
 
 // ======================

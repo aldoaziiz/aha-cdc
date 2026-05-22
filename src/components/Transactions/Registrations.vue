@@ -96,8 +96,11 @@
                     </v-list-item>
 
                     <v-list-item @click="edit(item)">
-                      <v-list-item-title>Edit</v-list-item-title>
+                      <v-list-item-title>
+                        Edit
+                      </v-list-item-title>
                     </v-list-item>
+
                   </v-list>
                 </v-menu>
               </template>
@@ -205,7 +208,6 @@ const calculateAge = (birthDate) => {
 }
 
 // ACTION
-
 const edit = (item) => {
   router.push(`/registrations/${item.id}/edit`)
 }

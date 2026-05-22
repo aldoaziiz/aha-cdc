@@ -6,9 +6,7 @@
         <p class="text-body-2 text-grey">Update guardian information.</p>
       </div>
 
-      <v-btn variant="tonal" prepend-icon="mdi-arrow-left" @click="goBack">
-        Back
-      </v-btn>
+      <v-btn variant="tonal" prepend-icon="mdi-arrow-left" @click="goBack">Back</v-btn>
     </div>
 
     <v-card v-if="pageLoading" elevation="1" class="rounded-xl pa-8">
@@ -34,14 +32,23 @@
           </v-col>
 
           <v-col cols="12" md="6">
+            <v-text-field v-model="form.email" label="Email" variant="outlined" readonly />
+          </v-col>
+
+          <v-col cols="12" md="6">
             <v-text-field v-model="form.address" label="Address" variant="outlined" />
           </v-col>
         </v-row>
 
         <div class="d-flex justify-end ga-3 mt-4">
           <v-btn variant="tonal" @click="goBack">Cancel</v-btn>
-          <v-btn color="primary" prepend-icon="mdi-content-save" :loading="loading" :disabled="loading"
-            @click="updateGuardian">
+          <v-btn
+            color="primary"
+            prepend-icon="mdi-content-save"
+            :loading="loading"
+            :disabled="loading"
+            @click="updateGuardian"
+          >
             Update Guardian
           </v-btn>
         </div>
@@ -73,6 +80,7 @@ const form = ref({
   name: '',
   phone: '',
   address: '',
+  email: '',
 })
 
 const showSnackbar = (text, color = 'success') => {
@@ -93,6 +101,7 @@ const fetchGuardian = async () => {
       name: res.data.name || '',
       phone: res.data.phone || '',
       address: res.data.address || '',
+      email: res.data.email || '',
     }
   } catch (err) {
     console.error('Error loading guardian:', err)
@@ -109,7 +118,7 @@ const updateGuardian = async () => {
       id_number: form.value.id_number,
       name: form.value.name,
       phone: form.value.phone,
-      address: form.value.address
+      address: form.value.address,
     })
 
     showSnackbar('Guardian updated successfully')

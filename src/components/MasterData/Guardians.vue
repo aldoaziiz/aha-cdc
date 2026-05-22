@@ -115,6 +115,10 @@
               <div class="detail-value">{{ selectedGuardian.phone || '-' }}</div>
             </v-col>
             <v-col cols="12" md="6">
+              <div class="detail-label">Email</div>
+              <div class="detail-value">{{ selectedGuardian.email || '-' }}</div>
+            </v-col>
+            <v-col cols="12" md="6">
               <div class="detail-label">Address</div>
               <div class="detail-value">{{ selectedGuardian.address || '-' }}</div>
             </v-col>

@@ -23,7 +23,7 @@
             <v-text-field v-model="form.name" label="Name" variant="outlined" />
           </v-col>
           <v-col cols="12" md="6">
-            <v-text-field v-model="form.email" label="Email" variant="outlined" />
+            <v-text-field :model-value="form.email" label="Email" variant="outlined" readonly />
           </v-col>
           <v-col cols="12" md="6">
             <v-text-field v-model="form.phone" label="Phone" variant="outlined" />
@@ -131,7 +131,6 @@ const updateStaff = async () => {
   try {
     await api.put(`/staff/${route.params.id}`, {
       name: form.value.name,
-      email: form.value.email,
       phone: form.value.phone,
       address: form.value.address,
       staff_role_id: form.value.staff_role_id,

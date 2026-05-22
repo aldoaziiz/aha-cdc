@@ -21,6 +21,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isGuardian = computed(() => user.value?.role === 'guardian')
 
+  const isStaff = computed(() => user.value?.role === 'staff')
+
   // ======================
   // LOGIN
   // ======================
@@ -96,5 +98,7 @@ export const useAuthStore = defineStore('auth', () => {
     isTherapist,
 
     isGuardian,
+
+    isStaff,
   }
 })
