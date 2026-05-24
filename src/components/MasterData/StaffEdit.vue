@@ -23,7 +23,7 @@
             <v-text-field v-model="form.name" label="Name" variant="outlined" />
           </v-col>
           <v-col cols="12" md="6">
-            <v-text-field :model-value="form.email" label="Email" variant="outlined" readonly />
+            <v-text-field v-model="form.email" label="Email" variant="outlined" type="email" />
           </v-col>
           <v-col cols="12" md="6">
             <v-text-field v-model="form.phone" label="Phone" variant="outlined" />
@@ -132,6 +132,7 @@ const updateStaff = async () => {
     await api.put(`/staff/${route.params.id}`, {
       name: form.value.name,
       phone: form.value.phone,
+      email: form.value.email,
       address: form.value.address,
       staff_role_id: form.value.staff_role_id,
     })
@@ -140,7 +141,7 @@ const updateStaff = async () => {
     goBack()
   } catch (error) {
     console.error('Error updating staff:', error)
-    showSnackbar('Error updating staff', 'error')
+    showSnackbar(error.response?.data?.message || 'Error updating staff', 'error')
   } finally {
     loading.value = false
   }

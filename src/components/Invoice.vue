@@ -92,8 +92,8 @@
           </v-btn>
 
           <input type="file" ref="fileInput" accept="image/*" hidden @change="handleFile" />
-          <v-btn color="success" class="mr-2" prepend-icon="mdi-link" @click="generateInvoiceLink">
-            Invoice Link
+          <v-btn color="success" class="mr-2" prepend-icon="mdi-link" @click="copyInvoiceLink">
+            Copy Link
           </v-btn>
           <v-btn color="primary" class="mr-2" @click="printInvoice">Print</v-btn>
           <v-btn variant="outlined" @click="$router.back()">Back</v-btn>
@@ -142,7 +142,7 @@ const triggerUpload = () => {
 }
 
 const fetchData = async () => {
-  const res = await api.get(`/registrations/${route.params.id}`)
+  const res = await api.get(`/invoice-upload/${route.params.token}`)
   billing.value = res.data.data
 }
 
@@ -234,19 +234,15 @@ const handleFile = async (e) => {
   }
 }
 
-const generateInvoiceLink = async () => {
+const copyInvoiceLink = async () => {
   try {
-    const res = await api.post(`/registrations/${billing.value.id}/generate-invoice-link`)
-
-    invoiceLink.value = res.data.invoice_link
-
-    await navigator.clipboard.writeText(invoiceLink.value)
+    await navigator.clipboard.writeText(window.location.href)
 
     alert('Invoice link copied')
-  } catch (err) {
-    console.error(err)
+  } catch (error) {
+    console.error(error)
 
-    alert('Failed to generate link')
+    alert('Failed to copy link')
   }
 }
 
@@ -260,8 +256,11 @@ onMounted(fetchData)
   }
 }
 
-.invoice-content {
-  max-width: 800px;
-  margin: auto;
+.invoice-container {
+  width: 100%;
+
+  max-width: 900px;
+
+  margin: 0 auto;
 }
 </style>

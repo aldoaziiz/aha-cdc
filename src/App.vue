@@ -1,31 +1,43 @@
 <template>
-  <v-app>
-    <component :is="layoutComponent">
-      <router-view />
-    </component>
-  </v-app>
+  <div v-if="!isRouterReady" class="app-loading-shell">
+    <v-progress-circular indeterminate color="primary" size="48" />
+
+    <div class="mt-4 text-body-1 text-medium-emphasis">Memuat halaman...</div>
+  </div>
+
+  <component v-else :is="layout">
+    <router-view />
+  </component>
 </template>
 
-<script lang="ts" setup>
-import { computed } from 'vue'
+<script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import BlankLayout from './layouts/BlankLayout.vue'
-import AppLayout from './layouts/AppLayout.vue'
-import { onMounted } from 'vue'
-import { useAuthStore } from '@/stores/auth'
+
+import router from '@/router'
+import AppLayout from '@/layouts/AppLayout.vue'
+import BlankLayout from '@/layouts/BlankLayout.vue'
 
 const route = useRoute()
-const authStore = useAuthStore()
+const isRouterReady = ref(false)
 
-const layoutComponent = computed(() => {
-  const layout = route.meta?.layout as string | undefined
-  if (layout === 'blank') {
-    return BlankLayout
-  }
-  return AppLayout
+onMounted(async () => {
+  await router.isReady()
+  isRouterReady.value = true
 })
 
-onMounted(() => {
-  authStore.fetchMe()
+const layout = computed(() => {
+  return route.meta.layout === 'app' ? AppLayout : BlankLayout
 })
 </script>
+
+<style scoped>
+.app-loading-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+}
+</style>

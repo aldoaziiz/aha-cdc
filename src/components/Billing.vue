@@ -4,9 +4,7 @@
     <div class="page-header mb-6">
       <div>
         <h1 class="text-h4 font-weight-bold mb-2">Billing</h1>
-        <p class="text-body2 text-grey">
-          Manage and view billing data
-        </p>
+        <p class="text-body2 text-grey">Manage and view billing data</p>
       </div>
     </div>
 
@@ -15,16 +13,20 @@
       <v-col cols="12">
         <v-card elevation="1">
           <v-card flat>
-
             <!-- Search -->
             <template v-slot:text>
-              <v-text-field v-model="search" label="Search" prepend-inner-icon="mdi-magnify" variant="outlined"
-                hide-details single-line />
+              <v-text-field
+                v-model="search"
+                label="Search"
+                prepend-inner-icon="mdi-magnify"
+                variant="outlined"
+                hide-details
+                single-line
+              />
             </template>
 
             <!-- Data Table -->
             <v-data-table :headers="headers" :items="billing" :search="search" :loading="loading">
-
               <!-- CHILD -->
               <template v-slot:item.child="{ item }">
                 <div>
@@ -72,18 +74,27 @@
 
               <!-- PAYMENT STATUS -->
               <template v-slot:item.payment_status.id="{ item }">
+                <!-- STATUS -->
+                <v-chip
+                  :color="getStatusColor(item.payment_status?.id)"
+                  variant="tonal"
+                  size="small"
+                  class="mb-1"
+                >
+                  {{ item.payment_status?.name || '-' }}
+                </v-chip>
 
-                  <!-- STATUS -->
-                  <v-chip :color="getStatusColor(item.payment_status?.id)" variant="tonal" size="small" class="mb-1">
-                    {{ item.payment_status?.name || '-' }}
-                  </v-chip>
-
-                  <!-- RECEIPT LINK -->
-                  <v-btn v-if="item.payment_status?.id === 2" variant="text" density="compact" size="small"
-                    class="pa-0 text-primary" @click="previewReceipt(item)">
-                    View Receipt
-                  </v-btn>
-
+                <!-- RECEIPT LINK -->
+                <v-btn
+                  v-if="item.payment_status?.id === 2"
+                  variant="text"
+                  density="compact"
+                  size="small"
+                  class="pa-0 text-primary"
+                  @click="previewReceipt(item)"
+                >
+                  View Receipt
+                </v-btn>
               </template>
 
               <!-- ACTION -->
@@ -101,17 +112,12 @@
                       <v-list-item-title>Invoice</v-list-item-title>
                     </v-list-item>
                     <v-list-item v-if="item.payment_status?.id === 2" @click="markAsPaid(item)">
-                      <v-list-item-title class="text-green">
-                        Mark as Paid
-                      </v-list-item-title>
+                      <v-list-item-title class="text-green">Mark as Paid</v-list-item-title>
                     </v-list-item>
                   </v-list>
-
                 </v-menu>
               </template>
-
             </v-data-table>
-
           </v-card>
         </v-card>
       </v-col>
@@ -131,7 +137,6 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
   </div>
 </template>
 
@@ -154,9 +159,8 @@ const headers = [
   { title: 'Program', key: 'program' },
   // { title: 'Guardian', key: 'guardian' },
   { title: 'Payment Status', key: 'payment_status.id' },
-  { title: '', key: 'actions', sortable: false, align: 'center' }
+  { title: '', key: 'actions', sortable: false, align: 'center' },
 ]
-
 
 // FETCH DATA
 const fetchData = async () => {
@@ -174,8 +178,8 @@ const fetchData = async () => {
 // payment status color
 const getStatusColor = (id) => {
   if (id === 1) return 'warning' // Unpaid (kuning)
-  if (id === 2) return 'grey'    // Waiting
-  if (id === 3) return 'green'   // Paid
+  if (id === 2) return 'grey' // Waiting
+  if (id === 3) return 'green' // Paid
   return 'grey'
 }
 
@@ -185,7 +189,7 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString('en-ID', {
     month: 'short',
     day: '2-digit',
-    year: 'numeric'
+    year: 'numeric',
   })
 }
 
@@ -208,8 +212,14 @@ const calculateAge = (birthDate) => {
 }
 
 // ACTION
-const createInvoice = (item) => {
-  router.push(`/invoices/${item.id}`)
+const createInvoice = async (item) => {
+  try {
+    const res = await api.post(`/registrations/${item.id}/generate-invoice-link`)
+
+    router.push(`/invoice/${res.data.token}`)
+  } catch (error) {
+    console.error(error)
+  }
 }
 
 const previewReceipt = (item) => {
@@ -222,14 +232,12 @@ const getReceiptUrl = (path) => {
 }
 
 const markAsPaid = async (item) => {
-
   if (!confirm('Are you sure you want to mark this as paid?')) return
 
   try {
     await api.put(`/registrations/${item.id}/mark-paid`)
 
     fetchData()
-
   } catch (err) {
     console.error(err)
   }

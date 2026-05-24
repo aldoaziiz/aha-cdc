@@ -1,100 +1,74 @@
 <template>
   <div class="login-page">
-    <v-container class="login-container" fluid>
-      <v-row class="h-100" no-gutters>
-        <!-- Left Section - Branding -->
-        <v-col cols="12" sm="6" class="d-none d-sm-flex left-section">
-          <div class="branding-content">
-            <img
-              src="@/assets/ahacdc-logo.jpeg"
-              alt="Login Illustration"
-              class="mb-6"
-              style="max-width: 100%; height: auto"
+    <div class="login-card-wrapper">
+      <v-card class="login-card" rounded="xl" elevation="8">
+        <v-card-text class="pa-8">
+          <!-- LOGO -->
+          <div class="text-center mb-8">
+            <img src="@/assets/ahacdc-logo.jpeg" alt="AHA CDC Logo" class="logo mb-4" />
+
+            <h1 class="text-h4 font-weight-bold mb-2">Welcome Back</h1>
+
+            <p class="text-body-1 text-grey-darken-1">Please sign in to continue</p>
+          </div>
+
+          <!-- SUCCESS -->
+          <v-alert v-if="successMessage" type="success" variant="tonal" class="mb-4" closable>
+            {{ successMessage }}
+          </v-alert>
+
+          <!-- ERROR -->
+          <v-alert
+            v-if="errorMessage"
+            type="error"
+            variant="tonal"
+            class="mb-4"
+            closable
+            @update:model-value="errorMessage = ''"
+          >
+            {{ errorMessage }}
+          </v-alert>
+
+          <!-- FORM -->
+          <v-form ref="form" @submit.prevent="handleLogin">
+            <v-text-field
+              v-model="email"
+              label="Email"
+              type="email"
+              variant="outlined"
+              prepend-inner-icon="mdi-email-outline"
+              :rules="emailRules"
+              :error="!!errorMessage"
+              class="mb-4"
+              required
             />
-          </div>
-        </v-col>
 
-        <!-- Right Section - Login Form -->
-        <v-col cols="12" sm="6" class="d-flex right-section">
-          <div class="form-wrapper">
-            <!-- Header -->
-            <div class="text-center mb-8">
-              <v-icon size="48" color="#E6611D" class="mb-4">mdi-account-circle</v-icon>
-              <h1 class="text-h3 font-weight-bold mb-4">Selamat Datang</h1>
-              <p class="text-body1 mb-8">Silahkan login menggunakan akun Anda</p>
-            </div>
-
-            <!-- Success Alert -->
-            <v-alert v-if="successMessage" type="success" class="mb-6" closable>
-              {{ successMessage }}
-            </v-alert>
-
-            <!-- Error Alert -->
-            <v-alert
-              v-if="errorMessage"
-              type="error"
+            <v-text-field
+              v-model="password"
+              label="Password"
+              type="password"
+              variant="outlined"
+              prepend-inner-icon="mdi-lock-outline"
+              :rules="passwordRules"
+              :error="!!errorMessage"
               class="mb-6"
-              closable
-              @update:model-value="errorMessage = ''"
+              required
+            />
+
+            <v-btn
+              type="submit"
+              block
+              size="large"
+              color="#64AF64"
+              :loading="isLoading"
+              class="login-btn text-none font-weight-bold"
             >
-              {{ errorMessage }}
-            </v-alert>
-
-            <!-- Login Form -->
-            <v-form ref="form">
-              <v-text-field
-                v-model="email"
-                label="Email"
-                type="email"
-                variant="outlined"
-                prepend-inner-icon="mdi-email"
-                class="mb-6"
-                :rules="emailRules"
-                :error="!!errorMessage"
-                required
-              />
-
-              <v-text-field
-                v-model="password"
-                label="Password"
-                type="password"
-                variant="outlined"
-                prepend-inner-icon="mdi-lock"
-                class="mb-4"
-                :rules="passwordRules"
-                :error="!!errorMessage"
-                required
-              />
-
-              <!-- Remember Me & Forgot Password -->
-              <div class="d-flex justify-space-between align-center mb-6">
-                <v-checkbox
-                  v-model="rememberMe"
-                  label="Remember me"
-                  density="compact"
-                  class="flex-grow-0"
-                />
-                <v-btn variant="text" size="small" color="primary" class="text-none">
-                  Lupa password?
-                </v-btn>
-              </div>
-
-              <!-- Sign In Button -->
-              <v-btn
-                @click="handleLogin"
-                block
-                color="#64AF64"
-                size="large"
-                :loading="isLoading"
-                class="mb-4 font-weight-bold"
-              >
-                Login
-              </v-btn>
-            </v-form>
-          </div>
-        </v-col>
-      </v-row>
-    </v-container>
+              Login
+            </v-btn>
+          </v-form>
+        </v-card-text>
+      </v-card>
+    </div>
   </div>
 </template>
 
@@ -105,22 +79,30 @@ import type { VForm } from 'vuetify/components'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+
 const authStore = useAuthStore()
+
 const email = ref('')
+
 const password = ref('')
-const rememberMe = ref(false)
+
 const isLoading = ref(false)
+
 const errorMessage = ref('')
+
 const successMessage = ref('')
+
 const form = ref<InstanceType<typeof VForm>>()
 
 const emailRules = [
   (v: string) => !!v || 'Email is required',
+
   (v: string) => /.+@.+\..+/.test(v) || 'Email must be valid',
 ]
 
 const passwordRules = [
   (v: string) => !!v || 'Password is required',
+
   (v: string) => v.length >= 6 || 'Password must be at least 6 characters',
 ]
 
@@ -138,19 +120,17 @@ const handleLogin = async () => {
   successMessage.value = ''
 
   try {
-    await authStore.login(
-      email.value,
-
-      password.value,
-    )
+    await authStore.login(email.value, password.value)
 
     successMessage.value = 'Login successful! Redirecting...'
 
     setTimeout(() => {
       router.push('/dashboard')
-    }, 1000)
-  } catch (err: any) {
-    console.error(err)
+    }, 800)
+  } catch (error) {
+    console.error(error)
+
+    const err = error as any
 
     errorMessage.value = err.response?.data?.message || 'Login failed'
   } finally {
@@ -162,95 +142,55 @@ const handleLogin = async () => {
 <style scoped>
 .login-page {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-}
 
-.login-container {
   display: flex;
-  align-items: center;
-  min-height: 100vh;
-}
 
-.h-100 {
-  height: 100%;
-}
-
-.left-section {
-  display: flex;
   align-items: center;
+
   justify-content: center;
-  color: black;
-  padding: 60px 40px;
-  min-height: 100vh;
+
+  padding: 24px;
+
+  background: linear-gradient(135deg, #f4f7f5 0%, #edf5ef 100%);
 }
 
-.branding-content {
-  text-align: center;
-  max-width: 400px;
-}
-
-.feature-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.95rem;
-}
-
-.right-section {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 30px;
-  background: #f8f9fa;
-}
-
-.form-wrapper {
+.login-card-wrapper {
   width: 100%;
-  max-width: 400px;
+
+  max-width: 420px;
 }
 
-.divider {
-  position: relative;
-  text-align: center;
-  color: #999;
-  font-size: 0.85rem;
+.login-card {
+  backdrop-filter: blur(8px);
 }
 
-.divider::before,
-.divider::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: calc(50% - 50px);
-  height: 1px;
-  background: #ddd;
+.logo {
+  width: 120px;
+
+  max-width: 100%;
+
+  object-fit: contain;
 }
 
-.divider::before {
-  left: 0;
-}
+.login-btn {
+  height: 52px;
 
-.divider::after {
-  right: 0;
-}
+  font-size: 16px;
 
-.social-buttons {
-  width: 100%;
+  border-radius: 12px;
 }
 
 @media (max-width: 600px) {
-  .left-section {
-    padding: 30px 20px;
+  .login-page {
+    padding: 16px;
   }
 
-  .right-section {
-    padding: 30px 20px;
-    min-height: auto;
-  }
-
-  .form-wrapper {
+  .login-card-wrapper {
     max-width: 100%;
+  }
+
+  .logo {
+    width: 100px;
   }
 }
 </style>

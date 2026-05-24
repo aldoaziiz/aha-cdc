@@ -1,15 +1,17 @@
 <template>
-  <div class="app-layout-wrapper">
-    <Topbar @toggle-sidebar="toggleSidebar" />
-    <Sidebar ref="sidebarRef" />
+  <v-app>
+    <div class="app-layout-wrapper">
+      <Topbar @toggle-sidebar="toggleSidebar" />
+      <Sidebar ref="sidebarRef" />
 
-    <!-- Main Content Area -->
-    <v-main class="content-main">
-      <div class="content-wrapper">
-        <slot />
-      </div>
-    </v-main>
-  </div>
+      <!-- Main Content Area -->
+      <v-main class="content-main">
+        <div class="content-wrapper">
+          <slot />
+        </div>
+      </v-main>
+    </div>
+  </v-app>
 </template>
 
 <script lang="ts" setup>
@@ -44,7 +46,6 @@ const toggleSidebar = () => {
   justify-content: center;
   width: 100%;
   max-width: 1400px;
-  width: 100%;
   padding: 20px;
 }
 </style>

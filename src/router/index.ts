@@ -138,20 +138,9 @@ const routes: RouteRecordRaw[] = [
 
   // invoice details
   {
-    path: '/invoices/:id',
+    path: '/invoice/:token',
     component: Invoice,
-    meta: { layout: 'blank', requiresAuth: true, allowedRoles: ['admin', 'guardian'] },
-  },
-  {
-    path: '/invoice-upload/:token',
-
-    name: 'invoice-upload',
-
-    component: () => import('@/components/InvoiceUpload.vue'),
-
-    meta: {
-      layout: 'blank',
-    },
+    meta: { layout: 'blank' },
   },
 
   // Schedule

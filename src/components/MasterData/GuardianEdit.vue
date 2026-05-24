@@ -32,7 +32,7 @@
           </v-col>
 
           <v-col cols="12" md="6">
-            <v-text-field v-model="form.email" label="Email" variant="outlined" readonly />
+            <v-text-field v-model="form.email" label="Email" variant="outlined" type="email" />
           </v-col>
 
           <v-col cols="12" md="6">
@@ -118,6 +118,7 @@ const updateGuardian = async () => {
       id_number: form.value.id_number,
       name: form.value.name,
       phone: form.value.phone,
+      email: form.value.email,
       address: form.value.address,
     })
 
@@ -125,7 +126,7 @@ const updateGuardian = async () => {
     goBack()
   } catch (error) {
     console.error('Error updating guardian:', error)
-    showSnackbar('Error updating guardian', 'error')
+    showSnackbar(error.response?.data?.message || 'Error updating guardian', 'error')
   } finally {
     loading.value = false
   }
