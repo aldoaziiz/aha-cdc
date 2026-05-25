@@ -93,11 +93,22 @@
       <v-card-actions class="px-6 pb-4">
         <v-spacer />
 
-        <v-btn variant="tonal" @click="changePasswordDialog = false">Cancel</v-btn>
-
         <v-btn color="primary" :loading="loading" @click="changePassword">Save Password</v-btn>
       </v-card-actions>
     </v-card>
+  </v-dialog>
+
+  <!-- LOGOUT LOADING -->
+  <v-dialog v-model="logoutLoading" persistent fullscreen scrim="black">
+    <div class="d-flex flex-column align-center justify-center h-100">
+      <v-card rounded="xl" class="pa-8 text-center" width="320">
+        <v-progress-circular indeterminate color="primary" size="56" width="5" />
+
+        <div class="text-h6 font-weight-medium mt-6">Logging out...</div>
+
+        <div class="text-body-2 text-medium-emphasis mt-2">Please wait a moment</div>
+      </v-card>
+    </div>
   </v-dialog>
 </template>
 
@@ -111,6 +122,7 @@ const authStore = useAuthStore()
 const router = useRouter()
 const changePasswordDialog = ref(false)
 const loading = ref(false)
+const logoutLoading = ref(false)
 
 const form = ref({
   current_password: '',
@@ -139,9 +151,19 @@ const goToChangePassword = () => {
 }
 
 const handleLogout = async () => {
-  await authStore.logout()
+  logoutLoading.value = true
 
-  router.push('/login')
+  try {
+    await authStore.logout()
+
+    router.replace('/login')
+  } catch (err) {
+    console.error(err)
+  } finally {
+    setTimeout(() => {
+      logoutLoading.value = false
+    }, 300)
+  }
 }
 
 const changePassword = async () => {
