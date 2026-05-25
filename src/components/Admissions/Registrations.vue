@@ -516,9 +516,14 @@ watch(selectedChild, (val) => {
 })
 
 // CHILD MODE
-watch(childMode, (mode) => {
+watch(childMode, async (mode) => {
+  // ======================
+  // RESET NEW MODE
+  // ======================
+
   if (mode === 'new') {
     selectedChild.value = null
+
     childPreview.value = null
 
     form.value.child = {
@@ -534,6 +539,22 @@ watch(childMode, (mode) => {
       school_id: null,
       school_class_id: null,
       school_education_id: null,
+    }
+
+    return
+  }
+
+  // ======================
+  // LAZY LOAD EXISTING
+  // ======================
+
+  if (mode === 'existing' && !childrenOptions.value.length) {
+    try {
+      const res = await api.get('/public-registration/children')
+
+      childrenOptions.value = res.data.data
+    } catch (err) {
+      console.error(err)
     }
   }
 })
@@ -561,9 +582,14 @@ watch(selectedGuardian, (val) => {
 })
 
 // GUARDIAN MODE
-watch(guardianMode, (mode) => {
+watch(guardianMode, async (mode) => {
+  // ======================
+  // RESET NEW MODE
+  // ======================
+
   if (mode === 'new') {
     selectedGuardian.value = null
+
     guardianPreview.value = null
 
     form.value.guardian = {
@@ -574,6 +600,22 @@ watch(guardianMode, (mode) => {
       email: '',
       guardian_role_id: null,
     }
+
+    return
+  }
+
+  // ======================
+  // LAZY LOAD EXISTING
+  // ======================
+
+  if (mode === 'existing' && !guardiansOptions.value.length) {
+    try {
+      const res = await api.get('/public-registration/guardians')
+
+      guardiansOptions.value = res.data.data
+    } catch (err) {
+      console.error(err)
+    }
   }
 })
 
@@ -583,30 +625,21 @@ watch(guardianMode, (mode) => {
 
 const fetchMaster = async () => {
   try {
-    const [roles, prog, pay, cityRes, schoolRes, classRes, eduRes, childRes, guardianRes] =
-      await Promise.all([
-        api.get('/guardian-roles'),
-        api.get('/programs'),
-        api.get('/payers'),
-        api.get('/cities'),
-        api.get('/schools'),
-        api.get('/school-classes'),
-        api.get('/school-educations'),
-        api.get('/public-registration/children'),
-        api.get('/public-registration/guardians'),
-      ])
+    const res = await api.get('/master-data')
 
-    guardianRoles.value = roles.data.data
-    programs.value = prog.data.data
-    payers.value = pay.data.data
+    guardianRoles.value = res.data.guardian_roles
 
-    cities.value = cityRes.data.data
-    schools.value = schoolRes.data.data
-    schoolClasses.value = classRes.data.data
-    schoolEducations.value = eduRes.data.data
+    programs.value = res.data.programs
 
-    childrenOptions.value = childRes.data.data
-    guardiansOptions.value = guardianRes.data.data
+    payers.value = res.data.payers
+
+    cities.value = res.data.cities
+
+    schools.value = res.data.schools
+
+    schoolClasses.value = res.data.school_classes
+
+    schoolEducations.value = res.data.school_educations
   } catch (err) {
     console.error(err)
   }

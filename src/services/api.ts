@@ -40,10 +40,16 @@ api.interceptors.response.use(
       const currentPath = window.location.pathname
 
       // ======================
-      // SKIP LOGIN PAGE
+      // PUBLIC PAGES
       // ======================
 
-      if (currentPath !== '/login') {
+      const publicPages = ['/login', '/registrations-new', '/registration-success']
+
+      // ======================
+      // SKIP REDIRECT
+      // ======================
+
+      if (!publicPages.includes(currentPath)) {
         localStorage.removeItem('token')
 
         window.location.href = '/login'
