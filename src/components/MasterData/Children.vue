@@ -288,6 +288,17 @@
       </v-card-text>
     </v-card>
   </v-dialog>
+
+  <!-- STATUS LOADING DIALOG -->
+  <v-dialog v-model="statusLoading" persistent width="320">
+    <v-card rounded="xl" class="pa-8 d-flex flex-column align-center justify-center text-center">
+      <v-progress-circular indeterminate color="primary" size="56" width="5" />
+
+      <div class="text-h6 font-weight-medium mt-6">Processing...</div>
+
+      <div class="text-body-2 text-medium-emphasis mt-2">Please wait a moment</div>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -311,6 +322,7 @@ const detailsLoading = ref(false)
 const sortBy = ref([])
 const guardianRoles = ref([])
 const statusLoadingId = ref(null)
+const statusLoading = ref(false)
 
 const openDetails = async (child) => {
   detailsDialog.value = true
@@ -430,18 +442,18 @@ const toggleStatus = async (item) => {
     return
   }
 
-  statusLoadingId.value = item.id
+  statusLoading.value = true
 
   try {
     await api.put(`/children/${item.id}`, {
       status_id: isActive ? 2 : 1,
     })
 
-    fetchData()
+    await fetchData()
   } catch (error) {
     console.error(error)
   } finally {
-    statusLoadingId.value = null
+    statusLoading.value = false
   }
 }
 
