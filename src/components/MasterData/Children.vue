@@ -89,9 +89,16 @@
                       <v-list-item-title>Delete</v-list-item-title>
                     </v-list-item> -->
 
-                    <v-list-item @click="toggleStatus(item)">
+                    <v-list-item
+                      :disabled="statusLoadingId === item.id"
+                      @click="toggleStatus(item)"
+                    >
                       <v-list-item-title>
-                        {{ Number(item.status?.id) === 1 ? '🔴 Deactivate' : '🟢 Activate' }}
+                        <template v-if="statusLoadingId === item.id">Processing...</template>
+
+                        <template v-else>
+                          {{ Number(item.status?.id) === 1 ? '🔴 Deactivate' : '🟢 Activate' }}
+                        </template>
                       </v-list-item-title>
                     </v-list-item>
                   </v-list>
@@ -303,13 +310,19 @@ const selectedChild = ref(null)
 const detailsLoading = ref(false)
 const sortBy = ref([])
 const guardianRoles = ref([])
+const statusLoadingId = ref(null)
 
 const openDetails = async (child) => {
+  detailsDialog.value = true
+
   detailsLoading.value = true
+
+  selectedChild.value = null
+
   try {
     const res = await api.get(`/children/${child.id}`)
+
     selectedChild.value = res.data
-    detailsDialog.value = true
   } catch (err) {
     console.error('Error fetching child details:', err)
   } finally {
@@ -413,8 +426,11 @@ const calculateAgeDetail = (birthDate) => {
 const toggleStatus = async (item) => {
   const isActive = Number(item.status?.id) === 1
 
-  if (!confirm(`Are you sure you want to ${isActive ? 'deactivate' : 'activate'} this child?`))
+  if (!confirm(`Are you sure you want to ${isActive ? 'deactivate' : 'activate'} this child?`)) {
     return
+  }
+
+  statusLoadingId.value = item.id
 
   try {
     await api.put(`/children/${item.id}`, {
@@ -424,6 +440,8 @@ const toggleStatus = async (item) => {
     fetchData()
   } catch (error) {
     console.error(error)
+  } finally {
+    statusLoadingId.value = null
   }
 }
 
