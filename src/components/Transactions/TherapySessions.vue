@@ -1,64 +1,78 @@
 <template>
   <div class="therapy-sessions-page">
-
     <!-- PAGE HEADER -->
     <div class="d-flex justify-space-between align-center mb-6">
-
       <div>
-        <h1 class="text-h4 font-weight-bold">
-          Therapy Sessions
-        </h1>
+        <h1 class="text-h4 font-weight-bold">Therapy Sessions</h1>
 
-        <div class="text-body-2 text-grey">
-          Therapy operational schedules
-        </div>
+        <div class="text-body-2 text-grey">Therapy operational schedules</div>
       </div>
-
     </div>
 
     <!-- FILTER CARD -->
     <v-card elevation="1" class="mb-4 rounded-lg">
       <v-card-text>
-
         <v-row>
-
           <!-- SEARCH -->
           <v-col cols="12" md="4">
-            <v-text-field v-model="search" label="Search Child" prepend-inner-icon="mdi-magnify" variant="outlined"
-              density="comfortable" hide-details clearable />
+            <v-text-field
+              v-model="search"
+              label="Search Child"
+              prepend-inner-icon="mdi-magnify"
+              variant="outlined"
+              density="comfortable"
+              hide-details
+              clearable
+            />
           </v-col>
 
           <!-- DATE -->
           <v-col cols="12" md="3">
-            <v-text-field v-model="filters.date" label="Date" type="date" variant="outlined" density="comfortable"
-              hide-details />
+            <v-text-field
+              v-model="filters.date"
+              label="Date"
+              type="date"
+              variant="outlined"
+              density="comfortable"
+              hide-details
+            />
           </v-col>
 
           <!-- THERAPIST -->
           <v-col cols="12" md="3">
-            <v-select v-model="filters.therapist_id" :items="therapists" item-title="name" item-value="id"
-              label="Therapist" variant="outlined" density="comfortable" hide-details clearable />
+            <v-select
+              v-model="filters.therapist_id"
+              :items="therapists"
+              item-title="name"
+              item-value="id"
+              label="Therapist"
+              variant="outlined"
+              density="comfortable"
+              hide-details
+              clearable
+            />
           </v-col>
 
           <!-- RESET -->
           <v-col cols="12" md="2" class="d-flex align-center">
-            <v-btn block variant="tonal" @click="resetFilters">
-              Reset
-            </v-btn>
+            <v-btn block variant="tonal" @click="resetFilters">Reset</v-btn>
           </v-col>
-
         </v-row>
-
       </v-card-text>
     </v-card>
 
     <!-- TABLE -->
     <v-card elevation="1" class="rounded-lg">
-
-      <v-data-table-server :headers="headers" :items="sessions" :items-length="totalItems" :loading="loading"
-        :page="page" :items-per-page="itemsPerPage" loading-text="Loading therapy sessions..."
-        @update:options="onOptionsChange">
-
+      <v-data-table-server
+        :headers="headers"
+        :items="sessions"
+        :items-length="totalItems"
+        :loading="loading"
+        :page="page"
+        :items-per-page="itemsPerPage"
+        loading-text="Loading therapy sessions..."
+        @update:options="onOptionsChange"
+      >
         <!-- DATE -->
         <template v-slot:item.therapy_date="{ item }">
           {{ formatDate(item.therapy_date) }}
@@ -66,20 +80,13 @@
 
         <!-- TIME -->
         <template v-slot:item.time="{ item }">
-
-          {{
-            item.start_time?.slice(0, 5)
-          }}
+          {{ item.start_time?.slice(0, 5) }}
           -
-          {{
-            item.end_time?.slice(0, 5)
-          }}
-
+          {{ item.end_time?.slice(0, 5) }}
         </template>
 
         <!-- CHILD -->
         <template v-slot:item.child="{ item }">
-
           <div>
             <div class="font-weight-medium">
               {{ item.registration?.child?.name || '-' }}
@@ -89,7 +96,6 @@
               {{ item.registration?.registration_number || '-' }}
             </div>
           </div>
-
         </template>
 
         <!-- PROGRAM -->
@@ -99,7 +105,6 @@
 
         <!-- THERAPIST -->
         <template v-slot:item.therapist="{ item }">
-
           <div>
             <div class="font-weight-medium">
               {{ item.therapist?.name || '-' }}
@@ -109,7 +114,6 @@
               {{ item.therapist.staff_role.name }}
             </div>
           </div>
-
         </template>
 
         <!-- ROOM -->
@@ -119,9 +123,7 @@
 
         <!-- ACTION -->
         <template v-slot:item.actions="{ item }">
-
           <v-menu>
-
             <template v-slot:activator="{ props }">
               <v-btn v-bind="props" size="small" color="white">
                 Action
@@ -130,44 +132,28 @@
             </template>
 
             <v-list density="compact">
-
               <v-list-item @click="viewRegistration(item)">
-                <v-list-item-title>
-                  View Schedule
-                </v-list-item-title>
+                <v-list-item-title>View Schedule</v-list-item-title>
               </v-list-item>
 
               <v-list-item @click="deleteSession(item)">
-                <v-list-item-title class="text-error">
-                  Delete
-                </v-list-item-title>
+                <v-list-item-title class="text-error">Delete</v-list-item-title>
               </v-list-item>
-
             </v-list>
-
           </v-menu>
-
         </template>
-
       </v-data-table-server>
-
     </v-card>
 
     <!-- SNACKBAR -->
     <v-snackbar v-model="snackbar" :color="snackbarColor" location="top right" timeout="3000">
       {{ snackbarText }}
     </v-snackbar>
-
   </div>
 </template>
 
 <script setup>
-import {
-  ref,
-  onMounted,
-  watch,
-  onUnmounted
-} from 'vue'
+import { ref, onMounted, watch, onUnmounted } from 'vue'
 
 import { useRouter } from 'vue-router'
 
@@ -203,7 +189,7 @@ const snackbarColor = ref('success')
 
 const filters = ref({
   date: '',
-  therapist_id: null
+  therapist_id: null,
 })
 
 // ======================
@@ -221,8 +207,8 @@ const headers = [
     title: '',
     key: 'actions',
     sortable: false,
-    align: 'center'
-  }
+    align: 'center',
+  },
 ]
 
 // ======================
@@ -230,11 +216,9 @@ const headers = [
 // ======================
 
 const fetchSessions = async () => {
-
   loading.value = true
 
   try {
-
     const res = await api.get('/therapy-sessions', {
       params: {
         page: page.value,
@@ -245,21 +229,16 @@ const fetchSessions = async () => {
         therapy_date: filters.value.date,
         therapist_id: filters.value.therapist_id,
         sort_by: sortBy.value[0]?.key,
-        sort_order: sortBy.value[0]?.order
-      }
+        sort_order: sortBy.value[0]?.order,
+      },
     })
 
     sessions.value = res.data.data
     totalItems.value = res.data.total
-
   } catch (err) {
-
     console.error(err)
-
   } finally {
-
     loading.value = false
-
   }
 }
 
@@ -268,22 +247,17 @@ const fetchSessions = async () => {
 // ======================
 
 const fetchTherapists = async () => {
-
   try {
-
     const res = await api.get('/staff', {
       params: {
         staff_role_id: 2,
-        per_page: 100
-      }
+        per_page: 100,
+      },
     })
 
     therapists.value = res.data.data
-
   } catch (err) {
-
     console.error(err)
-
   }
 }
 
@@ -292,7 +266,6 @@ const fetchTherapists = async () => {
 // ======================
 
 const onOptionsChange = (options) => {
-
   page.value = options.page
   itemsPerPage.value = options.itemsPerPage
   sortBy.value = options.sortBy
@@ -305,10 +278,8 @@ const onOptionsChange = (options) => {
 // ======================
 
 const debouncedFetch = debounce(() => {
-
   page.value = 1
   fetchSessions()
-
 }, 500)
 
 watch(search, () => {
@@ -319,14 +290,16 @@ watch(search, () => {
 // FILTER WATCH
 // ======================
 
-watch(filters, () => {
-
-  page.value = 1
-  fetchSessions()
-
-}, {
-  deep: true
-})
+watch(
+  filters,
+  () => {
+    page.value = 1
+    fetchSessions()
+  },
+  {
+    deep: true,
+  },
+)
 
 onUnmounted(() => {
   debouncedFetch.cancel()
@@ -337,12 +310,11 @@ onUnmounted(() => {
 // ======================
 
 const resetFilters = () => {
-
   search.value = ''
 
   filters.value = {
     date: '',
-    therapist_id: null
+    therapist_id: null,
   }
 
   fetchSessions()
@@ -353,13 +325,11 @@ const resetFilters = () => {
 // ======================
 
 const formatDate = (date) => {
-
-  return new Date(date)
-    .toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    })
+  return new Date(date).toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
 }
 
 // ======================
@@ -367,10 +337,7 @@ const formatDate = (date) => {
 // ======================
 
 const viewRegistration = (item) => {
-
-  router.push(
-    `/registrations/${item.registration_id}/schedule`
-  )
+  router.push(`/registrations/${item.registration_id}/schedule`)
 }
 
 // ======================
@@ -378,27 +345,20 @@ const viewRegistration = (item) => {
 // ======================
 
 const deleteSession = async (item) => {
-
   if (!confirm('Delete this session?')) return
 
   try {
-
-    await api.delete(
-      `/therapy-sessions/${item.id}`
-    )
+    await api.delete(`/therapy-sessions/${item.id}`)
 
     snackbarText.value = 'Session deleted'
     snackbarColor.value = 'success'
     snackbar.value = true
 
     fetchSessions()
-
   } catch (err) {
-
     snackbarText.value = 'Failed to delete session'
     snackbarColor.value = 'error'
     snackbar.value = true
-
   }
 }
 
@@ -407,10 +367,8 @@ const deleteSession = async (item) => {
 // ======================
 
 onMounted(() => {
-
   fetchSessions()
   fetchTherapists()
-
 })
 </script>
 

@@ -31,6 +31,10 @@ import Activity from '@/components/Activity.vue'
 import ActivityCreate from '@/components/ActivityCreate.vue'
 import ActivityEdit from '@/components/ActivityEdit.vue'
 
+// report
+import Report from '@/components/Report.vue'
+
+// help and support
 import HelpSupport from '@/components/HelpSupport.vue'
 
 const routes: RouteRecordRaw[] = [
@@ -128,6 +132,15 @@ const routes: RouteRecordRaw[] = [
     component: RegistrationsNew,
     meta: { layout: 'blank' },
   },
+  {
+    path: '/registration-success',
+
+    component: () => import('@/components/Admissions/RegistrationSuccess.vue'),
+
+    meta: {
+      layout: 'blank',
+    },
+  },
 
   // billing
   {
@@ -165,6 +178,13 @@ const routes: RouteRecordRaw[] = [
     path: '/activity/:id/edit',
     component: ActivityEdit,
     meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin', 'therapist'] },
+  },
+
+  // report
+  {
+    path: '/report',
+    component: Report,
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin', 'therapist', 'guardian'] },
   },
 
   // help support

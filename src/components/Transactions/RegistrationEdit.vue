@@ -6,9 +6,7 @@
         <p class="text-body-2 text-grey">Update registration information.</p>
       </div>
 
-      <v-btn variant="tonal" prepend-icon="mdi-arrow-left" @click="goBack">
-        Back
-      </v-btn>
+      <v-btn variant="tonal" prepend-icon="mdi-arrow-left" @click="goBack">Back</v-btn>
     </div>
 
     <v-card v-if="pageLoading" elevation="1" class="rounded-xl pa-8">
@@ -20,48 +18,49 @@
 
     <v-card v-else elevation="1" class="rounded-xl">
       <v-card-text>
-        <!-- READ-ONLY SECTION -->
+        <!-- INFO SECTION -->
         <div class="mb-6">
           <h3 class="text-h6 font-weight-bold mb-4">Registration Information</h3>
+
           <v-row>
             <!-- REGISTRATION NO -->
             <v-col cols="12" md="6">
-              <v-text-field
-                :model-value="form.registration_number"
-                label="Registration No."
-                variant="outlined"
-                readonly
-              />
+              <div class="text-caption text-grey mb-1">Registration No.</div>
+
+              <div class="font-weight-medium">
+                {{ form.registration_number || '-' }}
+              </div>
             </v-col>
 
             <!-- REGISTRATION DATE -->
             <v-col cols="12" md="6">
-              <v-text-field
-                :model-value="formatDate(form.created_at)"
-                label="Registration Date"
-                variant="outlined"
-                readonly
-              />
+              <div class="text-caption text-grey mb-1">Registration Date</div>
+
+              <div class="font-weight-medium">
+                {{ formatDate(form.created_at) || '-' }}
+              </div>
             </v-col>
 
             <!-- CHILD NAME -->
             <v-col cols="12" md="6">
-              <v-text-field
-                :model-value="form.child?.name || '-'"
-                label="Child Name"
-                variant="outlined"
-                readonly
-              />
+              <div class="text-caption text-grey mb-1">Child Name</div>
+
+              <div class="font-weight-medium">
+                {{ form.child?.name || '-' }}
+              </div>
             </v-col>
 
             <!-- PAYMENT STATUS -->
             <v-col cols="12" md="6">
-              <v-text-field
-                :model-value="form.payment_status?.name || '-'"
-                label="Payment Status"
-                variant="outlined"
-                readonly
-              />
+              <div class="text-caption text-grey mb-1">Payment Status</div>
+              <v-chip
+                :color="getStatusColor(form.payment_status?.id)"
+                variant="tonal"
+                size="small"
+                class="mb-1"
+              >
+                {{ form.payment_status?.name || '-' }}
+              </v-chip>
             </v-col>
           </v-row>
         </div>
@@ -213,6 +212,13 @@ const fetchPayers = async () => {
   }
 }
 
+const getStatusColor = (id) => {
+  if (id === 1) return 'warning' // Unpaid (kuning)
+  if (id === 2) return 'grey' // Waiting
+  if (id === 3) return 'green' // Paid
+  return 'grey'
+}
+
 const updateRegistration = async () => {
   loading.value = true
 
@@ -227,10 +233,7 @@ const updateRegistration = async () => {
     goBack()
   } catch (error) {
     console.error('Error updating registration:', error)
-    showSnackbar(
-      error.response?.data?.message || 'Error updating registration',
-      'error',
-    )
+    showSnackbar(error.response?.data?.message || 'Error updating registration', 'error')
   } finally {
     loading.value = false
   }

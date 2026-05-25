@@ -336,8 +336,10 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import logo from '@/assets/ahacdc-logo.jpeg'
 import api from '@/services/api'
+const router = useRouter()
 
 /* =========================
    STATE
@@ -641,9 +643,14 @@ const submitForm = async () => {
     snackbarColor.value = 'success'
     snackbar.value = true
 
-    resetForm()
-
     console.log('Saved:', res.data)
+    router.replace({
+      path: '/registration-success',
+
+      query: {
+        registration_number: res.data.data.registration_number,
+      },
+    })
   } catch (err) {
     console.error(err)
 

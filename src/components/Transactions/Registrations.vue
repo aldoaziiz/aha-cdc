@@ -95,7 +95,7 @@
                       </v-list-item-title>
                     </v-list-item>
 
-                    <v-list-item @click="edit(item)">
+                    <v-list-item @click="editRegistration(item)">
                       <v-list-item-title>
                         Edit
                       </v-list-item-title>
@@ -208,8 +208,30 @@ const calculateAge = (birthDate) => {
 }
 
 // ACTION
-const edit = (item) => {
-  router.push(`/registrations/${item.id}/edit`)
+const editRegistration = (item) => {
+
+  const isPaid =
+
+    item.payment_status?.name
+      ?.toLowerCase() === 'paid'
+
+  if (isPaid) {
+
+    const confirmed = confirm(
+
+      'This registration has already been paid. Do you want to continue editing?'
+
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+  }
+
+  router.push(
+    `/registrations/${item.id}/edit`
+  )
 }
 
 const getStatusColor = (id) => {
