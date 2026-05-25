@@ -378,7 +378,7 @@ const formatDate = (date) => {
 // ======================
 
 const storageUrl = (path) => {
-  return `http://127.0.0.1:8000/storage/${path}`
+  return `${import.meta.env.VITE_STORAGE_URL}/${path}`
 }
 
 const deleteExistingPhoto = async (id) => {

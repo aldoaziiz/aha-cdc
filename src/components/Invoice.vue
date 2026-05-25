@@ -134,7 +134,7 @@ const snackbarColor = ref('success')
 const invoiceLink = ref('')
 
 const getReceiptUrl = (path) => {
-  return `http://localhost:8000/storage/${path}`
+  return `${import.meta.env.VITE_STORAGE_URL}/${path}`
 }
 
 const triggerUpload = () => {

@@ -5,11 +5,17 @@ import axios from 'axios'
 // ======================
 
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
+  baseURL: import.meta.env.VITE_API_URL,
+
+  headers: {
+    Accept: 'application/json',
+  },
+
+  timeout: 30000,
 })
 
 // ======================
-// INTERCEPTOR
+// REQUEST INTERCEPTOR
 // ======================
 
 api.interceptors.request.use((config) => {
@@ -21,6 +27,10 @@ api.interceptors.request.use((config) => {
 
   return config
 })
+
+// ======================
+// RESPONSE INTERCEPTOR
+// ======================
 
 api.interceptors.response.use(
   (response) => response,
