@@ -305,17 +305,15 @@ const goBack = () => {
 
 const fetchMaster = async () => {
   try {
-    const [cityRes, schoolRes, classRes, eduRes] = await Promise.all([
-      api.get('/cities'),
-      api.get('/schools'),
-      api.get('/school-classes'),
-      api.get('/school-educations'),
-    ])
+    const response = await api.get('/master-data')
 
-    cities.value = cityRes.data.data
-    schools.value = schoolRes.data.data
-    schoolClasses.value = classRes.data.data
-    schoolEducations.value = eduRes.data.data
+    cities.value = response.data.cities
+
+    schools.value = response.data.schools
+
+    schoolClasses.value = response.data.school_classes
+
+    schoolEducations.value = response.data.school_educations
   } catch (err) {
     console.error('Error fetching master data:', err)
 
