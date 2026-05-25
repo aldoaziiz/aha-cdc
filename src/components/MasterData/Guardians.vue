@@ -38,7 +38,7 @@
               @update:options="onOptionsChange"
             >
               <template v-slot:item.status="{ item }">
-                <v-chip size="small" :color="item.status?.id === 1 ? 'green' : 'grey'">
+                <v-chip size="small" :color="Number(item.status?.id) === 1 ? 'green' : 'grey'">
                   {{ item.status?.name || '-' }}
                 </v-chip>
               </template>
@@ -57,12 +57,6 @@
                     <v-list-item @click="goToEdit(item.id)">
                       <v-list-item-title>Edit</v-list-item-title>
                     </v-list-item>
-
-                    <!-- <v-list-item @click="deleteGuardian(item.id)">
-                      <v-list-item-title>
-                        Delete
-                      </v-list-item-title>
-                    </v-list-item> -->
 
                     <v-list-item @click="toggleStatus(item)">
                       <v-list-item-title>
@@ -149,6 +143,16 @@
       </v-card>
     </v-dialog>
   </div>
+
+  <v-dialog v-model="statusLoading" persistent width="320">
+    <v-card rounded="xl" class="pa-8 d-flex flex-column align-center justify-center text-center">
+      <v-progress-circular indeterminate color="primary" size="56" width="5" />
+
+      <div class="text-h6 font-weight-medium mt-6">Processing...</div>
+
+      <div class="text-body-2 text-medium-emphasis mt-2">Please wait a moment</div>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -161,12 +165,14 @@ const router = useRouter()
 const pageTitle = 'Guardians'
 const pageSubtitle = 'Manage and view information about guardians'
 
+const initialized = ref(false)
 const guardians = ref([])
 const search = ref('')
 const loading = ref(false)
 const detailsDialog = ref(false)
 const selectedGuardian = ref(null)
 const detailsLoading = ref(false)
+const statusLoading = ref(false)
 
 const page = ref(1)
 const itemsPerPage = ref(10)
@@ -221,11 +227,16 @@ onUnmounted(() => {
 })
 
 const openDetails = async (item) => {
+  detailsDialog.value = true
+
   detailsLoading.value = true
+
+  selectedGuardian.value = null
+
   try {
     const res = await api.get(`/guardians/${item.id}`)
+
     selectedGuardian.value = res.data
-    detailsDialog.value = true
   } catch (err) {
     console.error('Error fetching guardian details:', err)
   } finally {
@@ -237,43 +248,55 @@ const goToEdit = (id) => {
   router.push(`/guardians/${id}/edit`)
 }
 
-const deleteGuardian = async (id) => {
-  if (!confirm('Yakin mau hapus data ini?')) return
-
-  try {
-    await api.delete(`/guardians/${id}`)
-    fetchData() // refresh data
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-const formatDate = (date) => {
-  if (!date) return '-'
-  return new Date(date).toLocaleDateString('en-ID', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
-}
-
 const toggleStatus = async (item) => {
   const isActive = Number(item.status?.id) === 1
 
-  if (!confirm(`Yakin mau ${isActive ? 'nonaktifkan' : 'aktifkan'} data ini?`)) return
+  if (!confirm(`Yakin mau ${isActive ? 'nonaktifkan' : 'aktifkan'} data ini?`)) {
+    return
+  }
+
+  statusLoading.value = true
 
   try {
-    await api.put(`/guardians/${item.id}`, {
-      status_id: isActive ? 2 : 1,
-    })
+    await api.put(
+      `/guardians/${item.id}`,
 
-    fetchData()
+      {
+        status_id: isActive ? 2 : 1,
+      },
+    )
+
+    await fetchData()
   } catch (error) {
     console.error(error)
+  } finally {
+    statusLoading.value = false
   }
 }
 
 const onOptionsChange = (options) => {
+  // ======================
+  // PREVENT INITIAL DUPLICATE
+  // ======================
+
+  if (!initialized.value) {
+    initialized.value = true
+  } else {
+    // ======================
+    // PREVENT SAME OPTIONS REFETCH
+    // ======================
+
+    const samePage = page.value === options.page
+
+    const sameItems = itemsPerPage.value === options.itemsPerPage
+
+    const sameSort = JSON.stringify(sortBy.value) === JSON.stringify(options.sortBy)
+
+    if (samePage && sameItems && sameSort) {
+      return
+    }
+  }
+
   page.value = options.page
 
   itemsPerPage.value = options.itemsPerPage
@@ -282,8 +305,6 @@ const onOptionsChange = (options) => {
 
   fetchData()
 }
-
-onMounted(fetchData)
 </script>
 
 <style scoped>

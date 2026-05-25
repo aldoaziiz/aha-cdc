@@ -85,10 +85,6 @@
                       <v-list-item-title>Edit</v-list-item-title>
                     </v-list-item>
 
-                    <!-- <v-list-item @click="deleteChild(item.id)">
-                      <v-list-item-title>Delete</v-list-item-title>
-                    </v-list-item> -->
-
                     <v-list-item
                       :disabled="statusLoadingId === item.id"
                       @click="toggleStatus(item)"
@@ -323,6 +319,7 @@ const sortBy = ref([])
 const guardianRoles = ref([])
 const statusLoadingId = ref(null)
 const statusLoading = ref(false)
+const initialized = ref(false)
 
 const openDetails = async (child) => {
   detailsDialog.value = true
@@ -332,6 +329,20 @@ const openDetails = async (child) => {
   selectedChild.value = null
 
   try {
+    // ======================
+    // LAZY LOAD GUARDIAN ROLES
+    // ======================
+
+    if (!guardianRoles.value.length) {
+      const guardianRoleRes = await api.get('/guardian-roles')
+
+      guardianRoles.value = guardianRoleRes.data.data
+    }
+
+    // ======================
+    // FETCH CHILD DETAILS
+    // ======================
+
     const res = await api.get(`/children/${child.id}`)
 
     selectedChild.value = res.data
@@ -375,16 +386,6 @@ const fetchData = async () => {
   }
 }
 
-const fetchGuardianRoles = async () => {
-  try {
-    const res = await api.get('/guardian-roles')
-
-    guardianRoles.value = res.data.data
-  } catch (err) {
-    console.error(err)
-  }
-}
-
 const getGuardianRoleName = (roleId) => {
   const role = guardianRoles.value.find((item) => item.id === roleId)
 
@@ -403,17 +404,6 @@ const formatDate = (date) => {
 
 const goToEdit = (id) => {
   router.push(`/children/${id}/edit`)
-}
-
-const deleteChild = async (id) => {
-  if (!confirm('Are you sure you want to delete this child?')) return
-
-  try {
-    await api.delete(`/children/${id}`)
-    fetchData() // refresh data
-  } catch (error) {
-    console.error(error)
-  }
 }
 
 const calculateAgeDetail = (birthDate) => {
@@ -463,9 +453,40 @@ const debouncedFetch = debounce(() => {
 }, 500)
 
 const onOptionsChange = (options) => {
+  // ======================
+  // PREVENT INITIAL DOUBLE FETCH
+  // ======================
+
+  if (!initialized.value) {
+    initialized.value = true
+
+    page.value = options.page
+    itemsPerPage.value = options.itemsPerPage
+    sortBy.value = options.sortBy
+
+    fetchData()
+
+    return
+  }
+
+  // ======================
+  // SKIP DUPLICATE SAME OPTIONS
+  // ======================
+
+  const samePage = page.value === options.page
+
+  const sameItemsPerPage = itemsPerPage.value === options.itemsPerPage
+
+  const sameSort = JSON.stringify(sortBy.value) === JSON.stringify(options.sortBy)
+
+  if (samePage && sameItemsPerPage && sameSort) {
+    return
+  }
+
   page.value = options.page
   itemsPerPage.value = options.itemsPerPage
   sortBy.value = options.sortBy
+
   fetchData()
 }
 
@@ -475,10 +496,6 @@ watch(search, () => {
 
 onUnmounted(() => {
   debouncedFetch.cancel()
-})
-
-onMounted(async () => {
-  await fetchGuardianRoles()
 })
 </script>
 

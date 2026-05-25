@@ -208,8 +208,6 @@
 
         <!-- ACTION -->
         <div class="d-flex justify-end ga-3 mt-4">
-          <v-btn variant="tonal" @click="goBack">Cancel</v-btn>
-
           <v-btn
             color="primary"
             prepend-icon="mdi-content-save"
@@ -228,6 +226,19 @@
       {{ snackbarText }}
     </v-snackbar>
   </div>
+
+  <!-- PROCESSING DIALOG -->
+  <v-dialog v-model="processingDialog" persistent width="320">
+    <v-card rounded="xl" class="pa-8 d-flex flex-column align-center justify-center text-center">
+      <v-progress-circular indeterminate color="primary" size="56" width="5" />
+
+      <div class="text-h6 font-weight-medium mt-6">
+        {{ processingText }}
+      </div>
+
+      <div class="text-body-2 text-medium-emphasis mt-2">Please wait a moment</div>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -254,9 +265,10 @@ const pageLoading = ref(true)
 const snackbar = ref(false)
 const snackbarText = ref('')
 const snackbarColor = ref('success')
+const processingDialog = ref(false)
+const processingText = ref('Processing...')
 
 // MASTER DATA
-
 const cities = ref([])
 const schools = ref([])
 const schoolClasses = ref([])
@@ -296,7 +308,7 @@ const showSnackbar = (text, color = 'success') => {
 // ======================
 
 const goBack = () => {
-  router.push('/children')
+  router.back()
 }
 
 // ======================
@@ -432,9 +444,15 @@ const updateChild = async () => {
 const attachGuardian = async () => {
   if (!selectedGuardianId.value || !selectedGuardianRoleId.value) {
     showSnackbar('Please select guardian and role', 'error')
+
     return
   }
+
   try {
+    processingText.value = 'Adding guardian...'
+
+    processingDialog.value = true
+
     await api.post(
       `/children/${route.params.id}/guardians`,
 
@@ -449,9 +467,9 @@ const attachGuardian = async () => {
 
     selectedGuardianId.value = null
 
-    showSnackbar('Guardian added successfully')
-
     selectedGuardianRoleId.value = null
+
+    showSnackbar('Guardian added successfully')
   } catch (err) {
     console.error(err)
 
@@ -460,6 +478,8 @@ const attachGuardian = async () => {
 
       'error',
     )
+  } finally {
+    processingDialog.value = false
   }
 }
 
@@ -469,6 +489,10 @@ const detachGuardian = async (guardianId) => {
   if (!confirmed) return
 
   try {
+    processingText.value = 'Removing guardian...'
+
+    processingDialog.value = true
+
     await api.delete(`/children/${route.params.id}/guardians/${guardianId}`)
 
     await fetchChild()
@@ -482,6 +506,8 @@ const detachGuardian = async (guardianId) => {
 
       'error',
     )
+  } finally {
+    processingDialog.value = false
   }
 }
 

@@ -44,8 +44,6 @@
 
         <!-- ACTION -->
         <div class="d-flex justify-end ga-3 mt-4">
-          <v-btn variant="tonal" @click="goBack">Cancel</v-btn>
-
           <v-btn
             color="primary"
             prepend-icon="mdi-content-save"
