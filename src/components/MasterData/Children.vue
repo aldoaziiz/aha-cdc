@@ -449,7 +449,6 @@ onUnmounted(() => {
 
 onMounted(async () => {
   await fetchGuardianRoles()
-  fetchData()
 })
 </script>
 
