@@ -252,6 +252,16 @@
       </v-snackbar>
     </template>
   </div>
+
+  <v-dialog v-model="deleting" persistent width="320">
+    <v-card rounded="xl" class="pa-8 d-flex flex-column align-center justify-center text-center">
+      <v-progress-circular indeterminate color="primary" size="56" width="5" />
+
+      <div class="text-h6 font-weight-medium mt-6">Deleting Session...</div>
+
+      <div class="text-body-2 text-medium-emphasis mt-2">Please wait a moment</div>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -261,22 +271,20 @@ import api from '@/services/api'
 
 const route = useRoute()
 const router = useRouter()
-
 const registration = ref({})
 const therapists = ref([])
 const rooms = ref([])
 const sessions = ref([])
-
 const snackbar = ref(false)
 const snackbarText = ref('')
 const snackbarColor = ref('success')
 const loading = ref(true)
 const saving = ref(false)
-
 const formRef = ref(null)
+const deleting = ref(false)
 
 const goBack = () => {
-  router.push('/registrations')
+  router.back()
 }
 
 const requiredRule = [(v) => !!v || 'This field is required']
@@ -422,7 +430,7 @@ const saveSchedule = async () => {
     snackbarColor.value = 'success'
     snackbar.value = true
 
-    fetchSessions()
+    await fetchSessions()
   } catch (err) {
     snackbarText.value = err.response?.data?.message || 'Failed to create schedule'
 
@@ -438,21 +446,30 @@ const saveSchedule = async () => {
 // ======================
 
 const deleteSession = async (item) => {
-  if (!confirm('Delete this session?')) return
+  if (!confirm('Delete this session?')) {
+    return
+  }
+
+  deleting.value = true
 
   try {
     await api.delete(`/therapy-sessions/${item.id}`)
 
     snackbarText.value = 'Session deleted'
+
     snackbarColor.value = 'success'
+
     snackbar.value = true
 
-    fetchSessions()
+    await fetchSessions()
   } catch (err) {
     snackbarText.value = 'Failed to delete session'
 
     snackbarColor.value = 'error'
+
     snackbar.value = true
+  } finally {
+    deleting.value = false
   }
 }
 

@@ -110,7 +110,6 @@
 
         <!-- ACTION BUTTONS -->
         <div class="d-flex justify-end ga-3 mt-6">
-          <v-btn variant="tonal" @click="goBack">Cancel</v-btn>
           <v-btn
             color="primary"
             prepend-icon="mdi-content-save"
@@ -176,39 +175,39 @@ const formatDate = (date) => {
   })
 }
 
-const fetchRegistration = async () => {
+const fetchMasterData = async () => {
   try {
-    const res = await api.get(`/registrations/${route.params.id}`)
+    const res = await api.get(`/registration-edit-master-data/${route.params.id}`)
+
+    const registration = res.data.registration
+
+    programs.value = res.data.programs || []
+
+    payers.value = res.data.payers || []
+
     form.value = {
-      registration_number: res.data.data.registration_number || '',
-      created_at: res.data.data.created_at || '',
-      child: res.data.data.child || null,
-      payment_status: res.data.data.payment_status || null,
-      program_id: res.data.data.program?.id || null,
-      payer_id: res.data.data.payer?.id || null,
-      complaint: res.data.data.complaint || '',
+      registration_number: registration.registration_number || '',
+
+      created_at: registration.created_at || '',
+
+      child: registration.child || null,
+
+      payment_status: registration.payment_status || null,
+
+      program_id: registration.program?.id || null,
+
+      payer_id: registration.payer?.id || null,
+
+      complaint: registration.complaint || '',
     }
   } catch (err) {
     console.error('Error loading registration:', err)
-    showSnackbar('Error loading registration data', 'error')
-  }
-}
 
-const fetchPrograms = async () => {
-  try {
-    const res = await api.get('/programs')
-    programs.value = res.data.data || []
-  } catch (err) {
-    console.error('Error loading programs:', err)
-  }
-}
+    showSnackbar(
+      'Error loading registration data',
 
-const fetchPayers = async () => {
-  try {
-    const res = await api.get('/payers')
-    payers.value = res.data.data || []
-  } catch (err) {
-    console.error('Error loading payers:', err)
+      'error',
+    )
   }
 }
 
@@ -241,7 +240,7 @@ const updateRegistration = async () => {
 
 onMounted(async () => {
   pageLoading.value = true
-  await Promise.all([fetchRegistration(), fetchPrograms(), fetchPayers()])
+  await fetchMasterData()
   pageLoading.value = false
 })
 </script>

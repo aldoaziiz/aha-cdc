@@ -55,7 +55,15 @@
 
           <!-- RESET -->
           <v-col cols="12" md="2" class="d-flex align-center">
-            <v-btn block variant="tonal" @click="resetFilters">Reset</v-btn>
+            <v-btn
+              block
+              variant="tonal"
+              :loading="resettingFilters"
+              :disabled="resettingFilters || loading"
+              @click="resetFilters"
+            >
+              Reset
+            </v-btn>
           </v-col>
         </v-row>
       </v-card-text>
@@ -150,15 +158,36 @@
       {{ snackbarText }}
     </v-snackbar>
   </div>
+
+  <v-dialog v-model="deleting" persistent width="320">
+    <v-card rounded="xl" class="pa-8 d-flex flex-column align-center justify-center text-center">
+      <v-progress-circular indeterminate color="primary" size="56" width="5" />
+
+      <div class="text-h6 font-weight-medium mt-6">Deleting Session...</div>
+
+      <div class="text-body-2 text-medium-emphasis mt-2">Please wait a moment</div>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="pageActionLoading" persistent fullscreen scrim="black">
+    <div class="d-flex flex-column align-center justify-center h-100">
+      <v-card rounded="xl" class="pa-8 text-center" width="320">
+        <v-progress-circular indeterminate color="primary" size="56" width="5" />
+
+        <div class="text-h6 font-weight-medium mt-6">
+          {{ pageActionText }}
+        </div>
+
+        <div class="text-body-2 text-medium-emphasis mt-2">Please wait a moment</div>
+      </v-card>
+    </div>
+  </v-dialog>
 </template>
 
 <script setup>
 import { ref, onMounted, watch, onUnmounted } from 'vue'
-
 import { useRouter } from 'vue-router'
-
 import debounce from 'lodash/debounce'
-
 import api from '@/services/api'
 
 // ======================
@@ -171,21 +200,23 @@ const router = useRouter()
 // STATE
 // ======================
 
+const initialized = ref(false)
 const sessions = ref([])
 const therapists = ref([])
-
 const loading = ref(false)
-
 const search = ref('')
-
 const page = ref(1)
 const itemsPerPage = ref(10)
 const totalItems = ref(0)
 const sortBy = ref([])
-
 const snackbar = ref(false)
 const snackbarText = ref('')
 const snackbarColor = ref('success')
+const deleting = ref(false)
+const pageActionLoading = ref(false)
+const resettingFilters = ref(false)
+
+const pageActionText = ref('Loading...')
 
 const filters = ref({
   date: '',
@@ -266,8 +297,28 @@ const fetchTherapists = async () => {
 // ======================
 
 const onOptionsChange = (options) => {
+  // ======================
+  // PREVENT INITIAL DUPLICATE
+  // ======================
+
+  if (!initialized.value) {
+    initialized.value = true
+  } else {
+    const samePage = page.value === options.page
+
+    const sameItems = itemsPerPage.value === options.itemsPerPage
+
+    const sameSort = JSON.stringify(sortBy.value) === JSON.stringify(options.sortBy)
+
+    if (samePage && sameItems && sameSort) {
+      return
+    }
+  }
+
   page.value = options.page
+
   itemsPerPage.value = options.itemsPerPage
+
   sortBy.value = options.sortBy
 
   fetchSessions()
@@ -283,6 +334,10 @@ const debouncedFetch = debounce(() => {
 }, 500)
 
 watch(search, () => {
+  if (resettingFilters.value) {
+    return
+  }
+
   debouncedFetch()
 })
 
@@ -292,10 +347,17 @@ watch(search, () => {
 
 watch(
   filters,
+
   () => {
+    if (resettingFilters.value) {
+      return
+    }
+
     page.value = 1
+
     fetchSessions()
   },
+
   {
     deep: true,
   },
@@ -309,15 +371,32 @@ onUnmounted(() => {
 // RESET FILTER
 // ======================
 
-const resetFilters = () => {
-  search.value = ''
+const resetFilters = async () => {
+  // ======================
+  // PREVENT SPAM
+  // ======================
 
-  filters.value = {
-    date: '',
-    therapist_id: null,
+  if (resettingFilters.value || loading.value) {
+    return
   }
 
-  fetchSessions()
+  resettingFilters.value = true
+
+  try {
+    search.value = ''
+
+    filters.value = {
+      date: '',
+
+      therapist_id: null,
+    }
+
+    page.value = 1
+
+    await fetchSessions()
+  } finally {
+    resettingFilters.value = false
+  }
 }
 
 // ======================
@@ -336,8 +415,18 @@ const formatDate = (date) => {
 // VIEW REGISTRATION
 // ======================
 
-const viewRegistration = (item) => {
-  router.push(`/registrations/${item.registration_id}/schedule`)
+const viewRegistration = async (item) => {
+  pageActionText.value = 'Opening Schedule...'
+
+  pageActionLoading.value = true
+
+  try {
+    await router.push(`/registrations/${item.registration_id}/schedule`)
+  } finally {
+    setTimeout(() => {
+      pageActionLoading.value = false
+    }, 300)
+  }
 }
 
 // ======================
@@ -345,20 +434,30 @@ const viewRegistration = (item) => {
 // ======================
 
 const deleteSession = async (item) => {
-  if (!confirm('Delete this session?')) return
+  if (!confirm('Delete this session?')) {
+    return
+  }
+
+  deleting.value = true
 
   try {
     await api.delete(`/therapy-sessions/${item.id}`)
 
     snackbarText.value = 'Session deleted'
+
     snackbarColor.value = 'success'
+
     snackbar.value = true
 
-    fetchSessions()
+    await fetchSessions()
   } catch (err) {
     snackbarText.value = 'Failed to delete session'
+
     snackbarColor.value = 'error'
+
     snackbar.value = true
+  } finally {
+    deleting.value = false
   }
 }
 
@@ -367,7 +466,6 @@ const deleteSession = async (item) => {
 // ======================
 
 onMounted(() => {
-  fetchSessions()
   fetchTherapists()
 })
 </script>
