@@ -1,9 +1,24 @@
 <template>
   <div class="invoice-content">
-    <v-card elevation="1" class="pa-6">
+    <v-card
+      v-if="pageLoading"
+      elevation="1"
+      class="pa-12 d-flex flex-column align-center justify-center"
+    >
+      <v-progress-circular indeterminate color="primary" size="56" width="5" />
+
+      <div class="text-h6 mt-6">Loading Invoice...</div>
+
+      <div class="text-body-2 text-medium-emphasis mt-2">Please wait a moment</div>
+    </v-card>
+
+    <v-card v-else elevation="1" class="pa-6">
       <!-- HEADER -->
       <div class="d-flex justify-space-between mb-6">
         <div>
+          <div class="no-print">
+            <v-btn variant="outlined" @click="$router.back()">Back</v-btn>
+          </div>
           <h2 class="text-h5 font-weight-bold">Invoice</h2>
           <div class="text-caption text-grey">AHA! Child Development Center</div>
         </div>
@@ -96,7 +111,6 @@
             Copy Link
           </v-btn>
           <v-btn color="primary" class="mr-2" @click="printInvoice">Print</v-btn>
-          <v-btn variant="outlined" @click="$router.back()">Back</v-btn>
         </div>
 
         <!-- PAYMENT RECEIPT -->
@@ -104,7 +118,17 @@
         <div class="text-subtitle-1 font-weight-medium mb-2">Payment Receipt</div>
 
         <div v-if="billing.payment_receipt">
-          <v-img :src="getReceiptUrl(billing.payment_receipt)" max-width="300" />
+          <v-img
+            :src="getReceiptUrl(billing.payment_receipt)"
+            max-width="300"
+            @load="receiptImageLoading = false"
+          >
+            <template #placeholder>
+              <div class="d-flex align-center justify-center" style="height: 200px">
+                <v-progress-circular indeterminate color="primary" />
+              </div>
+            </template>
+          </v-img>
         </div>
 
         <div v-else class="text-grey">No receipt uploaded</div>
@@ -123,6 +147,8 @@ import { useRoute } from 'vue-router'
 import api from '@/services/api'
 import imageCompression from 'browser-image-compression'
 
+const pageLoading = ref(true)
+const receiptImageLoading = ref(false)
 const route = useRoute()
 const billing = ref({})
 const todayDate = new Date()
@@ -131,7 +157,6 @@ const uploading = ref(false)
 const snackbar = ref(false)
 const snackbarText = ref('')
 const snackbarColor = ref('success')
-const invoiceLink = ref('')
 
 const getReceiptUrl = (path) => {
   return `${import.meta.env.VITE_STORAGE_URL}/${path}`
@@ -142,8 +167,17 @@ const triggerUpload = () => {
 }
 
 const fetchData = async () => {
-  const res = await api.get(`/invoice-upload/${route.params.token}`)
-  billing.value = res.data.data
+  try {
+    pageLoading.value = true
+
+    const res = await api.get(`/invoice-upload/${route.params.token}`)
+
+    billing.value = res.data.data
+  } catch (err) {
+    console.error(err)
+  } finally {
+    pageLoading.value = false
+  }
 }
 
 const formatDate = (date) => {
@@ -221,6 +255,7 @@ const handleFile = async (e) => {
     snackbarColor.value = 'success'
     snackbar.value = true
 
+    receiptImageLoading.value = true
     await fetchData()
   } catch (err) {
     console.log(err.response?.data)

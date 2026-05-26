@@ -128,7 +128,13 @@
         <v-card-title>Payment Receipt</v-card-title>
 
         <v-card-text>
-          <v-img :src="receiptUrl" />
+          <v-img :src="receiptUrl" @load="receiptPreviewLoading = false">
+            <template #placeholder>
+              <div class="d-flex align-center justify-center" style="height: 300px">
+                <v-progress-circular indeterminate color="primary" />
+              </div>
+            </template>
+          </v-img>
         </v-card-text>
 
         <v-card-actions>
@@ -138,6 +144,32 @@
       </v-card>
     </v-dialog>
   </div>
+
+  <!-- INVOICE LOADING -->
+  <v-dialog v-model="invoiceLoading" persistent fullscreen scrim="black">
+    <div class="d-flex flex-column align-center justify-center h-100">
+      <v-card rounded="xl" class="pa-8 text-center" width="320">
+        <v-progress-circular indeterminate color="primary" size="56" width="5" />
+
+        <div class="text-h6 font-weight-medium mt-6">Generating Invoice...</div>
+
+        <div class="text-body-2 text-medium-emphasis mt-2">Please wait a moment</div>
+      </v-card>
+    </div>
+  </v-dialog>
+
+  <!-- MARK PAID LOADING -->
+  <v-dialog v-model="markPaidLoading" persistent fullscreen scrim="black">
+    <div class="d-flex flex-column align-center justify-center h-100">
+      <v-card rounded="xl" class="pa-8 text-center" width="320">
+        <v-progress-circular indeterminate color="primary" size="56" width="5" />
+
+        <div class="text-h6 font-weight-medium mt-6">Updating Payment...</div>
+
+        <div class="text-body-2 text-medium-emphasis mt-2">Please wait a moment</div>
+      </v-card>
+    </div>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -151,6 +183,9 @@ const search = ref('')
 const loading = ref(false)
 const receiptDialog = ref(false)
 const receiptUrl = ref('')
+const invoiceLoading = ref(false)
+const receiptPreviewLoading = ref(false)
+const markPaidLoading = ref(false)
 
 const headers = [
   { title: 'Registration No.', key: 'registration_number' },
@@ -213,17 +248,26 @@ const calculateAge = (birthDate) => {
 
 // ACTION
 const createInvoice = async (item) => {
+  invoiceLoading.value = true
+
   try {
     const res = await api.post(`/registrations/${item.id}/generate-invoice-link`)
 
     router.push(`/invoice/${res.data.token}`)
   } catch (error) {
     console.error(error)
+  } finally {
+    setTimeout(() => {
+      invoiceLoading.value = false
+    }, 300)
   }
 }
 
 const previewReceipt = (item) => {
+  receiptPreviewLoading.value = true
+
   receiptUrl.value = getReceiptUrl(item.payment_receipt)
+
   receiptDialog.value = true
 }
 
@@ -232,14 +276,22 @@ const getReceiptUrl = (path) => {
 }
 
 const markAsPaid = async (item) => {
-  if (!confirm('Are you sure you want to mark this as paid?')) return
+  if (!confirm('Are you sure you want to mark this as paid?')) {
+    return
+  }
+
+  markPaidLoading.value = true
 
   try {
     await api.put(`/registrations/${item.id}/mark-paid`)
 
-    fetchData()
+    await fetchData()
   } catch (err) {
     console.error(err)
+  } finally {
+    setTimeout(() => {
+      markPaidLoading.value = false
+    }, 300)
   }
 }
 
