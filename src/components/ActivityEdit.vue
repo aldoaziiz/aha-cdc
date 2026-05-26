@@ -1,15 +1,15 @@
 <template>
   <div class="activity-create-page">
+    <!-- PAGE LOADING -->
     <div v-if="isLoading" class="loading-page">
-      <v-progress-circular indeterminate color="primary" size="48" />
+      <v-progress-circular indeterminate color="primary" size="56" width="5" />
 
-      <div class="mt-4 text-h6 font-weight-medium">Memuat halaman edit aktivitas...</div>
+      <div class="mt-6 text-h6 font-weight-medium">Loading Activity...</div>
 
-      <div class="mt-2 text-body-2 text-medium-emphasis">
-        Sedang mengambil data aktivitas untuk kamu.
-      </div>
+      <div class="mt-2 text-body-2 text-medium-emphasis">Please wait a moment</div>
     </div>
 
+    <!-- CONTENT -->
     <template v-else>
       <!-- HEADER -->
       <div class="page-header mb-6">
@@ -22,10 +22,11 @@
         <v-btn variant="tonal" prepend-icon="mdi-arrow-left" @click="goBack">Back</v-btn>
       </div>
 
-      <!-- SELECTED SESSION -->
+      <!-- SESSION -->
       <v-card v-if="selectedSessionData" elevation="1" class="mb-4 rounded-xl">
         <v-card-title>Selected Therapy Session</v-card-title>
-        <v-divider></v-divider>
+
+        <v-divider />
 
         <v-card-text>
           <v-row>
@@ -80,7 +81,9 @@
 
               <div class="font-weight-medium text-body-1">
                 {{ selectedSessionData.start_time?.slice(0, 5) }}
+
                 -
+
                 {{ selectedSessionData.end_time?.slice(0, 5) }}
               </div>
             </v-col>
@@ -91,7 +94,8 @@
       <!-- FORM -->
       <v-card elevation="1" class="rounded-xl">
         <v-card-title>Activity Form</v-card-title>
-        <v-divider></v-divider>
+
+        <v-divider />
 
         <v-card-text>
           <!-- CAPTION -->
@@ -111,11 +115,14 @@
             <div class="preview-grid">
               <div v-for="photo in existingPhotos" :key="photo.id" class="preview-item">
                 <v-img :src="storageUrl(photo.photo)" height="180" cover class="rounded-lg" />
+
                 <v-btn
                   icon
                   size="x-small"
                   color="error"
                   class="preview-delete"
+                  :loading="deletingPhotoId === photo.id"
+                  :disabled="deletingPhotoId === photo.id"
                   @click="deleteExistingPhoto(photo.id)"
                 >
                   <v-icon size="16">mdi-trash-can-outline</v-icon>
@@ -124,7 +131,7 @@
             </div>
           </div>
 
-          <!-- UPLOAD NEW PHOTOS -->
+          <!-- ADD PHOTOS -->
           <v-file-input
             v-model="form.photos"
             label="Add New Photos"
@@ -141,7 +148,16 @@
           <div v-if="existingVideo" class="mb-6">
             <div class="text-subtitle-1 font-weight-medium mb-3">
               Existing Video
-              <v-btn icon size="x-small" color="error" class="ml-2" @click="deleteExistingVideo">
+
+              <v-btn
+                icon
+                size="x-small"
+                color="error"
+                class="ml-2"
+                :loading="deletingVideo"
+                :disabled="deletingVideo"
+                @click="deleteExistingVideo"
+              >
                 <v-icon size="16">mdi-trash-can-outline</v-icon>
               </v-btn>
             </div>
@@ -168,22 +184,40 @@
 
             <v-btn
               color="primary"
-              prepend-icon="mdi-content-save"
+              prepend-icon="
+                mdi-content-save
+              "
               :loading="loading"
               :disabled="loading"
               @click="updateActivity"
             >
-              Update Activity
+              {{ loading ? 'Updating Activity...' : 'Update Activity' }}
             </v-btn>
           </div>
         </v-card-text>
       </v-card>
     </template>
-  </div>
 
-  <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="3000" location="top right">
-    {{ snackbarText }}
-  </v-snackbar>
+    <!-- FULLSCREEN LOADING -->
+    <v-dialog v-model="loading" persistent fullscreen scrim="black">
+      <div class="d-flex flex-column align-center justify-center h-100">
+        <v-card rounded="xl" class="pa-8 text-center" width="320">
+          <v-progress-circular indeterminate color="primary" size="56" width="5" />
+
+          <div class="text-h6 font-weight-medium mt-6">
+            {{ loadingText }}
+          </div>
+
+          <div class="text-body-2 text-medium-emphasis mt-2">Please wait a moment</div>
+        </v-card>
+      </div>
+    </v-dialog>
+
+    <!-- SNACKBAR -->
+    <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="3000" location="top right">
+      {{ snackbarText }}
+    </v-snackbar>
+  </div>
 </template>
 
 <script setup>
@@ -223,6 +257,12 @@ const loading = ref(false)
 
 const isLoading = ref(true)
 
+const deletingVideo = ref(false)
+
+const deletingPhotoId = ref(null)
+
+const loadingText = ref('Updating Activity...')
+
 const form = ref({
   caption: '',
 
@@ -230,6 +270,10 @@ const form = ref({
 
   video: null,
 })
+
+// ======================
+// SNACKBAR
+// ======================
 
 const showSnackbar = (text, color = 'success') => {
   snackbarText.value = text
@@ -240,15 +284,25 @@ const showSnackbar = (text, color = 'success') => {
 }
 
 // ======================
-// GO BACK
+// BACK
 // ======================
 
-const goBack = () => {
-  router.push('/activity')
+const goBack = async () => {
+  loading.value = true
+
+  loadingText.value = 'Returning...'
+
+  try {
+    await router.push('/activity')
+  } finally {
+    setTimeout(() => {
+      loading.value = false
+    }, 300)
+  }
 }
 
 // ======================
-// FETCH ACTIVITY
+// FETCH
 // ======================
 
 const fetchActivity = async () => {
@@ -259,53 +313,51 @@ const fetchActivity = async () => {
 
     const activity = res.data.data
 
-    // ======================
-    // STORE DATA
-    // ======================
-
     activityData.value = activity
-
-    // ======================
-    // SESSION
-    // ======================
 
     selectedSession.value = activity.therapy_session_id
 
-    // ======================
-    // FORM
-    // ======================
-
     form.value.caption = activity.caption || ''
-
-    // ======================
-    // EXISTING MEDIA
-    // ======================
 
     existingPhotos.value = activity.photos || []
 
     existingVideo.value = activity.video || null
   } catch (err) {
     console.error(err)
+
+    showSnackbar('Failed to load activity', 'error')
   } finally {
     isLoading.value = false
   }
 }
 
+// ======================
+// UPDATE
+// ======================
+
 const updateActivity = async () => {
+  if (loading.value) return
+
+  // ======================
+  // VIDEO LIMIT
+  // ======================
+
+  const maxVideoSize = 50 * 1024 * 1024
+
+  if (form.value.video && form.value.video.size > maxVideoSize) {
+    showSnackbar('Video max size is 50MB', 'error')
+
+    return
+  }
+
   try {
     loading.value = true
 
+    loadingText.value = 'Updating Activity...'
+
     const payload = new FormData()
 
-    // ======================
-    // METHOD SPOOFING
-    // ======================
-
     payload.append('_method', 'PUT')
-
-    // ======================
-    // CAPTION
-    // ======================
 
     payload.append('caption', form.value.caption || '')
 
@@ -331,20 +383,30 @@ const updateActivity = async () => {
     // API
     // ======================
 
-    await api.post(`/activities/${route.params.id}`, payload, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
+    await api.post(
+      `/activities/${route.params.id}`,
+
+      payload,
+
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       },
-    })
+    )
 
     showSnackbar('Activity updated successfully')
 
-    router.push('/activity')
+    await router.push('/activity')
   } catch (err) {
     console.error(err)
 
+    const firstError = err.response?.data?.errors
+      ? Object.values(err.response.data.errors)[0][0]
+      : null
+
     showSnackbar(
-      err.response?.data?.message || 'Failed to update activity',
+      firstError || err.response?.data?.message || 'Failed to update activity',
 
       'error',
     )
@@ -354,7 +416,7 @@ const updateActivity = async () => {
 }
 
 // ======================
-// SELECTED SESSION DATA
+// SESSION DATA
 // ======================
 
 const selectedSessionData = computed(() => {
@@ -378,8 +440,14 @@ const formatDate = (date) => {
 // ======================
 
 const storageUrl = (path) => {
-  return `${import.meta.env.VITE_STORAGE_URL}/${path}`
+  return `
+    ${import.meta.env.VITE_STORAGE_URL}/${path}
+  `
 }
+
+// ======================
+// DELETE PHOTO
+// ======================
 
 const deleteExistingPhoto = async (id) => {
   const confirmed = confirm('Delete this photo?')
@@ -387,6 +455,8 @@ const deleteExistingPhoto = async (id) => {
   if (!confirmed) return
 
   try {
+    deletingPhotoId.value = id
+
     await api.delete(`/activity-photos/${id}`)
 
     existingPhotos.value = existingPhotos.value.filter((photo) => photo.id !== id)
@@ -396,8 +466,14 @@ const deleteExistingPhoto = async (id) => {
     console.error(err)
 
     showSnackbar('Failed to delete photo', 'error')
+  } finally {
+    deletingPhotoId.value = null
   }
 }
+
+// ======================
+// DELETE VIDEO
+// ======================
 
 const deleteExistingVideo = async () => {
   const confirmed = confirm('Delete this video?')
@@ -405,14 +481,19 @@ const deleteExistingVideo = async () => {
   if (!confirmed) return
 
   try {
+    deletingVideo.value = true
+
     await api.delete(`/activities/${route.params.id}/video`)
 
     existingVideo.value = null
+
     showSnackbar('Video deleted successfully')
   } catch (err) {
     console.error(err)
 
     showSnackbar('Failed to delete video', 'error')
+  } finally {
+    deletingVideo.value = false
   }
 }
 
@@ -432,18 +513,27 @@ onMounted(async () => {
 
 .loading-page {
   min-height: 60vh;
+
   display: flex;
+
   flex-direction: column;
+
   align-items: center;
+
   justify-content: center;
+
   text-align: center;
+
   padding: 24px;
 }
 
 .page-header {
   display: flex;
+
   justify-content: space-between;
+
   align-items: center;
+
   gap: 16px;
 
   flex-wrap: wrap;
@@ -453,6 +543,7 @@ onMounted(async () => {
   position: absolute;
 
   top: 8px;
+
   right: 8px;
 
   z-index: 2;
@@ -472,6 +563,7 @@ onMounted(async () => {
 
 .video-preview {
   width: 100%;
+
   max-width: 700px;
 
   border-radius: 16px;

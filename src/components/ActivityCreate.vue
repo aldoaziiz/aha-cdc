@@ -11,250 +11,304 @@
       <v-btn variant="tonal" prepend-icon="mdi-arrow-left" @click="goBack">Back</v-btn>
     </div>
 
-    <!-- SELECT SESSION -->
-    <v-card elevation="1" class="mb-4 rounded-xl">
-      <v-card-title>Select Therapy Session</v-card-title>
+    <!-- SESSION LOADING -->
+    <v-card v-if="pageLoading" elevation="1" class="mb-4 rounded-xl">
+      <v-skeleton-loader
+        type="
+          article,
+          paragraph,
+          paragraph
+        "
+      />
+    </v-card>
 
-      <v-card-text>
-        <!-- SEARCH -->
-        <v-text-field
-          v-model="search"
-          label="Search Child"
-          prepend-inner-icon="mdi-magnify"
-          variant="outlined"
-          density="comfortable"
-          hide-details
-          clearable
-          class="mb-4"
-        />
+    <!-- CONTENT -->
+    <template v-else>
+      <!-- SELECT SESSION -->
+      <v-card elevation="1" class="mb-4 rounded-xl">
+        <v-card-title>Select Therapy Session</v-card-title>
 
-        <!-- SCROLL -->
-        <div class="session-scroll">
-          <!-- SESSION LIST -->
-          <div class="session-list">
-            <v-card
-              v-for="session in filteredSessions"
-              :key="session.id"
-              elevation="0"
-              class="session-card rounded-xl"
-              :class="{
-                'session-selected': selectedSession === session.id,
+        <v-card-text>
+          <!-- SEARCH -->
+          <v-text-field
+            v-model="search"
+            label="Search Child"
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            clearable
+            class="mb-4"
+          />
 
-                'session-disabled': session.activity,
-              }"
-              @click="selectSession(session)"
-            >
-              <v-card-text>
-                <div class="d-flex justify-space-between align-start ga-4 flex-wrap">
-                  <!-- LEFT -->
-                  <div>
-                    <!-- CHILD -->
-                    <div class="text-h6 font-weight-bold mb-1">
-                      {{ session.registration?.child?.name }}
+          <!-- SCROLL -->
+          <div class="session-scroll">
+            <!-- SESSION LIST -->
+            <div class="session-list">
+              <v-card
+                v-for="session in filteredSessions"
+                :key="session.id"
+                elevation="0"
+                class="session-card rounded-xl"
+                :class="{
+                  'session-selected': selectedSession === session.id,
+
+                  'session-disabled': session.activity,
+                }"
+                @click="selectSession(session)"
+              >
+                <v-card-text>
+                  <div class="d-flex justify-space-between align-start ga-4 flex-wrap">
+                    <!-- LEFT -->
+                    <div>
+                      <!-- CHILD -->
+                      <div class="text-h6 font-weight-bold mb-1">
+                        {{ session.registration?.child?.name }}
+                      </div>
+
+                      <!-- PROGRAM -->
+                      <div class="text-body-2 text-grey mb-2">
+                        {{ session.registration?.program?.name }}
+                      </div>
+
+                      <!-- CHIPS -->
+                      <div class="d-flex flex-wrap ga-2">
+                        <!-- DATE -->
+                        <v-chip size="small" variant="tonal">
+                          {{ formatDate(session.therapy_date) }}
+                        </v-chip>
+
+                        <!-- TIME -->
+                        <v-chip size="small" variant="tonal">
+                          {{ session.start_time?.slice(0, 5) }}
+
+                          -
+
+                          {{ session.end_time?.slice(0, 5) }}
+                        </v-chip>
+
+                        <!-- ROOM -->
+                        <v-chip size="small" color="primary" variant="tonal">
+                          {{ session.room?.name }}
+                        </v-chip>
+                      </div>
                     </div>
 
-                    <!-- PROGRAM -->
-                    <div class="text-body-2 text-grey mb-2">
-                      {{ session.registration?.program?.name }}
-                    </div>
+                    <!-- RIGHT -->
+                    <div class="text-right">
+                      <div class="text-caption text-grey mb-1">Therapist</div>
 
-                    <!-- CHIPS -->
-                    <div class="d-flex flex-wrap ga-2">
-                      <!-- DATE -->
-                      <v-chip size="small" variant="tonal">
-                        {{ formatDate(session.therapy_date) }}
+                      <div class="font-weight-medium mb-2">
+                        {{ session.therapist?.name }}
+                      </div>
+
+                      <v-chip v-if="session.activity" color="success" variant="tonal" size="small">
+                        Already Documented
                       </v-chip>
 
-                      <!-- TIME -->
-                      <v-chip size="small" variant="tonal">
-                        {{ session.start_time?.slice(0, 5) }}
-                        -
-                        {{ session.end_time?.slice(0, 5) }}
-                      </v-chip>
-
-                      <!-- ROOM -->
-                      <v-chip size="small" color="primary" variant="tonal">
-                        {{ session.room?.name }}
+                      <v-chip v-else color="primary" variant="tonal" size="small">
+                        Select Session
                       </v-chip>
                     </div>
                   </div>
-
-                  <!-- RIGHT -->
-                  <div class="text-right">
-                    <div class="text-caption text-grey mb-1">Therapist</div>
-
-                    <div class="font-weight-medium mb-2">
-                      {{ session.therapist?.name }}
-                    </div>
-
-                    <v-chip v-if="session.activity" color="success" variant="tonal" size="small">
-                      Already Documented
-                    </v-chip>
-
-                    <v-chip v-else color="primary" variant="tonal" size="small">
-                      Select Session
-                    </v-chip>
-                  </div>
-                </div>
-              </v-card-text>
-            </v-card>
+                </v-card-text>
+              </v-card>
+            </div>
           </div>
-        </div>
-      </v-card-text>
-    </v-card>
+        </v-card-text>
+      </v-card>
 
-    <!-- SELECTED SESSION -->
-    <v-card v-if="selectedSessionData" elevation="1" class="mb-4 rounded-xl">
-      <v-card-title>Selected Therapy Session</v-card-title>
+      <!-- SELECTED SESSION -->
+      <v-card v-if="selectedSessionData" elevation="1" class="mb-4 rounded-xl">
+        <v-card-title>Selected Therapy Session</v-card-title>
 
-      <v-card-text>
-        <v-row>
-          <!-- CHILD -->
-          <v-col cols="12" md="4">
-            <div class="text-caption text-grey mb-1">Child</div>
+        <v-card-text>
+          <v-row>
+            <!-- CHILD -->
+            <v-col cols="12" md="4">
+              <div class="text-caption text-grey mb-1">Child</div>
 
-            <div class="font-weight-medium text-body-1">
-              {{ selectedSessionData.registration?.child?.name }}
-            </div>
-          </v-col>
+              <div class="font-weight-medium text-body-1">
+                {{ selectedSessionData.registration?.child?.name }}
+              </div>
+            </v-col>
 
-          <!-- PROGRAM -->
-          <v-col cols="12" md="4">
-            <div class="text-caption text-grey mb-1">Program</div>
+            <!-- PROGRAM -->
+            <v-col cols="12" md="4">
+              <div class="text-caption text-grey mb-1">Program</div>
 
-            <div class="font-weight-medium text-body-1">
-              {{ selectedSessionData.registration?.program?.name }}
-            </div>
-          </v-col>
+              <div class="font-weight-medium text-body-1">
+                {{ selectedSessionData.registration?.program?.name }}
+              </div>
+            </v-col>
 
-          <!-- THERAPIST -->
-          <v-col cols="12" md="4">
-            <div class="text-caption text-grey mb-1">Therapist</div>
+            <!-- THERAPIST -->
+            <v-col cols="12" md="4">
+              <div class="text-caption text-grey mb-1">Therapist</div>
 
-            <div class="font-weight-medium text-body-1">
-              {{ selectedSessionData.therapist?.name }}
-            </div>
-          </v-col>
+              <div class="font-weight-medium text-body-1">
+                {{ selectedSessionData.therapist?.name }}
+              </div>
+            </v-col>
 
-          <!-- ROOM -->
-          <v-col cols="12" md="4">
-            <div class="text-caption text-grey mb-1">Room</div>
+            <!-- ROOM -->
+            <v-col cols="12" md="4">
+              <div class="text-caption text-grey mb-1">Room</div>
 
-            <div class="font-weight-medium text-body-1">
-              {{ selectedSessionData.room?.name }}
-            </div>
-          </v-col>
+              <div class="font-weight-medium text-body-1">
+                {{ selectedSessionData.room?.name }}
+              </div>
+            </v-col>
 
-          <!-- DATE -->
-          <v-col cols="12" md="4">
-            <div class="text-caption text-grey mb-1">Date</div>
+            <!-- DATE -->
+            <v-col cols="12" md="4">
+              <div class="text-caption text-grey mb-1">Date</div>
 
-            <div class="font-weight-medium text-body-1">
-              {{ formatDate(selectedSessionData.therapy_date) }}
-            </div>
-          </v-col>
+              <div class="font-weight-medium text-body-1">
+                {{ formatDate(selectedSessionData.therapy_date) }}
+              </div>
+            </v-col>
 
-          <!-- TIME -->
-          <v-col cols="12" md="4">
-            <div class="text-caption text-grey mb-1">Time</div>
+            <!-- TIME -->
+            <v-col cols="12" md="4">
+              <div class="text-caption text-grey mb-1">Time</div>
 
-            <div class="font-weight-medium text-body-1">
-              {{ selectedSessionData.start_time?.slice(0, 5) }}
-              -
-              {{ selectedSessionData.end_time?.slice(0, 5) }}
-            </div>
-          </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
+              <div class="font-weight-medium text-body-1">
+                {{ selectedSessionData.start_time?.slice(0, 5) }}
 
-    <!-- FORM -->
-    <v-card elevation="1" class="rounded-xl">
-      <v-card-title>Activity Documentation</v-card-title>
+                -
 
-      <v-card-text>
-        <v-row>
-          <!-- CAPTION -->
-          <v-col cols="12">
-            <v-textarea
-              v-model="form.caption"
-              label="Activity Caption"
-              variant="outlined"
-              rows="5"
-              auto-grow
-              placeholder="
-                Write activity summary
-                and therapy progress...
-              "
-            />
-          </v-col>
+                {{ selectedSessionData.end_time?.slice(0, 5) }}
+              </div>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
 
-          <!-- PHOTOS -->
-          <v-col cols="12">
-            <div class="text-subtitle-1 font-weight-medium mb-3">Photos</div>
+      <!-- FORM -->
+      <v-card elevation="1" class="rounded-xl">
+        <v-card-title>Activity Documentation</v-card-title>
 
-            <v-file-input
-              multiple
-              chips
-              prepend-icon="mdi-camera"
-              variant="outlined"
-              label="Upload Photos"
-              v-model="form.photos"
-              accept="image/*"
-              show-size
-            />
-          </v-col>
+        <v-card-text>
+          <v-row>
+            <!-- CAPTION -->
+            <v-col cols="12">
+              <v-textarea
+                v-model="form.caption"
+                label="Activity Caption"
+                variant="outlined"
+                rows="5"
+                auto-grow
+                placeholder="
+                  Write activity summary
+                  and therapy progress...
+                "
+              />
+            </v-col>
 
-          <!-- VIDEO -->
-          <v-col cols="12">
-            <div class="text-subtitle-1 font-weight-medium mb-3">Video</div>
+            <!-- PHOTOS -->
+            <v-col cols="12">
+              <div class="text-subtitle-1 font-weight-medium mb-3">Photos</div>
 
-            <v-file-input
-              v-model="form.video"
-              :multiple="false"
-              prepend-icon="mdi-video"
-              variant="outlined"
-              label="Upload Video"
-              accept="video/*"
-              show-size
-            />
-          </v-col>
-        </v-row>
-      </v-card-text>
+              <v-file-input
+                multiple
+                chips
+                prepend-icon="mdi-camera"
+                variant="outlined"
+                label="Upload Photos"
+                v-model="form.photos"
+                accept="image/*"
+                show-size
+              />
+            </v-col>
 
-      <!-- ACTION -->
-      <v-card-actions class="px-6 pb-6">
-        <v-spacer />
+            <!-- VIDEO -->
+            <v-col cols="12">
+              <div class="text-subtitle-1 font-weight-medium mb-3">Video</div>
 
-        <v-btn variant="tonal">Cancel</v-btn>
+              <v-file-input
+                v-model="form.video"
+                :multiple="false"
+                prepend-icon="mdi-video"
+                variant="outlined"
+                label="Upload Video"
+                accept="video/*"
+                show-size
+              />
+            </v-col>
+          </v-row>
+        </v-card-text>
 
-        <v-btn
-          color="primary"
-          prepend-icon="mdi-content-save"
-          :loading="loading"
-          :disabled="loading"
-          @click="saveActivity"
-        >
-          Save Activity
-        </v-btn>
-      </v-card-actions>
-    </v-card>
+        <!-- ACTION -->
+        <v-card-actions class="px-6 pb-6">
+          <v-spacer />
+
+          <v-btn variant="tonal" @click="goBack">Cancel</v-btn>
+
+          <v-btn
+            color="primary"
+            prepend-icon="
+              mdi-content-save
+            "
+            :loading="loading"
+            :disabled="loading"
+            @click="saveActivity"
+          >
+            {{ loading ? 'Uploading Activity...' : 'Save Activity' }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </template>
+
+    <!-- FULLSCREEN LOADING -->
+    <v-dialog v-model="loading" persistent fullscreen scrim="black">
+      <div class="d-flex flex-column align-center justify-center h-100">
+        <v-card rounded="xl" class="pa-8 text-center" width="320">
+          <v-progress-circular indeterminate color="primary" size="56" width="5" />
+
+          <div class="text-h6 font-weight-medium mt-6">
+            {{ uploadLoadingText }}
+          </div>
+
+          <div class="text-body-2 text-medium-emphasis mt-2">Please wait a moment</div>
+        </v-card>
+      </div>
+    </v-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue'
+
+import debounce from 'lodash/debounce'
+
 import api from '@/services/api'
+
 import { useRouter } from 'vue-router'
+
+// ======================
+// ROUTER
+// ======================
+
+const router = useRouter()
 
 // ======================
 // STATE
 // ======================
 
 const sessions = ref([])
+
 const selectedSession = ref(null)
+
 const search = ref('')
-const router = useRouter()
+
+const debouncedSearch = ref('')
+
+const loading = ref(false)
+
+const pageLoading = ref(true)
+
+const uploadLoadingText = ref('Uploading Activity...')
 
 const form = ref({
   caption: '',
@@ -262,10 +316,22 @@ const form = ref({
   video: null,
 })
 
-const loading = ref(false)
+// ======================
+// BACK
+// ======================
 
-const goBack = () => {
-  router.push('/activity')
+const goBack = async () => {
+  loading.value = true
+
+  uploadLoadingText.value = 'Returning...'
+
+  try {
+    await router.push('/activity')
+  } finally {
+    setTimeout(() => {
+      loading.value = false
+    }, 300)
+  }
 }
 
 // ======================
@@ -274,6 +340,8 @@ const goBack = () => {
 
 const fetchSessions = async () => {
   try {
+    pageLoading.value = true
+
     const res = await api.get('/therapy-sessions', {
       params: {
         without_activity: 1,
@@ -284,20 +352,36 @@ const fetchSessions = async () => {
     sessions.value = res.data.data
   } catch (err) {
     console.error(err)
+  } finally {
+    pageLoading.value = false
   }
 }
 
 // ======================
-// SEARCH FILTER
+// SEARCH
+// ======================
+
+const debounceSearchHandler = debounce((value) => {
+  debouncedSearch.value = value
+}, 300)
+
+watch(search, (value) => {
+  debounceSearchHandler(value)
+})
+
+// ======================
+// FILTERED SESSIONS
 // ======================
 
 const filteredSessions = computed(() => {
-  if (!search.value) {
+  if (!debouncedSearch.value) {
     return sessions.value
   }
 
   return sessions.value.filter((session) => {
-    return session.registration?.child?.name?.toLowerCase().includes(search.value.toLowerCase())
+    return session.registration?.child?.name
+      ?.toLowerCase()
+      .includes(debouncedSearch.value.toLowerCase())
   })
 })
 
@@ -306,13 +390,15 @@ const filteredSessions = computed(() => {
 // ======================
 
 const selectSession = (session) => {
-  if (session.activity) return
+  if (session.activity) {
+    return
+  }
 
   selectedSession.value = session.id
 }
 
 // ======================
-// SELECTED SESSION DATA
+// SELECTED SESSION
 // ======================
 
 const selectedSessionData = computed(() => {
@@ -331,15 +417,35 @@ const formatDate = (date) => {
   })
 }
 
+// ======================
+// SAVE
+// ======================
+
 const saveActivity = async () => {
+  if (loading.value) return
+
   if (!selectedSession.value) {
     alert('Please select therapy session')
 
     return
   }
 
+  // ======================
+  // VIDEO LIMIT
+  // ======================
+
+  const maxVideoSize = 50 * 1024 * 1024
+
+  if (form.value.video && form.value.video.size > maxVideoSize) {
+    alert('Video max size is 50MB')
+
+    return
+  }
+
   try {
     loading.value = true
+
+    uploadLoadingText.value = 'Uploading Activity...'
 
     const payload = new FormData()
 
@@ -389,7 +495,7 @@ const saveActivity = async () => {
 
     selectedSession.value = null
 
-    router.push('/activity')
+    await router.push('/activity')
   } catch (err) {
     console.error(err)
 
@@ -406,6 +512,14 @@ const saveActivity = async () => {
 onMounted(() => {
   fetchSessions()
 })
+
+// ======================
+// CLEANUP
+// ======================
+
+onBeforeUnmount(() => {
+  debounceSearchHandler.cancel()
+})
 </script>
 
 <style scoped>
@@ -415,14 +529,19 @@ onMounted(() => {
 
 .page-header {
   display: flex;
+
   justify-content: space-between;
+
   align-items: center;
+
   gap: 16px;
+
   flex-wrap: wrap;
 }
 
 .session-scroll {
   max-height: 500px;
+
   overflow-y: auto;
 
   padding-right: 4px;
@@ -434,17 +553,21 @@ onMounted(() => {
 
 .session-scroll::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.2);
+
   border-radius: 999px;
 }
 
 .session-list {
   display: flex;
+
   flex-direction: column;
+
   gap: 12px;
 }
 
 .session-card {
   border: 1px solid rgba(0, 0, 0, 0.08);
+
   cursor: pointer;
 
   transition: all 0.2s ease;
@@ -484,11 +607,13 @@ onMounted(() => {
   position: absolute;
 
   top: 8px;
+
   right: 8px;
 }
 
 .video-preview {
   width: 100%;
+
   max-width: 700px;
 
   border-radius: 16px;
@@ -499,6 +624,7 @@ onMounted(() => {
 @media (max-width: 768px) {
   .page-header {
     flex-direction: column;
+
     align-items: stretch;
   }
 

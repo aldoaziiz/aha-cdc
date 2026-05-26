@@ -32,13 +32,25 @@
           density="comfortable"
           hide-details
           clearable
-          @update:modelValue="() => fetchActivities(true)"
         />
       </v-card-text>
     </v-card>
 
+    <!-- PAGE LOADING -->
+    <div v-if="pageLoading">
+      <v-card v-for="n in 3" :key="n" class="mb-4 rounded-xl">
+        <v-skeleton-loader
+          type="
+            article,
+            image,
+            paragraph
+          "
+        />
+      </v-card>
+    </div>
+
     <!-- FEED -->
-    <div class="feed-wrapper">
+    <div v-else class="feed-wrapper">
       <!-- POST CARD -->
       <v-card
         v-for="activity in activities"
@@ -148,19 +160,65 @@
         <v-progress-circular v-if="loadingMore" indeterminate size="28" />
       </div>
     </div>
+
+    <!-- DELETE LOADING -->
+    <v-dialog v-model="deleting" persistent width="320">
+      <v-card rounded="xl" class="pa-8 d-flex flex-column align-center justify-center text-center">
+        <v-progress-circular indeterminate color="primary" size="56" width="5" />
+
+        <div class="text-h6 font-weight-medium mt-6">Deleting Activity...</div>
+
+        <div class="text-body-2 text-medium-emphasis mt-2">Please wait a moment</div>
+      </v-card>
+    </v-dialog>
+
+    <!-- PAGE ACTION LOADING -->
+    <v-dialog v-model="pageActionLoading" persistent fullscreen scrim="black">
+      <div class="d-flex flex-column align-center justify-center h-100">
+        <v-card rounded="xl" class="pa-8 text-center" width="320">
+          <v-progress-circular indeterminate color="primary" size="56" width="5" />
+
+          <div class="text-h6 font-weight-medium mt-6">
+            {{ pageActionText }}
+          </div>
+
+          <div class="text-body-2 text-medium-emphasis mt-2">Please wait a moment</div>
+        </v-card>
+      </div>
+    </v-dialog>
   </div>
+
+  <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="3000" location="top right">
+    {{ snackbarText }}
+  </v-snackbar>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router'
 
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
+
+import debounce from 'lodash/debounce'
 
 import api from '@/services/api'
 
 import { useAuthStore } from '@/stores/auth'
 
+// ======================
+// AUTH
+// ======================
+
 const authStore = useAuthStore()
+
+// ======================
+// ROUTER
+// ======================
+
+const router = useRouter()
+
+// ======================
+// STATE
+// ======================
 
 const activities = ref([])
 
@@ -168,37 +226,63 @@ const page = ref(1)
 
 const lastPage = ref(1)
 
-const loadingMore = ref(false)
-
 const loading = ref(false)
 
-const search = ref('')
+const loadingMore = ref(false)
 
-const router = useRouter()
+const fetchingMore = ref(false)
 
-const expandedCaptions = ref([])
+const pageLoading = ref(true)
 
 const deleting = ref(false)
 
+const search = ref('')
+
+const expandedCaptions = ref([])
+
 const loadMoreTrigger = ref(null)
 
+const pageActionLoading = ref(false)
+
+const pageActionText = ref('Loading...')
+
+const snackbar = ref(false)
+
+const snackbarText = ref('')
+
+const snackbarColor = ref('success')
+
 let observer = null
+
+const showSnackbar = (text, color = 'success') => {
+  snackbarText.value = text
+
+  snackbarColor.value = color
+
+  snackbar.value = true
+}
+
+// ======================
+// PERMISSION
+// ======================
 
 const canManageActivity = computed(() => {
   return authStore.isAdmin || authStore.isTherapist
 })
 
-const goToCreate = () => {
-  router.push('/activity/create')
-}
-
-const goToEdit = (id) => {
-  router.push(`/activity/${id}/edit`)
-}
+// ======================
+// STORAGE URL
+// ======================
 
 const storageUrl = (path) => {
-  return `${import.meta.env.VITE_STORAGE_URL}/${path}`
+  return `
+    ${import.meta.env.VITE_STORAGE_URL}/${path}
+  `
 }
+
+// ======================
+// CAPTION
+// ======================
 
 const isExpanded = (id) => {
   return expandedCaptions.value.includes(id)
@@ -212,6 +296,10 @@ const toggleCaption = (id) => {
   }
 }
 
+// ======================
+// FORMAT DATE
+// ======================
+
 const formatDate = (date) => {
   return new Date(date).toLocaleDateString('en-GB', {
     day: '2-digit',
@@ -219,6 +307,10 @@ const formatDate = (date) => {
     year: 'numeric',
   })
 }
+
+// ======================
+// FETCH ACTIVITIES
+// ======================
 
 const fetchActivities = async (reset = false) => {
   try {
@@ -230,10 +322,18 @@ const fetchActivities = async (reset = false) => {
 
     loading.value = true
 
+    if (reset || page.value === 1) {
+      pageLoading.value = true
+    } else {
+      loadingMore.value = true
+    }
+
     const res = await api.get('/activities', {
       params: {
         page: page.value,
+
         per_page: 10,
+
         search: search.value,
       },
     })
@@ -247,8 +347,88 @@ const fetchActivities = async (reset = false) => {
     console.error(err)
   } finally {
     loading.value = false
+
+    loadingMore.value = false
+
+    pageLoading.value = false
   }
 }
+
+// ======================
+// SEARCH
+// ======================
+
+const debouncedFetch = debounce(() => {
+  fetchActivities(true)
+}, 500)
+
+watch(search, () => {
+  debouncedFetch()
+})
+
+// ======================
+// LOAD MORE
+// ======================
+
+const loadMore = async () => {
+  if (fetchingMore.value || loadingMore.value) {
+    return
+  }
+
+  if (page.value >= lastPage.value) {
+    return
+  }
+
+  try {
+    fetchingMore.value = true
+
+    page.value++
+
+    await fetchActivities()
+  } finally {
+    fetchingMore.value = false
+  }
+}
+
+// ======================
+// CREATE
+// ======================
+
+const goToCreate = async () => {
+  pageActionText.value = 'Opening Activity Form...'
+
+  pageActionLoading.value = true
+
+  try {
+    await router.push('/activity/create')
+  } finally {
+    setTimeout(() => {
+      pageActionLoading.value = false
+    }, 300)
+  }
+}
+
+// ======================
+// EDIT
+// ======================
+
+const goToEdit = async (id) => {
+  pageActionText.value = 'Opening Activity...'
+
+  pageActionLoading.value = true
+
+  try {
+    await router.push(`/activity/${id}/edit`)
+  } finally {
+    setTimeout(() => {
+      pageActionLoading.value = false
+    }, 300)
+  }
+}
+
+// ======================
+// DELETE
+// ======================
 
 const deleteActivity = async (id) => {
   const confirmed = confirm('Delete this activity?')
@@ -262,31 +442,19 @@ const deleteActivity = async (id) => {
 
     activities.value = activities.value.filter((activity) => activity.id !== id)
 
-    alert('Activity deleted successfully')
+    showSnackbar('Activity deleted successfully')
   } catch (err) {
     console.error(err)
 
-    alert('Failed to delete activity')
+    showSnackbar('Failed to delete activity', 'error')
   } finally {
     deleting.value = false
   }
 }
 
-const loadMore = async () => {
-  if (loadingMore.value) return
-
-  if (page.value >= lastPage.value) return
-
-  try {
-    loadingMore.value = true
-
-    page.value++
-
-    await fetchActivities()
-  } finally {
-    loadingMore.value = false
-  }
-}
+// ======================
+// INIT
+// ======================
 
 onMounted(async () => {
   await fetchActivities()
@@ -297,6 +465,7 @@ onMounted(async () => {
         loadMore()
       }
     },
+
     {
       threshold: 0.5,
     },
@@ -307,7 +476,13 @@ onMounted(async () => {
   }
 })
 
+// ======================
+// CLEANUP
+// ======================
+
 onBeforeUnmount(() => {
+  debouncedFetch.cancel()
+
   if (observer) {
     observer.disconnect()
   }
@@ -321,9 +496,13 @@ onBeforeUnmount(() => {
 
 .page-header {
   display: flex;
+
   justify-content: space-between;
+
   align-items: center;
+
   gap: 16px;
+
   flex-wrap: wrap;
 }
 
@@ -369,7 +548,9 @@ onBeforeUnmount(() => {
 
 .load-more-trigger {
   display: flex;
+
   justify-content: center;
+
   align-items: center;
 
   height: 80px;
@@ -385,10 +566,11 @@ onBeforeUnmount(() => {
 
 .v-carousel {
   border-radius: 16px;
+
   overflow: hidden;
 }
 
-/* custom styles for carousel controls */
+/* carousel controls */
 
 :deep(.v-window__left),
 :deep(.v-window__right) {
@@ -416,11 +598,13 @@ onBeforeUnmount(() => {
 @media (max-width: 768px) {
   .page-header {
     flex-direction: column;
+
     align-items: stretch;
   }
 
   .feed-wrapper {
     max-width: 100%;
+
     padding: 0 4px;
   }
 
@@ -430,6 +614,7 @@ onBeforeUnmount(() => {
 
   .activity-content {
     font-size: 14px;
+
     line-height: 1.7;
   }
 
@@ -441,6 +626,7 @@ onBeforeUnmount(() => {
 @media (max-width: 600px) {
   .page-header h1 {
     font-size: 28px !important;
+
     line-height: 1.2;
   }
 
@@ -458,6 +644,7 @@ onBeforeUnmount(() => {
 
   .d-flex.ga-6 {
     gap: 16px !important;
+
     flex-wrap: wrap;
   }
 
