@@ -18,6 +18,7 @@ import TherapySessions from '@/components/Transactions/TherapySessions.vue'
 
 // admissions
 import RegistrationsNew from '@/components/Admissions/Registrations.vue'
+import PublicRegistrations from '@/components/Admissions/PublicRegistrations.vue'
 
 // billing
 import Billing from '@/components/Billing.vue'
@@ -137,12 +138,26 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: '/public-registrations',
+    component: PublicRegistrations,
+    meta: {
+      layout: 'blank',
+    },
+  },
+  {
     path: '/registration-success',
     component: () => import('@/components/Admissions/RegistrationSuccess.vue'),
     meta: {
       layout: 'app',
       requiresAuth: true,
-      allowedRoles: ['admin'],
+      allowedRoles: ['admin', 'guardian'],
+    },
+  },
+  {
+    path: '/public-registration-success',
+    component: () => import('@/components/Admissions/PublicRegistrationSuccess.vue'),
+    meta: {
+      layout: 'blank',
     },
   },
 

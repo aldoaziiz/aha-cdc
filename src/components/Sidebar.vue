@@ -91,10 +91,18 @@
           ></v-list-item>
         </template>
         <v-list-item
+          v-if="authStore.isAdmin"
           @click="setActiveMenu('RegistrationsNew')"
           :active="activeMenu === 'RegistrationsNew'"
           title="Registrations"
           to="/registrations-new"
+        ></v-list-item>
+        <v-list-item
+          v-if="authStore.isAdmin || authStore.isGuardian"
+          @click="setActiveMenu('PublicRegistrations')"
+          :active="activeMenu === 'PublicRegistrations'"
+          title="Public Registrations"
+          to="/public-registrations"
         ></v-list-item>
       </v-list-group>
 
