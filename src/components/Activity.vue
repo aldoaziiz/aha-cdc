@@ -114,7 +114,13 @@
             show-arrows="hover"
           >
             <v-carousel-item v-for="photo in activity.photos" :key="photo.id">
-              <v-img :src="storageUrl(photo.photo)" height="100%" contain class="activity-image" />
+              <v-img
+                :src="storageUrl(photo.photo)"
+                height="100%"
+                contain
+                class="activity-image cursor-pointer"
+                @click="openImage(photo.photo)"
+              />
             </v-carousel-item>
           </v-carousel>
 
@@ -160,6 +166,15 @@
         <v-progress-circular v-if="loadingMore" indeterminate size="28" />
       </div>
     </div>
+
+    <!-- IMAGE PREVIEW -->
+    <v-dialog v-model="imageDialog" fullscreen>
+      <div class="image-preview-wrapper">
+        <v-btn icon="mdi-close" class="close-btn" @click="imageDialog = false" />
+
+        <img :src="selectedImage" alt="Activity Photo" class="preview-image" />
+      </div>
+    </v-dialog>
 
     <!-- DELETE LOADING -->
     <v-dialog v-model="deleting" persistent width="320">
@@ -252,6 +267,10 @@ const snackbarText = ref('')
 
 const snackbarColor = ref('success')
 
+const imageDialog = ref(false)
+
+const selectedImage = ref('')
+
 let observer = null
 
 const showSnackbar = (text, color = 'success') => {
@@ -275,9 +294,13 @@ const canManageActivity = computed(() => {
 // ======================
 
 const storageUrl = (path) => {
-  return `
-    ${import.meta.env.VITE_STORAGE_URL}/${path}
-  `
+  return `${import.meta.env.VITE_STORAGE_URL}/${path}`
+}
+
+const openImage = (path) => {
+  selectedImage.value = storageUrl(path)
+
+  imageDialog.value = true
 }
 
 // ======================
@@ -546,6 +569,10 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
+.cursor-pointer {
+  cursor: pointer;
+}
+
 .load-more-trigger {
   display: flex;
 
@@ -554,6 +581,33 @@ onBeforeUnmount(() => {
   align-items: center;
 
   height: 80px;
+}
+
+.image-preview-wrapper {
+  width: 100vw;
+  height: 100vh;
+
+  background: black;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.preview-image {
+  max-width: 95vw;
+  max-height: 95vh;
+
+  object-fit: contain;
+}
+
+.close-btn {
+  position: fixed !important;
+
+  top: 16px;
+  right: 16px;
+
+  z-index: 9999;
 }
 
 .photo-grid {
