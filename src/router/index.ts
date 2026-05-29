@@ -130,15 +130,19 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/registrations-new',
     component: RegistrationsNew,
-    meta: { layout: 'blank' },
+    meta: {
+      layout: 'app',
+      requiresAuth: true,
+      allowedRoles: ['admin'],
+    },
   },
   {
     path: '/registration-success',
-
     component: () => import('@/components/Admissions/RegistrationSuccess.vue'),
-
     meta: {
-      layout: 'blank',
+      layout: 'app',
+      requiresAuth: true,
+      allowedRoles: ['admin'],
     },
   },
 

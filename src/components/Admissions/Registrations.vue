@@ -49,7 +49,15 @@
               :disabled="childMode === 'new'"
               :clearable="childMode !== 'existing'"
               class="mb-4"
-            />
+            >
+              <template v-slot:item="{ props, item }">
+                <v-list-item
+                  v-bind="props"
+                  :title="item.name"
+                  :subtitle="`ID: ${item.id_number}`"
+                ></v-list-item>
+              </template>
+            </v-autocomplete>
 
             <v-row>
               <v-col cols="12" md="6">
@@ -72,7 +80,7 @@
               <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.child.id_number"
-                  label="ID Number"
+                  label="ID Number / KIA"
                   :rules="[rules.required]"
                   :readonly="childMode === 'existing'"
                 />
@@ -199,7 +207,15 @@
               :disabled="guardianMode === 'new'"
               :clearable="guardianMode !== 'existing'"
               class="mb-4"
-            />
+            >
+              <template v-slot:item="{ props, item }">
+                <v-list-item
+                  v-bind="props"
+                  :title="item.name"
+                  :subtitle="`ID: ${item.id_number}`"
+                ></v-list-item>
+              </template>
+            </v-autocomplete>
 
             <v-row>
               <v-col cols="12" md="6">
@@ -233,7 +249,7 @@
               <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.guardian.id_number"
-                  label="ID Number"
+                  label="ID Number / KTP"
                   :rules="[rules.required]"
                   :readonly="guardianMode === 'existing'"
                 />
@@ -676,7 +692,6 @@ const submitForm = async () => {
     snackbarColor.value = 'success'
     snackbar.value = true
 
-    console.log('Saved:', res.data)
     router.replace({
       path: '/registration-success',
 

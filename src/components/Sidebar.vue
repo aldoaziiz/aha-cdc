@@ -93,7 +93,7 @@
         <v-list-item
           @click="setActiveMenu('RegistrationsNew')"
           :active="activeMenu === 'RegistrationsNew'"
-          title="New Registrations"
+          title="Registrations"
           to="/registrations-new"
         ></v-list-item>
       </v-list-group>
