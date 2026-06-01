@@ -234,6 +234,7 @@ const headers = [
   { title: 'Program', key: 'program' },
   { title: 'Therapist', key: 'therapist' },
   { title: 'Room', key: 'room' },
+  { title: 'Notes', key: 'notes' },
   {
     title: '',
     key: 'actions',

@@ -302,10 +302,11 @@ const form = ref({
 
 const headers = [
   { title: 'Date', key: 'therapy_date' },
-  { title: 'Therapist', key: 'therapist' },
-  { title: 'Room', key: 'room' },
   { title: 'Start', key: 'start_time' },
   { title: 'End', key: 'end_time' },
+  { title: 'Therapist', key: 'therapist' },
+  { title: 'Room', key: 'room' },
+  { title: 'Notes', key: 'notes' },
   {
     title: '',
     key: 'actions',
