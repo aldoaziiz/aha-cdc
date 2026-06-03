@@ -321,14 +321,33 @@
 
               <v-col cols="12" md="6">
                 <v-autocomplete
+                  v-model="form.registration.program_category_id"
+                  :items="programCategories"
+                  item-title="name"
+                  item-value="id"
+                  label="Program Category"
+                  :rules="[rules.required]"
+                  clearable
+                />
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-autocomplete
                   v-model="form.registration.program_id"
-                  :items="programs"
+                  :items="filteredPrograms"
                   item-title="name"
                   item-value="id"
                   label="Program"
                   :rules="[rules.required]"
                   clearable
-                />
+                >
+                  <template #item="{ props, item }">
+                    <v-list-item
+                      v-bind="props"
+                      :subtitle="`Rp ${Number(item.price).toLocaleString('id-ID')}`"
+                    />
+                  </template>
+                </v-autocomplete>
               </v-col>
 
               <v-col cols="12" md="6">
@@ -392,6 +411,8 @@ const snackbar = ref(false)
 const snackbarText = ref('')
 const snackbarColor = ref('success')
 
+const programCategories = ref([])
+
 // MODE
 const childMode = ref('new')
 const guardianMode = ref('new')
@@ -445,6 +466,8 @@ const form = ref({
   },
   registration: {
     complaint: '',
+    clinic_id: null,
+    program_category_id: null,
     program_id: null,
     payer_id: null,
   },
@@ -471,6 +494,22 @@ const age = computed(() => {
   }
 
   return `${years} yr, ${months} mo`
+})
+
+const filteredPrograms = computed(() => {
+  const clinicId = form.value.registration.clinic_id
+
+  const categoryId = form.value.registration.program_category_id
+
+  if (!clinicId || !categoryId) {
+    return []
+  }
+
+  return programs.value.filter(
+    (program) =>
+      Number(program.clinic_id) === Number(clinicId) &&
+      Number(program.program_category_id) === Number(categoryId),
+  )
 })
 
 /* =========================
@@ -619,6 +658,25 @@ watch(guardianMode, async (mode) => {
   }
 })
 
+// program category
+watch(
+  () => form.value.registration.program_category_id,
+  () => {
+    form.value.registration.program_id = null
+  },
+)
+
+// program
+watch(
+  () => form.value.registration.clinic_id,
+
+  () => {
+    form.value.registration.program_category_id = null
+
+    form.value.registration.program_id = null
+  },
+)
+
 /* =========================
    API
 ========================= */
@@ -630,6 +688,8 @@ const fetchMaster = async () => {
     guardianRoles.value = res.data.guardian_roles
 
     clinics.value = res.data.clinics
+
+    programCategories.value = res.data.program_categories
 
     programs.value = res.data.programs
 

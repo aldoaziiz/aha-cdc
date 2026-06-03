@@ -162,19 +162,11 @@
               </v-col>
 
               <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.guardian.occupation"
-                  label="Occupation"
-                  :readonly="guardianMode === 'existing'"
-                />
+                <v-text-field v-model="form.guardian.occupation" label="Occupation" />
               </v-col>
 
               <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.guardian.social_media"
-                  label="Social Media Instagram"
-                  :readonly="guardianMode === 'existing'"
-                />
+                <v-text-field v-model="form.guardian.social_media" label="Social Media Instagram" />
               </v-col>
 
               <v-col cols="12" md="6">
@@ -235,14 +227,33 @@
 
               <v-col cols="12" md="6">
                 <v-autocomplete
+                  v-model="form.registration.program_category_id"
+                  :items="programCategories"
+                  item-title="name"
+                  item-value="id"
+                  label="Program Category"
+                  :rules="[rules.required]"
+                  clearable
+                />
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-autocomplete
                   v-model="form.registration.program_id"
-                  :items="programs"
+                  :items="filteredPrograms"
                   item-title="name"
                   item-value="id"
                   label="Program"
                   :rules="[rules.required]"
                   clearable
-                />
+                >
+                  <template #item="{ props, item }">
+                    <v-list-item
+                      v-bind="props"
+                      :subtitle="`Rp ${Number(item.price).toLocaleString('id-ID')}`"
+                    />
+                  </template>
+                </v-autocomplete>
               </v-col>
 
               <v-col cols="12" md="6">
@@ -272,7 +283,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import logo from '@/assets/ahacdc-logo.jpeg'
 import api from '@/services/api'
@@ -297,6 +308,7 @@ const cities = ref([])
 const schools = ref([])
 const schoolClasses = ref([])
 const schoolEducations = ref([])
+const programCategories = ref([])
 const clinics = ref([])
 
 /* =========================
@@ -329,6 +341,8 @@ const form = ref({
   },
   registration: {
     complaint: '',
+    clinic_id: null,
+    program_category_id: null,
     program_id: null,
     payer_id: null,
   },
@@ -357,6 +371,22 @@ const age = computed(() => {
   return `${years} yr, ${months} mo`
 })
 
+const filteredPrograms = computed(() => {
+  const clinicId = form.value.registration.clinic_id
+
+  const categoryId = form.value.registration.program_category_id
+
+  if (!clinicId || !categoryId) {
+    return []
+  }
+
+  return programs.value.filter(
+    (program) =>
+      Number(program.clinic_id) === Number(clinicId) &&
+      Number(program.program_category_id) === Number(categoryId),
+  )
+})
+
 /* =========================
    RULES
 ========================= */
@@ -376,6 +406,8 @@ const fetchMaster = async () => {
     guardianRoles.value = res.data.guardian_roles
 
     clinics.value = res.data.clinics
+
+    programCategories.value = res.data.program_categories
 
     programs.value = res.data.programs
 
@@ -446,6 +478,22 @@ const submitForm = async () => {
     loading.value = false
   }
 }
+
+// watcher
+watch(
+  () => form.value.registration.program_category_id,
+  () => {
+    form.value.registration.program_id = null
+  },
+)
+
+watch(
+  () => form.value.registration.clinic_id,
+  () => {
+    form.value.registration.program_category_id = null
+    form.value.registration.program_id = null
+  },
+)
 
 /* =========================
    LIFECYCLE
