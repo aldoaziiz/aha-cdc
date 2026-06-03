@@ -128,10 +128,6 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
-                <v-text-field v-model="form.child.phone" label="Phone" />
-              </v-col>
-
               <v-col cols="12">
                 <v-textarea v-model="form.child.address" label="Address" rows="2" />
               </v-col>
@@ -146,6 +142,14 @@
           <v-card-text>
             <v-row>
               <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.guardian.id_number"
+                  label="ID Number / KTP"
+                  :rules="[rules.required]"
+                />
+              </v-col>
+
+              <v-col cols="12" md="6">
                 <v-text-field v-model="form.guardian.name" label="Name" :rules="[rules.required]" />
               </v-col>
 
@@ -153,7 +157,23 @@
                 <v-text-field
                   v-model="form.guardian.phone"
                   label="Phone"
-                  :rules="[rules.required, rules.phone]"
+                  :rules="[rules.required]"
+                />
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.guardian.occupation"
+                  label="Occupation"
+                  :readonly="guardianMode === 'existing'"
+                />
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.guardian.social_media"
+                  label="Social Media Instagram"
+                  :readonly="guardianMode === 'existing'"
                 />
               </v-col>
 
@@ -162,14 +182,6 @@
                   v-model="form.guardian.email"
                   label="Email"
                   type="email"
-                  :rules="[rules.required]"
-                />
-              </v-col>
-
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.guardian.id_number"
-                  label="ID Number / KTP"
                   :rules="[rules.required]"
                 />
               </v-col>
@@ -203,9 +215,21 @@
               <v-col cols="12">
                 <v-textarea
                   v-model="form.registration.complaint"
-                  label="Complaint"
+                  label="Problem"
                   rows="2"
                   :rules="[rules.required]"
+                />
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-autocomplete
+                  v-model="form.registration.clinic_id"
+                  :items="clinics"
+                  item-title="name"
+                  item-value="id"
+                  label="Clinic"
+                  :rules="[rules.required]"
+                  clearable
                 />
               </v-col>
 
@@ -273,6 +297,7 @@ const cities = ref([])
 const schools = ref([])
 const schoolClasses = ref([])
 const schoolEducations = ref([])
+const clinics = ref([])
 
 /* =========================
    FORM
@@ -288,7 +313,6 @@ const form = ref({
     hometown_id: null,
     gender: '',
     address: '',
-    phone: '',
     school_id: null,
     school_class_id: null,
     school_education_id: null,
@@ -297,6 +321,8 @@ const form = ref({
     id_number: '',
     name: '',
     phone: '',
+    occupation: '',
+    social_media: '',
     address: '',
     guardian_role_id: null,
     email: '',
@@ -337,7 +363,6 @@ const age = computed(() => {
 
 const rules = {
   required: (v) => !!v || 'Field is required',
-  phone: (v) => !v || /^08\d{8,12}$/.test(v) || 'Invalid phone number',
 }
 
 /* =========================
@@ -349,6 +374,8 @@ const fetchMaster = async () => {
     const res = await api.get('/master-data')
 
     guardianRoles.value = res.data.guardian_roles
+
+    clinics.value = res.data.clinics
 
     programs.value = res.data.programs
 

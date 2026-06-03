@@ -171,10 +171,6 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
-                <v-text-field v-model="form.child.phone" label="Phone" />
-              </v-col>
-
               <v-col cols="12">
                 <v-textarea
                   v-model="form.child.address"
@@ -220,6 +216,15 @@
             <v-row>
               <v-col cols="12" md="6">
                 <v-text-field
+                  v-model="form.guardian.id_number"
+                  label="ID Number / KTP"
+                  :rules="[rules.required]"
+                  :readonly="guardianMode === 'existing'"
+                />
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-text-field
                   v-model="form.guardian.name"
                   label="Name"
                   :rules="[rules.required]"
@@ -231,7 +236,23 @@
                 <v-text-field
                   v-model="form.guardian.phone"
                   label="Phone"
-                  :rules="[rules.required, rules.phone]"
+                  :rules="[rules.required]"
+                  :readonly="guardianMode === 'existing'"
+                />
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.guardian.occupation"
+                  label="Occupation"
+                  :readonly="guardianMode === 'existing'"
+                />
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-text-field
+                  v-model="form.guardian.social_media"
+                  label="Social Media Instagram"
                   :readonly="guardianMode === 'existing'"
                 />
               </v-col>
@@ -241,15 +262,6 @@
                   v-model="form.guardian.email"
                   label="Email"
                   type="email"
-                  :rules="[rules.required]"
-                  :readonly="guardianMode === 'existing'"
-                />
-              </v-col>
-
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.guardian.id_number"
-                  label="ID Number / KTP"
                   :rules="[rules.required]"
                   :readonly="guardianMode === 'existing'"
                 />
@@ -289,9 +301,21 @@
               <v-col cols="12">
                 <v-textarea
                   v-model="form.registration.complaint"
-                  label="Complaint"
+                  label="Problem"
                   rows="2"
                   :rules="[rules.required]"
+                />
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-autocomplete
+                  v-model="form.registration.clinic_id"
+                  :items="clinics"
+                  item-title="name"
+                  item-value="id"
+                  label="Clinic"
+                  :rules="[rules.required]"
+                  clearable
                 />
               </v-col>
 
@@ -388,6 +412,7 @@ const cities = ref([])
 const schools = ref([])
 const schoolClasses = ref([])
 const schoolEducations = ref([])
+const clinics = ref([])
 
 const childrenOptions = ref([])
 const guardiansOptions = ref([])
@@ -406,7 +431,6 @@ const form = ref({
     hometown_id: null,
     gender: '',
     address: '',
-    phone: '',
     school_id: null,
     school_class_id: null,
     school_education_id: null,
@@ -425,47 +449,6 @@ const form = ref({
     payer_id: null,
   },
 })
-
-const resetForm = () => {
-  form.value = {
-    child: {
-      id_number: '',
-      name: '',
-      nickname: '',
-      birth_date: '',
-      birthplace_id: null,
-      hometown_id: null,
-      gender: '',
-      phone: '',
-      address: '',
-      school_id: null,
-      school_class_id: null,
-      school_education_id: null,
-    },
-    guardian: {
-      id_number: '',
-      name: '',
-      phone: '',
-      address: '',
-      guardian_role_id: null,
-      email: '',
-    },
-    registration: {
-      complaint: '',
-      program_id: null,
-      payer_id: null,
-    },
-  }
-
-  selectedChild.value = null
-  selectedGuardian.value = null
-
-  childMode.value = 'new'
-  guardianMode.value = 'new'
-
-  childPreview.value = null
-  guardianPreview.value = null
-}
 
 /* =========================
    COMPUTED
@@ -496,7 +479,6 @@ const age = computed(() => {
 
 const rules = {
   required: (v) => !!v || 'Field is required',
-  phone: (v) => !v || /^08\d{8,12}$/.test(v) || 'Invalid phone number',
 }
 
 /* =========================
@@ -521,13 +503,12 @@ watch(selectedChild, (val) => {
     nickname: c.nickname,
     birth_date: c.birth_date,
     gender: c.gender,
-    phone: c.phone,
     address: c.address,
-    birthplace_id: c.birthplace?.id ?? null,
-    hometown_id: c.hometown?.id ?? null,
-    school_id: c.school?.id ?? null,
-    school_class_id: c.school_class?.id ?? null,
-    school_education_id: c.school_education?.id ?? null,
+    birthplace_id: c.birthplace_id ?? null,
+    hometown_id: c.hometown_id ?? null,
+    school_id: c.school_id ?? null,
+    school_class_id: c.school_class_id ?? null,
+    school_education_id: c.school_education_id ?? null,
   }
 })
 
@@ -550,7 +531,6 @@ watch(childMode, async (mode) => {
       birthplace_id: null,
       hometown_id: null,
       gender: '',
-      phone: '',
       address: '',
       school_id: null,
       school_class_id: null,
@@ -566,7 +546,7 @@ watch(childMode, async (mode) => {
 
   if (mode === 'existing' && !childrenOptions.value.length) {
     try {
-      const res = await api.get('/public-registration/children')
+      const res = await api.get('/children')
 
       childrenOptions.value = res.data.data
     } catch (err) {
@@ -591,6 +571,8 @@ watch(selectedGuardian, (val) => {
     id_number: g.id_number,
     name: g.name,
     phone: g.phone,
+    occupation: g.occupation,
+    social_media: g.social_media,
     address: g.address,
     email: g.email,
     guardian_role_id: form.value.guardian.guardian_role_id,
@@ -612,6 +594,8 @@ watch(guardianMode, async (mode) => {
       id_number: '',
       name: '',
       phone: '',
+      occupation: '',
+      social_media: '',
       address: '',
       email: '',
       guardian_role_id: null,
@@ -626,7 +610,7 @@ watch(guardianMode, async (mode) => {
 
   if (mode === 'existing' && !guardiansOptions.value.length) {
     try {
-      const res = await api.get('/public-registration/guardians')
+      const res = await api.get('/guardians')
 
       guardiansOptions.value = res.data.data
     } catch (err) {
@@ -644,6 +628,8 @@ const fetchMaster = async () => {
     const res = await api.get('/master-data')
 
     guardianRoles.value = res.data.guardian_roles
+
+    clinics.value = res.data.clinics
 
     programs.value = res.data.programs
 

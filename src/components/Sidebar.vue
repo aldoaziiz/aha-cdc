@@ -50,12 +50,6 @@
           title="Programs"
           to="/programs"
         ></v-list-item>
-        <v-list-item
-          @click="setActiveMenu('Rooms')"
-          :active="activeMenu === 'Rooms'"
-          title="Rooms"
-          to="/rooms"
-        ></v-list-item>
       </v-list-group>
 
       <!-- transactions -->

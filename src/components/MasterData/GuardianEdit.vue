@@ -24,11 +24,23 @@
           </v-col>
 
           <v-col cols="12" md="6">
-            <v-text-field v-model="form.name" label="Full Name" variant="outlined" />
+            <v-text-field v-model="form.name" label="Name" variant="outlined" />
           </v-col>
 
           <v-col cols="12" md="6">
             <v-text-field v-model="form.phone" label="Phone" variant="outlined" />
+          </v-col>
+
+          <v-col cols="12" md="6">
+            <v-text-field v-model="form.occupation" label="Occupation" variant="outlined" />
+          </v-col>
+
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="form.social_media"
+              label="Social Media Instagram"
+              variant="outlined"
+            />
           </v-col>
 
           <v-col cols="12" md="6">
@@ -99,6 +111,8 @@ const fetchGuardian = async () => {
       id_number: res.data.id_number || '',
       name: res.data.name || '',
       phone: res.data.phone || '',
+      occupation: res.data.occupation || '',
+      social_media: res.data.social_media || '',
       address: res.data.address || '',
       email: res.data.email || '',
     }
@@ -117,6 +131,8 @@ const updateGuardian = async () => {
       id_number: form.value.id_number,
       name: form.value.name,
       phone: form.value.phone,
+      occupation: form.occupation,
+      social_media: form.social_media,
       email: form.value.email,
       address: form.value.address,
     })

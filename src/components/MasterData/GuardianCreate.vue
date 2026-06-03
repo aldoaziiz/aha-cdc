@@ -15,28 +15,34 @@
     <v-card elevation="1" class="rounded-xl">
       <v-card-text>
         <v-row>
-          <!-- ID NUMBER -->
           <v-col cols="12" md="6">
             <v-text-field v-model="form.id_number" label="ID Number" variant="outlined" />
           </v-col>
 
-          <!-- NAME -->
           <v-col cols="12" md="6">
             <v-text-field v-model="form.name" label="Name" variant="outlined" />
           </v-col>
 
-          <!-- PHONE -->
           <v-col cols="12" md="6">
             <v-text-field v-model="form.phone" label="Phone" variant="outlined" />
           </v-col>
 
-          <!-- EMAIL -->
+          <v-col cols="12" md="6">
+            <v-text-field v-model="form.occupation" label="Occupation" variant="outlined" />
+          </v-col>
+
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="form.social_media"
+              label="Social Media Instagram"
+              variant="outlined"
+            />
+          </v-col>
 
           <v-col cols="12" md="6">
             <v-text-field v-model="form.email" label="Email" type="email" variant="outlined" />
           </v-col>
 
-          <!-- ADDRESS -->
           <v-col cols="12">
             <v-textarea v-model="form.address" label="Address" variant="outlined" rows="3" />
           </v-col>
@@ -91,6 +97,8 @@ const form = ref({
   id_number: '',
   name: '',
   phone: '',
+  occupation: '',
+  social_media: '',
   address: '',
   email: '',
 })

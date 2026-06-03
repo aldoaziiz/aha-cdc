@@ -86,11 +86,6 @@
 
                           {{ session.end_time?.slice(0, 5) }}
                         </v-chip>
-
-                        <!-- ROOM -->
-                        <v-chip size="small" color="primary" variant="tonal">
-                          {{ session.room?.name }}
-                        </v-chip>
                       </div>
                     </div>
 
@@ -148,15 +143,6 @@
 
               <div class="font-weight-medium text-body-1">
                 {{ selectedSessionData.therapist?.name }}
-              </div>
-            </v-col>
-
-            <!-- ROOM -->
-            <v-col cols="12" md="4">
-              <div class="text-caption text-grey mb-1">Room</div>
-
-              <div class="font-weight-medium text-body-1">
-                {{ selectedSessionData.room?.name }}
               </div>
             </v-col>
 

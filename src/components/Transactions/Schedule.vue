@@ -130,19 +130,6 @@
                 />
               </v-col>
 
-              <!-- ROOM -->
-              <v-col cols="12" md="6">
-                <v-select
-                  v-model="form.room_id"
-                  :items="rooms"
-                  item-title="name"
-                  item-value="id"
-                  label="Room"
-                  variant="outlined"
-                  :rules="requiredRule"
-                />
-              </v-col>
-
               <!-- DATE -->
               <v-col cols="12" md="4">
                 <v-text-field
@@ -210,11 +197,6 @@
             {{ item.therapist?.name || '-' }}
           </template>
 
-          <!-- ROOM -->
-          <template v-slot:item.room="{ item }">
-            {{ item.room?.name || '-' }}
-          </template>
-
           <!-- START -->
           <template v-slot:item.start_time="{ item }">
             {{ item.start_time?.slice(0, 5) }}
@@ -273,7 +255,6 @@ const route = useRoute()
 const router = useRouter()
 const registration = ref({})
 const therapists = ref([])
-const rooms = ref([])
 const sessions = ref([])
 const snackbar = ref(false)
 const snackbarText = ref('')
@@ -291,7 +272,6 @@ const requiredRule = [(v) => !!v || 'This field is required']
 
 const form = ref({
   therapist_id: null,
-  room_id: null,
 
   therapy_date: '',
   start_time: '',
@@ -305,7 +285,6 @@ const headers = [
   { title: 'Start', key: 'start_time' },
   { title: 'End', key: 'end_time' },
   { title: 'Therapist', key: 'therapist' },
-  { title: 'Room', key: 'room' },
   { title: 'Notes', key: 'notes' },
   {
     title: '',
@@ -343,24 +322,6 @@ const fetchTherapists = async () => {
     })
 
     therapists.value = res.data.data
-  } catch (err) {
-    console.error(err)
-  }
-}
-
-// ======================
-// FETCH ROOMS
-// ======================
-
-const fetchRooms = async () => {
-  try {
-    const res = await api.get('/rooms', {
-      params: {
-        per_page: 100,
-      },
-    })
-
-    rooms.value = res.data.data
   } catch (err) {
     console.error(err)
   }
@@ -415,14 +376,10 @@ const saveSchedule = async () => {
 
     await api.post('/therapy-sessions', {
       registration_id: route.params.id,
-
       therapist_id: form.value.therapist_id,
-      room_id: form.value.room_id,
-
       therapy_date: form.value.therapy_date,
       start_time: form.value.start_time,
       end_time: form.value.end_time,
-
       notes: form.value.notes,
     })
 
@@ -481,7 +438,7 @@ const deleteSession = async (item) => {
 onMounted(async () => {
   loading.value = true
 
-  await Promise.all([fetchRegistration(), fetchTherapists(), fetchRooms(), fetchSessions()])
+  await Promise.all([fetchRegistration(), fetchTherapists(), fetchSessions()])
 
   loading.value = false
 })

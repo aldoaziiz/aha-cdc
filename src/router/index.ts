@@ -10,7 +10,6 @@ import Children from '@/components/MasterData/Children.vue'
 import Guardians from '@/components/MasterData/Guardians.vue'
 import Staff from '@/components/MasterData/Staff.vue'
 import Programs from '@/components/MasterData/Programs.vue'
-import Rooms from '@/components/MasterData/Rooms.vue'
 
 // transactions
 import Registrations from '@/components/Transactions/Registrations.vue'
@@ -102,11 +101,6 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/programs',
     component: Programs,
-    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
-  },
-  {
-    path: '/rooms',
-    component: Rooms,
     meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
   },
 

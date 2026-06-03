@@ -59,11 +59,6 @@
             />
           </v-col>
 
-          <!-- PHONE -->
-          <v-col cols="12" md="6">
-            <v-text-field v-model="form.phone" label="Phone" variant="outlined" />
-          </v-col>
-
           <!-- BIRTHPLACE -->
           <v-col cols="12" md="6">
             <v-autocomplete
@@ -284,7 +279,6 @@ const form = ref({
   nickname: '',
   birth_date: '',
   gender: '',
-  phone: '',
   address: '',
   birthplace_id: null,
   hometown_id: null,
@@ -351,8 +345,6 @@ const fetchChild = async () => {
       birth_date: res.data.birth_date || '',
 
       gender: res.data.gender || '',
-
-      phone: res.data.phone || '',
 
       address: res.data.address || '',
 

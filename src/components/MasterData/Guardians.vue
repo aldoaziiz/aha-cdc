@@ -109,6 +109,14 @@
               <div class="detail-value">{{ selectedGuardian.phone || '-' }}</div>
             </v-col>
             <v-col cols="12" md="6">
+              <div class="detail-label">Occupation</div>
+              <div class="detail-value">{{ selectedGuardian.occupation || '-' }}</div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-label">Social Media Instagram</div>
+              <div class="detail-value">{{ selectedGuardian.social_media || '-' }}</div>
+            </v-col>
+            <v-col cols="12" md="6">
               <div class="detail-label">Email</div>
               <div class="detail-value">{{ selectedGuardian.email || '-' }}</div>
             </v-col>

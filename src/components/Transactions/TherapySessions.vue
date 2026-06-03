@@ -124,11 +124,6 @@
           </div>
         </template>
 
-        <!-- ROOM -->
-        <template v-slot:item.room="{ item }">
-          {{ item.room?.name || '-' }}
-        </template>
-
         <!-- ACTION -->
         <template v-slot:item.actions="{ item }">
           <v-menu>
@@ -233,7 +228,6 @@ const headers = [
   { title: 'Child', key: 'child' },
   { title: 'Program', key: 'program' },
   { title: 'Therapist', key: 'therapist' },
-  { title: 'Room', key: 'room' },
   { title: 'Notes', key: 'notes' },
   {
     title: '',

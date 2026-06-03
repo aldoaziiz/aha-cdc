@@ -183,14 +183,6 @@
               </div>
             </v-col>
 
-            <v-col cols="12" md="6">
-              <div class="detail-label">Phone</div>
-
-              <div class="detail-value">
-                {{ selectedChild.phone || '-' }}
-              </div>
-            </v-col>
-
             <!-- GUARDIANS -->
             <v-col cols="12">
               <div class="detail-label">Guardians</div>
