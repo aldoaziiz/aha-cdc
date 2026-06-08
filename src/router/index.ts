@@ -103,6 +103,16 @@ const routes: RouteRecordRaw[] = [
     component: Programs,
     meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
   },
+  {
+    path: '/programs/:id/edit',
+    component: () => import('@/components/MasterData/ProgramEdit.vue'),
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
+  },
+  {
+    path: '/programs/create',
+    component: () => import('@/components/MasterData/ProgramCreate.vue'),
+    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
+  },
 
   // transactions
   {
