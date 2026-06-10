@@ -55,11 +55,6 @@
                 {{ calculateAge(item.child?.birth_date) }}
               </template>
 
-              <!-- PROGRAM -->
-              <template v-slot:item.program="{ item }">
-                {{ item.program?.name || '-' }}
-              </template>
-
               <!-- REGISTRATION DATE -->
               <template v-slot:item.created_at="{ item }">
                 {{ formatDate(item.created_at) }}
@@ -89,12 +84,19 @@
                   </template>
 
                   <v-list>
-                    <v-list-item @click="schedule(item)">
-                      <v-list-item-title>View Schedule</v-list-item-title>
+                    <v-list-item @click="openDetails(item)">
+                      <v-list-item-title>Details</v-list-item-title>
                     </v-list-item>
 
-                    <v-list-item @click="editRegistration(item)">
+                    <v-list-item
+                      v-if="Number(item.payment_status?.id) === 1"
+                      @click="editRegistration(item)"
+                    >
                       <v-list-item-title>Edit</v-list-item-title>
+                    </v-list-item>
+
+                    <v-list-item @click="schedule(item)">
+                      <v-list-item-title>Schedule</v-list-item-title>
                     </v-list-item>
                   </v-list>
                 </v-menu>
@@ -120,6 +122,146 @@
       </div>
     </v-dialog>
   </div>
+
+  <v-dialog v-model="detailsDialog" max-width="900" scrollable>
+    <v-card rounded="xl">
+      <v-card-title class="d-flex justify-space-between align-center">
+        <div class="text-h6 font-weight-bold">Registration Details</div>
+
+        <v-btn icon variant="text" @click="detailsDialog = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-card-title>
+
+      <v-divider />
+
+      <!-- LOADING -->
+      <v-card-text v-if="detailsLoading" class="py-8 d-flex justify-center">
+        <v-progress-circular indeterminate color="primary" size="48" />
+      </v-card-text>
+
+      <!-- CONTENT -->
+      <v-card-text v-else-if="selectedRegistration" class="py-6">
+        <!-- Registration -->
+        <h3 class="text-subtitle-1 font-weight-bold mb-4">Registration Information</h3>
+
+        <v-row class="mb-6">
+          <v-col cols="12" md="6">
+            <div class="detail-label">Registration No.</div>
+            <div class="detail-value">
+              {{ selectedRegistration.registration_number }}
+            </div>
+          </v-col>
+
+          <v-col cols="12" md="6">
+            <div class="detail-label">Registration Date</div>
+            <div class="detail-value">
+              {{ formatDate(selectedRegistration.created_at) }}
+            </div>
+          </v-col>
+
+          <v-col cols="12" md="6">
+            <div class="detail-label">Clinic</div>
+            <div class="detail-value">
+              {{ selectedRegistration.clinic?.name || '-' }}
+            </div>
+          </v-col>
+
+          <v-col cols="12" md="6">
+            <div class="detail-label">Payer</div>
+            <div class="detail-value">
+              {{ selectedRegistration.payer?.name || '-' }}
+            </div>
+          </v-col>
+
+          <v-col cols="12" md="6">
+            <div class="detail-label">Problem</div>
+            <div class="detail-value">
+              {{ selectedRegistration.complaint || '-' }}
+            </div>
+          </v-col>
+
+          <v-col cols="12" md="6">
+            <div class="detail-label">Payment Status</div>
+
+            <v-chip :color="getStatusColor(selectedRegistration.payment_status?.id)" size="small">
+              {{ selectedRegistration.payment_status?.name }}
+            </v-chip>
+          </v-col>
+        </v-row>
+
+        <v-divider class="mb-6" />
+
+        <!-- Child -->
+        <h3 class="text-subtitle-1 font-weight-bold mb-4">Child Information</h3>
+
+        <v-row class="mb-6">
+          <v-col cols="12" md="6">
+            <div class="detail-label">Child Name</div>
+            <div class="detail-value">
+              {{ selectedRegistration.child?.name || '-' }}
+            </div>
+          </v-col>
+
+          <v-col cols="12" md="6">
+            <div class="detail-label">Birth Date</div>
+            <div class="detail-value">
+              {{ formatDate(selectedRegistration.child?.birth_date) }}
+            </div>
+          </v-col>
+
+          <v-col cols="12">
+            <div class="detail-label mb-3">Guardians</div>
+
+            <div
+              v-for="guardian in selectedRegistration.child?.guardians || []"
+              :key="guardian.id"
+              class="mb-4"
+            >
+              <div class="detail-value">
+                {{ guardian.name }}
+              </div>
+
+              <div class="text-light-blue text-body-2">
+                {{ guardian.guardian_role?.name || '-' }}
+              </div>
+
+              <div class="text-medium-emphasis">
+                {{ guardian.phone || '-' }}
+              </div>
+            </div>
+          </v-col>
+        </v-row>
+
+        <v-divider class="mb-6" />
+
+        <!-- Programs -->
+        <h3 class="text-subtitle-1 font-weight-bold mb-4">Programs</h3>
+
+        <v-list density="compact">
+          <v-list-item v-for="program in selectedRegistration.programs" :key="program.id">
+            <template #append>
+              {{ formatCurrency(program.price) }}
+            </template>
+
+            <v-list-item-title>
+              {{ program.name }}
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
+
+        <v-divider class="my-4" />
+
+        <div class="d-flex justify-space-between font-weight-bold text-h6">
+          <span>Total</span>
+
+          <span>
+            {{ formatCurrency(calculateTotal(selectedRegistration.programs)) }}
+          </span>
+        </div>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -153,6 +295,10 @@ const pageActionLoading = ref(false)
 
 const pageActionText = ref('Loading...')
 
+const detailsDialog = ref(false)
+const detailsLoading = ref(false)
+const selectedRegistration = ref(null)
+
 // ======================
 // SEARCH
 // ======================
@@ -185,11 +331,6 @@ const headers = [
   {
     title: 'Child Name',
     key: 'child',
-  },
-
-  {
-    title: 'Program',
-    key: 'program',
   },
 
   {
@@ -307,23 +448,38 @@ const schedule = async (item) => {
   }
 }
 
+const openDetails = async (item) => {
+  detailsDialog.value = true
+  detailsLoading.value = true
+  selectedRegistration.value = null
+
+  try {
+    const res = await api.get(`/registrations/${item.id}`)
+
+    selectedRegistration.value = res.data.data
+  } catch (err) {
+    console.error('Error loading registration details:', err)
+  } finally {
+    detailsLoading.value = false
+  }
+}
+
+const calculateTotal = (programs = []) => {
+  return programs.reduce((total, program) => total + Number(program.price || 0), 0)
+}
+
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+  }).format(Number(value || 0))
+}
+
 // ======================
 // EDIT
 // ======================
 
 const editRegistration = async (item) => {
-  const isPaid = item.payment_status?.name?.toLowerCase() === 'paid'
-
-  if (isPaid) {
-    const confirmed = confirm(
-      'This registration has already been paid. Do you want to continue editing?',
-    )
-
-    if (!confirmed) {
-      return
-    }
-  }
-
   try {
     pageActionText.value = 'Opening Registration...'
 
@@ -379,6 +535,18 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.detail-label {
+  font-size: 12px;
+  color: rgb(120, 120, 120);
+  margin-bottom: 4px;
+}
+
+.detail-value {
+  font-size: 15px;
+  font-weight: 500;
+  word-break: break-word;
+}
+
 .registrations-content {
   width: 100%;
 }

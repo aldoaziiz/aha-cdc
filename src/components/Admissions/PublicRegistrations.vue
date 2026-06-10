@@ -239,12 +239,14 @@
 
               <v-col cols="12" md="6">
                 <v-autocomplete
-                  v-model="form.registration.program_id"
+                  v-model="form.registration.program_ids"
                   :items="filteredPrograms"
                   item-title="name"
                   item-value="id"
-                  label="Program"
+                  label="Programs"
                   :rules="[rules.required]"
+                  multiple
+                  chips
                   clearable
                 >
                   <template #item="{ props, item }">
@@ -343,7 +345,7 @@ const form = ref({
     complaint: '',
     clinic_id: null,
     program_category_id: null,
-    program_id: null,
+    program_ids: [],
     payer_id: null,
   },
 })
@@ -484,6 +486,7 @@ watch(
   () => form.value.registration.program_category_id,
   () => {
     form.value.registration.program_id = null
+    form.value.registration.program_ids = []
   },
 )
 
@@ -492,6 +495,7 @@ watch(
   () => {
     form.value.registration.program_category_id = null
     form.value.registration.program_id = null
+    form.value.registration.program_ids = []
   },
 )
 

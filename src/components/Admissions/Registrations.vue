@@ -333,12 +333,14 @@
 
               <v-col cols="12" md="6">
                 <v-autocomplete
-                  v-model="form.registration.program_id"
+                  v-model="form.registration.program_ids"
                   :items="filteredPrograms"
                   item-title="name"
                   item-value="id"
-                  label="Program"
+                  label="Programs"
                   :rules="[rules.required]"
+                  multiple
+                  chips
                   clearable
                 >
                   <template #item="{ props, item }">
@@ -468,7 +470,7 @@ const form = ref({
     complaint: '',
     clinic_id: null,
     program_category_id: null,
-    program_id: null,
+    program_ids: [],
     payer_id: null,
   },
 })
@@ -658,15 +660,16 @@ watch(guardianMode, async (mode) => {
   }
 })
 
-// program category
+// saat program category berubah
 watch(
   () => form.value.registration.program_category_id,
   () => {
     form.value.registration.program_id = null
+    form.value.registration.program_ids = []
   },
 )
 
-// program
+// saat clinic berubah
 watch(
   () => form.value.registration.clinic_id,
 
@@ -674,6 +677,7 @@ watch(
     form.value.registration.program_category_id = null
 
     form.value.registration.program_id = null
+    form.value.registration.program_ids = []
   },
 )
 

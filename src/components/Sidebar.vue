@@ -88,7 +88,7 @@
           v-if="authStore.isAdmin"
           @click="setActiveMenu('RegistrationsNew')"
           :active="activeMenu === 'RegistrationsNew'"
-          title="Registrations"
+          title="Admin Registrations"
           to="/registrations-new"
         ></v-list-item>
         <v-list-item

@@ -71,17 +71,57 @@
         <!-- EDITABLE SECTION -->
         <div>
           <h3 class="text-h6 font-weight-bold mb-4">Registration Details</h3>
+
           <v-row>
-            <!-- PROGRAM -->
+            <!-- CLINIC -->
             <v-col cols="12" md="6">
-              <v-select
-                v-model="form.program_id"
-                :items="programs"
+              <v-autocomplete
+                v-model="form.clinic_id"
+                :items="clinics"
                 item-title="name"
                 item-value="id"
-                label="Program"
+                label="Clinic"
                 variant="outlined"
+                :disabled="isLocked"
+                @update:model-value="onClinicChange"
               />
+            </v-col>
+
+            <!-- PROGRAM CATEGORY -->
+            <v-col cols="12" md="6">
+              <v-autocomplete
+                v-model="form.program_category_id"
+                :items="programCategories"
+                item-title="name"
+                item-value="id"
+                label="Program Category"
+                variant="outlined"
+                :disabled="isLocked"
+                @update:model-value="onCategoryChange"
+              />
+            </v-col>
+
+            <!-- PROGRAMS -->
+            <v-col cols="12" md="6">
+              <v-autocomplete
+                v-model="form.program_ids"
+                :items="filteredPrograms"
+                item-title="name"
+                item-value="id"
+                label="Programs"
+                variant="outlined"
+                multiple
+                chips
+                closable-chips
+                :disabled="isLocked"
+              >
+                <template #item="{ props, item }">
+                  <v-list-item
+                    v-bind="props"
+                    :subtitle="`Rp ${Number(item.price).toLocaleString('id-ID')}`"
+                  />
+                </template>
+              </v-autocomplete>
             </v-col>
 
             <!-- PAYER -->
@@ -93,6 +133,7 @@
                 item-value="id"
                 label="Payer"
                 variant="outlined"
+                :disabled="isLocked"
               />
             </v-col>
 
@@ -100,9 +141,10 @@
             <v-col cols="12">
               <v-textarea
                 v-model="form.complaint"
-                label="Complaint/Notes"
+                label="Complaint / Notes"
                 variant="outlined"
                 rows="3"
+                :disabled="isLocked"
               />
             </v-col>
           </v-row>
@@ -111,6 +153,7 @@
         <!-- ACTION BUTTONS -->
         <div class="d-flex justify-end ga-3 mt-6">
           <v-btn
+            v-if="!isLocked"
             color="primary"
             prepend-icon="mdi-content-save"
             :loading="loading"
@@ -130,7 +173,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 
@@ -143,17 +186,42 @@ const snackbar = ref(false)
 const snackbarText = ref('')
 const snackbarColor = ref('success')
 
+const clinics = ref([])
+const programCategories = ref([])
 const programs = ref([])
 const payers = ref([])
+
+const onClinicChange = () => {
+  form.value.program_category_id = null
+  form.value.program_ids = []
+}
+
+const onCategoryChange = () => {
+  form.value.program_ids = []
+}
+
+const isLocked = computed(() => {
+  return Number(form.value.payment_status?.id) !== 1
+})
 
 const form = ref({
   registration_number: '',
   created_at: '',
   child: null,
   payment_status: null,
-  program_id: null,
+  clinic_id: null,
+  program_category_id: null,
+  program_ids: [],
   payer_id: null,
   complaint: '',
+})
+
+const filteredPrograms = computed(() => {
+  return programs.value.filter(
+    (program) =>
+      Number(program.clinic_id) === Number(form.value.clinic_id) &&
+      Number(program.program_category_id) === Number(form.value.program_category_id),
+  )
 })
 
 const showSnackbar = (text, color = 'success') => {
@@ -181,6 +249,10 @@ const fetchMasterData = async () => {
 
     const registration = res.data.registration
 
+    clinics.value = res.data.clinics || []
+
+    programCategories.value = res.data.program_categories || []
+
     programs.value = res.data.programs || []
 
     payers.value = res.data.payers || []
@@ -194,7 +266,11 @@ const fetchMasterData = async () => {
 
       payment_status: registration.payment_status || null,
 
-      program_id: registration.program?.id || null,
+      clinic_id: registration.clinic?.id ?? null,
+
+      program_category_id: registration.program_category?.id ?? null,
+
+      program_ids: registration.programs?.map((p) => p.id) ?? [],
 
       payer_id: registration.payer?.id || null,
 
@@ -223,7 +299,7 @@ const updateRegistration = async () => {
 
   try {
     await api.put(`/registrations/${route.params.id}`, {
-      program_id: form.value.program_id,
+      program_ids: form.value.program_ids,
       payer_id: form.value.payer_id,
       complaint: form.value.complaint,
     })
