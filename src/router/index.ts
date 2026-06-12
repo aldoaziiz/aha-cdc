@@ -3,7 +3,6 @@ import { useAuthStore } from '@/stores/auth'
 
 import Login from '@/components/Login.vue'
 import Dashboard from '@/components/Dashboard.vue'
-import BlankLayout from '@/layouts/BlankLayout.vue'
 
 // master data
 import Children from '@/components/MasterData/Children.vue'
@@ -18,10 +17,6 @@ import TherapySessions from '@/components/Transactions/TherapySessions.vue'
 // admissions
 import RegistrationsNew from '@/components/Admissions/Registrations.vue'
 import PublicRegistrations from '@/components/Admissions/PublicRegistrations.vue'
-
-// billing
-import Billing from '@/components/Billing.vue'
-import Invoice from '@/components/Invoice.vue'
 
 // schedule
 import Schedule from '@/components/Transactions/Schedule.vue'
@@ -130,6 +125,11 @@ const routes: RouteRecordRaw[] = [
     component: TherapySessions,
     meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin', 'therapist'] },
   },
+  {
+    path: '/invoice/:token',
+    name: 'public-invoice',
+    component: () => import('@/components/Transactions/PublicInvoice.vue'),
+  },
 
   // admissions
   {
@@ -163,20 +163,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       layout: 'blank',
     },
-  },
-
-  // billing
-  {
-    path: '/billing',
-    component: Billing,
-    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin'] },
-  },
-
-  // invoice details
-  {
-    path: '/invoice/:token',
-    component: Invoice,
-    meta: { layout: 'blank' },
   },
 
   // Schedule

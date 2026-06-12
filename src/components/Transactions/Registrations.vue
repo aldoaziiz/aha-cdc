@@ -63,12 +63,12 @@
               <!-- PAYMENT STATUS -->
               <template v-slot:item.payment_status.id="{ item }">
                 <v-chip
-                  :color="getStatusColor(item.payment_status?.id)"
+                  :color="getStatusColor(item.billing?.payment_status?.id)"
                   variant="tonal"
                   size="small"
                   class="mb-1"
                 >
-                  {{ item.payment_status?.name || '-' }}
+                  {{ item.billing?.payment_status?.name || '-' }}
                 </v-chip>
               </template>
 
@@ -84,17 +84,27 @@
                   </template>
 
                   <v-list>
+                    <!-- DETAILS -->
                     <v-list-item @click="openDetails(item)">
                       <v-list-item-title>Details</v-list-item-title>
                     </v-list-item>
 
-                    <v-list-item
-                      v-if="Number(item.payment_status?.id) === 1"
-                      @click="editRegistration(item)"
-                    >
+                    <!-- EDIT -->
+                    <v-list-item v-if="!item.billing" @click="editRegistration(item)">
                       <v-list-item-title>Edit</v-list-item-title>
                     </v-list-item>
 
+                    <!-- GENERATE BILLING -->
+                    <v-list-item v-if="!item.billing" @click="generateBilling(item)">
+                      <v-list-item-title>Generate Billing</v-list-item-title>
+                    </v-list-item>
+
+                    <!-- VIEW BILLING -->
+                    <v-list-item v-if="item.billing" @click="viewBilling(item)">
+                      <v-list-item-title>View Billing</v-list-item-title>
+                    </v-list-item>
+
+                    <!-- SCHEDULE -->
                     <v-list-item @click="schedule(item)">
                       <v-list-item-title>Schedule</v-list-item-title>
                     </v-list-item>
@@ -262,16 +272,214 @@
       </v-card-text>
     </v-card>
   </v-dialog>
+
+  <v-dialog v-model="billingDialog" max-width="700" scrollable>
+    <v-card rounded="xl">
+      <v-card-title class="d-flex justify-space-between align-center">
+        <div class="text-h6 font-weight-bold">Billing Details</div>
+
+        <v-btn icon variant="text" @click="billingDialog = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-card-title>
+
+      <v-divider />
+
+      <!-- LOADING -->
+      <v-card-text v-if="billingLoading" class="py-8 text-center">
+        <v-progress-circular indeterminate color="primary" />
+
+        <div class="mt-4">Loading billing details...</div>
+      </v-card-text>
+
+      <!-- CONTENT -->
+      <v-card-text v-else-if="selectedBilling" class="py-6">
+        <v-row class="mb-4">
+          <v-col cols="12" md="6">
+            <div class="text-caption text-grey">Invoice Number</div>
+
+            <div class="font-weight-medium">
+              {{ selectedBilling.invoice_number }}
+            </div>
+          </v-col>
+
+          <v-col cols="12">
+            <div class="text-caption text-grey">Invoice Link</div>
+
+            <div class="d-flex ga-2 mt-1">
+              <v-text-field :model-value="invoiceUrl" readonly density="compact" hide-details />
+
+              <v-btn icon variant="text" @click="copyInvoiceLink">
+                <v-icon>mdi-content-copy</v-icon>
+              </v-btn>
+
+              <v-btn icon variant="text" @click="openInvoice">
+                <v-icon>mdi-open-in-new</v-icon>
+              </v-btn>
+            </div>
+          </v-col>
+
+          <v-col cols="12" md="6">
+            <div class="text-caption text-grey">Registration Number</div>
+
+            <div class="font-weight-medium">
+              {{ selectedBilling.registration?.registration_number }}
+            </div>
+          </v-col>
+
+          <v-col cols="12" md="6">
+            <div class="text-caption text-grey">Payment Status</div>
+
+            <v-chip size="small" :color="getStatusColor(selectedBilling.payment_status?.id)">
+              {{ selectedBilling.payment_status?.name }}
+            </v-chip>
+          </v-col>
+
+          <v-col cols="12" v-if="selectedBilling.admin_note">
+            <v-alert type="warning" variant="tonal">
+              {{ selectedBilling.admin_note }}
+            </v-alert>
+          </v-col>
+
+          <v-col cols="12" md="6">
+            <div class="text-caption text-grey">Child</div>
+
+            <div class="font-weight-medium">
+              {{ selectedBilling.registration?.child?.name }}
+            </div>
+          </v-col>
+
+          <v-col cols="12">
+            <div class="text-caption text-grey">Payer</div>
+
+            <div class="font-weight-medium">
+              {{ selectedBilling.registration?.payer?.name || '-' }}
+            </div>
+          </v-col>
+        </v-row>
+
+        <v-divider class="mb-4" />
+
+        <div class="text-subtitle-1 font-weight-bold mb-3">Billing Items</div>
+
+        <div
+          v-for="item in selectedBilling.items"
+          :key="item.id"
+          class="d-flex justify-space-between py-2"
+        >
+          <div>
+            {{ item.description }}
+          </div>
+
+          <div class="font-weight-medium">
+            {{ formatCurrency(item.subtotal) }}
+          </div>
+        </div>
+
+        <!-- RECEIPT -->
+        <div v-if="selectedBilling.payment_receipt">
+          <v-divider class="my-4" />
+
+          <div class="text-subtitle-1 font-weight-bold mb-3">Proof of Payment</div>
+
+          <v-img :src="receiptUrl" max-height="250" class="rounded-lg border mb-3" cover />
+
+          <v-btn variant="text" prepend-icon="mdi-open-in-new" @click="openReceipt">
+            Open Full Image
+          </v-btn>
+        </div>
+
+        <v-divider class="my-4" />
+
+        <div class="d-flex justify-space-between font-weight-bold text-h6">
+          <span>TOTAL</span>
+
+          <span>
+            {{ formatCurrency(selectedBilling.total_amount) }}
+          </span>
+        </div>
+      </v-card-text>
+      <v-divider />
+
+      <v-card-actions class="pa-4">
+        <v-spacer />
+
+        <v-btn variant="text" @click="billingDialog = false">Close</v-btn>
+
+        <v-btn color="primary" prepend-icon="mdi-file-pdf-box" @click="downloadPdf">
+          Download PDF
+        </v-btn>
+
+        <!-- UNPAID -->
+        <v-btn
+          v-if="Number(selectedBilling?.payment_status?.id) === 1"
+          color="error"
+          prepend-icon="mdi-close-circle"
+          :loading="cancelBillingLoading"
+          @click="cancelBilling"
+        >
+          Cancel Billing
+        </v-btn>
+
+        <!-- WAITING -->
+        <template v-if="Number(selectedBilling?.payment_status?.id) === 2">
+          <v-btn
+            color="error"
+            variant="outlined"
+            prepend-icon="mdi-close"
+            @click="rejectDialog = true"
+          >
+            Reject
+          </v-btn>
+
+          <v-btn
+            color="success"
+            prepend-icon="mdi-check"
+            :loading="approveLoading"
+            @click="approvePayment"
+          >
+            Approve Payment
+          </v-btn>
+        </template>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="rejectDialog" max-width="500">
+    <v-card rounded="xl">
+      <v-card-title>Reject Payment</v-card-title>
+
+      <v-card-text>
+        <v-textarea v-model="adminNote" label="Reason" variant="outlined" rows="3" />
+      </v-card-text>
+
+      <v-card-actions>
+        <v-spacer />
+
+        <v-btn variant="text" @click="rejectDialog = false">Cancel</v-btn>
+
+        <v-btn color="error" :loading="rejectLoading" :disabled="!adminNote" @click="rejectPayment">
+          Reject Payment
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="3000" location="top right">
+    {{ snackbarText }}
+  </v-snackbar>
 </template>
 
 <script setup>
-import { ref, watch, onUnmounted } from 'vue'
+import { ref, watch, onUnmounted, computed } from 'vue'
 
 import api from '@/services/api'
 
 import debounce from 'lodash/debounce'
 
 import { useRouter } from 'vue-router'
+
+const backendBaseUrl = import.meta.env.VITE_API_URL.replace('/api', '')
 
 const router = useRouter()
 
@@ -298,6 +506,69 @@ const pageActionText = ref('Loading...')
 const detailsDialog = ref(false)
 const detailsLoading = ref(false)
 const selectedRegistration = ref(null)
+const billingDialog = ref(false)
+const billingLoading = ref(false)
+const selectedBilling = ref(null)
+const cancelBillingLoading = ref(false)
+const snackbar = ref(false)
+const snackbarText = ref('')
+const snackbarColor = ref('success')
+const approveLoading = ref(false)
+
+const rejectLoading = ref(false)
+
+const rejectDialog = ref(false)
+
+const adminNote = ref('')
+
+const showSnackbar = (text, color = 'success') => {
+  snackbarText.value = text
+  snackbarColor.value = color
+  snackbar.value = true
+}
+
+const downloadPdf = async () => {
+  try {
+    const response = await api.get(`/billings/${selectedBilling.value.id}/pdf`, {
+      responseType: 'blob',
+    })
+
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+
+    const link = document.createElement('a')
+
+    link.href = url
+
+    link.download = `${selectedBilling.value.invoice_number}.pdf`
+
+    document.body.appendChild(link)
+
+    link.click()
+
+    link.remove()
+
+    window.URL.revokeObjectURL(url)
+  } catch (err) {
+    console.error(err)
+
+    showSnackbar('Failed to download PDF.', 'error')
+  }
+}
+
+const receiptUrl = computed(() => {
+  if (!selectedBilling.value?.payment_receipt) {
+    return null
+  }
+
+  return `${backendBaseUrl}/storage/${selectedBilling.value.payment_receipt}`
+})
+
+const openReceipt = () => {
+  console.log(receiptUrl.value)
+  if (!receiptUrl.value) return
+
+  window.open(receiptUrl.value, '_blank')
+}
 
 // ======================
 // SEARCH
@@ -378,6 +649,162 @@ const fetchData = async () => {
   }
 }
 
+// generate billing
+const generateBilling = async (item) => {
+  const confirmed = confirm(
+    'Generate billing?\n\nRegistration will be locked and can no longer be edited.',
+  )
+
+  if (!confirmed) {
+    return
+  }
+
+  try {
+    pageActionText.value = 'Generating Billing...'
+
+    pageActionLoading.value = true
+
+    await api.post(`/registrations/${item.id}/generate-billing`)
+
+    await fetchData()
+
+    showSnackbar('Billing generated successfully')
+  } catch (error) {
+    console.error(error)
+
+    showSnackbar(error.response?.data?.message || 'Failed to generate billing', 'error')
+  } finally {
+    pageActionLoading.value = false
+  }
+}
+
+// view billing
+const viewBilling = async (item) => {
+  try {
+    billingDialog.value = true
+
+    billingLoading.value = true
+
+    selectedBilling.value = null
+
+    const res = await api.get(`/billings/${item.billing.id}`)
+
+    selectedBilling.value = res.data.data
+  } catch (error) {
+    console.error(error)
+
+    showSnackbar(error.response?.data?.message || 'Failed to load billing', 'error')
+
+    billingDialog.value = false
+  } finally {
+    billingLoading.value = false
+  }
+}
+
+// cancel billing
+const cancelBilling = async () => {
+  if (!selectedBilling.value) {
+    return
+  }
+
+  const confirmed = confirm('Cancel this billing?\n\nRegistration will become editable again.')
+
+  if (!confirmed) {
+    return
+  }
+
+  try {
+    cancelBillingLoading.value = true
+
+    await api.post(`/billings/${selectedBilling.value.id}/cancel`)
+
+    billingDialog.value = false
+
+    await fetchData()
+
+    showSnackbar('Billing cancelled successfully')
+  } catch (error) {
+    console.error(error)
+
+    showSnackbar(error.response?.data?.message || 'Failed to cancel billing', 'error')
+  } finally {
+    cancelBillingLoading.value = false
+  }
+}
+
+// link invoice
+const invoiceUrl = computed(() => {
+  if (!selectedBilling.value) {
+    return ''
+  }
+
+  return `${window.location.origin}/invoice/${selectedBilling.value.invoice_token}`
+})
+
+const copyInvoiceLink = async () => {
+  try {
+    await navigator.clipboard.writeText(invoiceUrl.value)
+
+    showSnackbar('Invoice link copied.')
+  } catch {
+    showSnackbar('Failed to copy invoice link.', 'error')
+  }
+}
+
+const openInvoice = () => {
+  window.open(invoiceUrl.value, '_blank')
+}
+
+// approve payment
+const approvePayment = async () => {
+  try {
+    approveLoading.value = true
+
+    await api.post(`/billings/${selectedBilling.value.id}/approve`)
+
+    const res = await api.get(`/billings/${selectedBilling.value.id}`)
+
+    selectedBilling.value = res.data.data
+
+    await fetchData()
+
+    showSnackbar('Payment approved successfully.')
+  } catch (err) {
+    console.error(err)
+    showSnackbar(err.response?.data?.message || 'Failed to approve payment.', 'error')
+  } finally {
+    approveLoading.value = false
+  }
+}
+
+// reject payment
+const rejectPayment = async () => {
+  try {
+    rejectLoading.value = true
+
+    await api.post(`/billings/${selectedBilling.value.id}/reject`, {
+      admin_note: adminNote.value,
+    })
+
+    const res = await api.get(`/billings/${selectedBilling.value.id}`)
+
+    selectedBilling.value = res.data.data
+
+    await fetchData()
+
+    rejectDialog.value = false
+
+    adminNote.value = ''
+
+    showSnackbar('Payment rejected successfully.')
+  } catch (err) {
+    console.error(err)
+    showSnackbar(err.response?.data?.message || 'Failed to reject payment.', 'error')
+  } finally {
+    rejectLoading.value = false
+  }
+}
+
 // ======================
 // FORMAT DATE
 // ======================
@@ -423,9 +850,9 @@ const calculateAge = (birthDate) => {
 const getStatusColor = (id) => {
   if (id === 1) return 'warning'
 
-  if (id === 2) return 'grey'
+  if (id === 2) return 'info'
 
-  if (id === 3) return 'green'
+  if (id === 3) return 'success'
 
   return 'grey'
 }

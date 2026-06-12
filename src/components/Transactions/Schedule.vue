@@ -357,7 +357,7 @@ const formatDate = (date) => {
 
 const getStatusColor = (id) => {
   if (id === 1) return 'warning' // Unpaid (kuning)
-  if (id === 2) return 'grey' // Waiting
+  if (id === 2) return 'info' // Waiting
   if (id === 3) return 'green' // Paid
   return 'grey'
 }

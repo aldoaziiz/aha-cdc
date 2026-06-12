@@ -201,7 +201,7 @@ const onCategoryChange = () => {
 }
 
 const isLocked = computed(() => {
-  return Number(form.value.payment_status?.id) !== 1
+  return !!form.value.billing
 })
 
 const form = ref({
@@ -264,7 +264,7 @@ const fetchMasterData = async () => {
 
       child: registration.child || null,
 
-      payment_status: registration.payment_status || null,
+      billing: registration.billing || null,
 
       clinic_id: registration.clinic?.id ?? null,
 
@@ -289,7 +289,7 @@ const fetchMasterData = async () => {
 
 const getStatusColor = (id) => {
   if (id === 1) return 'warning' // Unpaid (kuning)
-  if (id === 2) return 'grey' // Waiting
+  if (id === 2) return 'info' // Waiting
   if (id === 3) return 'green' // Paid
   return 'grey'
 }
@@ -299,6 +299,8 @@ const updateRegistration = async () => {
 
   try {
     await api.put(`/registrations/${route.params.id}`, {
+      clinic_id: form.value.clinic_id,
+      program_category_id: form.value.program_category_id,
       program_ids: form.value.program_ids,
       payer_id: form.value.payer_id,
       complaint: form.value.complaint,

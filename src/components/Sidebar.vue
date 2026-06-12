@@ -100,19 +100,6 @@
         ></v-list-item>
       </v-list-group>
 
-      <!-- billing -->
-      <v-list-item
-        v-if="authStore.isAdmin"
-        @click="setActiveMenu('Billing')"
-        :active="activeMenu === 'Billing'"
-        to="/billing"
-      >
-        <template v-slot:prepend>
-          <v-icon>mdi-wallet-bifold-outline</v-icon>
-        </template>
-        <v-list-item-title>Billing</v-list-item-title>
-      </v-list-item>
-
       <!-- activity -->
       <v-list-item
         v-if="authStore.isAdmin || authStore.isGuardian || authStore.isTherapist"
