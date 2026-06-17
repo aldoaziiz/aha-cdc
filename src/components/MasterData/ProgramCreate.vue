@@ -11,54 +11,80 @@
 
     <v-card elevation="1" class="rounded-xl">
       <v-card-text>
-        <v-row>
-          <v-col cols="12">
-            <v-text-field v-model="form.name" label="Program Name" variant="outlined" />
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-select
-              v-model="form.clinic_id"
-              :items="clinics"
-              item-title="name"
-              item-value="id"
-              label="Clinic"
-              variant="outlined"
-            />
-          </v-col>
+        <v-form ref="formRef">
+          <v-row>
+            <v-col cols="12">
+              <v-text-field
+                v-model="form.name"
+                label="Program Name"
+                variant="outlined"
+                :rules="[rules.required]"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-select
+                v-model="form.clinic_id"
+                :items="clinics"
+                item-title="name"
+                item-value="id"
+                label="Clinic"
+                variant="outlined"
+                :rules="[rules.required]"
+              />
+            </v-col>
 
-          <v-col cols="12" md="6">
-            <v-select
-              v-model="form.program_category_id"
-              :items="programCategories"
-              item-title="name"
-              item-value="id"
-              label="Program Category"
-              variant="outlined"
-            />
-          </v-col>
+            <v-col cols="12" md="6">
+              <v-select
+                v-model="form.program_category_id"
+                :items="programCategories"
+                item-title="name"
+                item-value="id"
+                label="Program Category"
+                variant="outlined"
+                :rules="[rules.required]"
+              />
+            </v-col>
 
-          <v-col cols="12" md="6">
-            <v-text-field v-model="form.price" label="Price" type="number" variant="outlined" />
-          </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="form.session_count"
+                label="Session Count"
+                type="number"
+                min="0"
+                variant="outlined"
+                :rules="[rules.required]"
+              />
+            </v-col>
 
-          <v-col cols="12" md="6">
-            <v-text-field
-              v-model="form.order_number"
-              label="List Number"
-              type="number"
-              variant="outlined"
-            />
-          </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="form.price"
+                label="Price"
+                type="number"
+                variant="outlined"
+                :rules="[rules.required]"
+              />
+            </v-col>
 
-          <v-col cols="12">
-            <v-textarea
-              v-model="form.description"
-              label="Description"
-              variant="outlined"
-              rows="3"
-            />
-          </v-col>
-        </v-row>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="form.order_number"
+                label="List Number"
+                type="number"
+                variant="outlined"
+              />
+            </v-col>
+
+            <v-col cols="12">
+              <v-textarea
+                v-model="form.description"
+                label="Description"
+                variant="outlined"
+                rows="3"
+              />
+            </v-col>
+          </v-row>
+        </v-form>
 
         <div class="d-flex justify-end ga-3 mt-4">
           <v-btn
@@ -96,16 +122,18 @@ import { useRouter } from 'vue-router'
 import api from '@/services/api'
 
 const router = useRouter()
-
 const loading = ref(false)
 const saveLoading = ref(false)
-
 const snackbar = ref(false)
 const snackbarText = ref('')
 const snackbarColor = ref('success')
-
 const clinics = ref([])
 const programCategories = ref([])
+const formRef = ref()
+
+const rules = {
+  required: (v) => !!v || 'Field is required',
+}
 
 const form = ref({
   clinic_id: null,
@@ -114,6 +142,7 @@ const form = ref({
   name: '',
   description: '',
   price: null,
+  session_count: null,
 })
 
 const showSnackbar = (text, color = 'success') => {
@@ -142,6 +171,12 @@ const fetchMasterData = async () => {
 const createProgram = async () => {
   if (loading.value) return
 
+  const { valid } = await formRef.value.validate()
+
+  if (!valid) {
+    return
+  }
+
   loading.value = true
   saveLoading.value = true
 
@@ -153,6 +188,7 @@ const createProgram = async () => {
       name: form.value.name,
       description: form.value.description,
       price: form.value.price,
+      session_count: form.value.session_count,
     })
 
     showSnackbar('Program created successfully')

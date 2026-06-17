@@ -81,6 +81,7 @@
                   {{ item.status?.name || '-' }}
                 </v-chip>
               </template>
+              <template #item.session_count="{ item }">{{ item.session_count }}</template>
               <template v-slot:item.price="{ item }">
                 {{ formatCurrency(item.price) }}
               </template>
@@ -234,9 +235,10 @@ const goToEdit = (id: number) => {
 const headers = [
   { title: 'List Number', key: 'order_number' },
   { title: 'Name', key: 'name' },
+  { title: 'Session', key: 'session_count' },
+  { title: 'Price', key: 'price' },
   { title: 'Clinic', key: 'clinic' },
   { title: 'Category', key: 'category' },
-  { title: 'Price', key: 'price' },
   { title: 'Status', key: 'status' },
   { title: '', key: 'actions', sortable: false, align: 'center' as const },
 ]
