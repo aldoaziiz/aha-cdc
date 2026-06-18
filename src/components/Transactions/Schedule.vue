@@ -97,43 +97,130 @@
         </v-card-text>
       </v-card>
 
-      <v-row class="mb-4">
-        <v-col cols="12" md="4">
-          <v-card>
-            <v-card-text>
-              <div class="text-caption">Target Sessions</div>
+      <!-- AVAILABILITY GRID -->
+      <!-- WEEKLY AVAILABILITY GRID -->
 
-              <div class="text-h5 font-weight-bold">
-                {{ targetSessions }}
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
+      <v-divider />
+      <v-card elevation="1" class="mb-4 rounded-lg">
+        <v-card-title>Therapist Availability</v-card-title>
 
-        <v-col cols="12" md="4">
-          <v-card>
-            <v-card-text>
-              <div class="text-caption">Generated</div>
+        <v-divider />
 
-              <div class="text-h5 font-weight-bold">
-                {{ generatedSessions }}
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
+        <v-card-text>
+          <v-row>
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="availabilityFilter.start_date"
+                type="date"
+                label="Start Date"
+                density="compact"
+              />
+            </v-col>
 
-        <v-col cols="12" md="4">
-          <v-card>
-            <v-card-text>
-              <div class="text-caption">Remaining</div>
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="availabilityFilter.end_date"
+                type="date"
+                label="End Date"
+                density="compact"
+              />
+            </v-col>
 
-              <div class="text-h5 font-weight-bold">
-                {{ remainingSessions }}
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
+            <v-col cols="12" md="4">
+              <v-select
+                v-model="availabilityFilter.therapist_id"
+                :items="therapists"
+                item-title="name"
+                item-value="id"
+                label="Therapist"
+                density="compact"
+                clearable
+              />
+            </v-col>
+
+            <v-col cols="12" md="2">
+              <v-btn color="primary" block @click="applyAvailabilityFilter">Apply</v-btn>
+            </v-col>
+          </v-row>
+        </v-card-text>
+
+        <v-card-text class="pa-0">
+          <div class="availability-grid-wrapper">
+            <table class="availability-grid">
+              <thead>
+                <tr>
+                  <th>Therapist</th>
+                  <th v-for="day in weekDates" :key="day.key">
+                    {{ day.label }}
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <template v-for="therapist in therapistsGrid" :key="therapist.name">
+                  <tr v-for="hour in availabilityHours" :key="therapist.name + hour">
+                    <td
+                      v-if="hour === '08'"
+                      :rowspan="availabilityHours.length"
+                      class="therapist-name"
+                    >
+                      {{ therapist.name }}
+                    </td>
+
+                    <td
+                      v-for="day in weekDates"
+                      :key="day.date + hour"
+                      :style="{
+                        background: getCellColor(therapist, day, hour),
+                      }"
+                    >
+                      <template v-if="getSessionInfo(therapist.id, day, hour)">
+                        <v-tooltip location="top">
+                          <template #activator="{ props }">
+                            <span v-bind="props" class="slot-content">
+                              <span class="slot-hour">
+                                {{ hour }}
+                              </span>
+
+                              <span class="slot-child">
+                                {{
+                                  getSessionInfo(
+                                    therapist.id,
+                                    day,
+                                    hour,
+                                  ).registration.child.name.split(' ')[0]
+                                }}
+                              </span>
+                            </span>
+                          </template>
+
+                          {{ getSessionInfo(therapist.id, day, hour).registration.child.name }}
+                        </v-tooltip>
+                      </template>
+
+                      <template v-else>
+                        <span class="slot-hour">
+                          {{ hour }}
+                        </span>
+                      </template>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="d-flex ga-4 pa-4 flex-wrap">
+            <div>🟥 Occupied</div>
+
+            <div>🟩 Available</div>
+
+            <div>🟨 Break</div>
+
+            <div>🟦 Weekend</div>
+          </div>
+        </v-card-text>
+      </v-card>
 
       <!-- FORM -->
       <v-card elevation="1" class="mb-4 rounded-lg">
@@ -177,24 +264,15 @@
                 />
               </v-col>
 
-              <v-col v-if="editingSession" cols="12" md="4">
-                <v-text-field
-                  v-model="form.start_time"
-                  label="Start Time"
-                  type="time"
-                  variant="outlined"
-                  :rules="requiredRule"
-                />
-              </v-col>
-
-              <v-col v-if="editingSession" cols="12" md="4">
-                <v-text-field
-                  v-model="form.end_time"
-                  label="End Time"
-                  type="time"
-                  variant="outlined"
-                  :rules="requiredRule"
-                />
+              <v-col v-if="editingSession" cols="12">
+                <v-radio-group v-model="form.time_slot" label="Session Time">
+                  <v-radio
+                    v-for="slot in timeSlots"
+                    :key="slot.title"
+                    :label="slot.label"
+                    :value="slot.start"
+                  />
+                </v-radio-group>
               </v-col>
 
               <v-col v-if="editingSession" cols="12">
@@ -262,6 +340,45 @@
           </v-btn>
         </v-card-actions>
       </v-card>
+
+      <!-- SUMMARY -->
+      <v-row class="mb-4">
+        <v-col cols="12" md="4">
+          <v-card>
+            <v-card-text>
+              <div class="text-caption">Target Sessions</div>
+
+              <div class="text-h5 font-weight-bold">
+                {{ targetSessions }}
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" md="4">
+          <v-card>
+            <v-card-text>
+              <div class="text-caption">Generated</div>
+
+              <div class="text-h5 font-weight-bold">
+                {{ generatedSessions }}
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" md="4">
+          <v-card>
+            <v-card-text>
+              <div class="text-caption">Remaining</div>
+
+              <div class="text-h5 font-weight-bold">
+                {{ remainingSessions }}
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
 
       <!-- SESSION HISTORY -->
       <v-card elevation="1" class="rounded-lg">
@@ -357,6 +474,54 @@ const saving = ref(false)
 const formRef = ref(null)
 const deleting = ref(false)
 const editingSession = ref(null)
+const availabilityDate = ref(new Date())
+
+const weekDates = computed(() => {
+  const result = []
+
+  if (!appliedAvailabilityFilter.value.start_date || !appliedAvailabilityFilter.value.end_date) {
+    return result
+  }
+
+  const current = new Date(appliedAvailabilityFilter.value.start_date)
+
+  const end = new Date(appliedAvailabilityFilter.value.end_date)
+
+  while (current <= end) {
+    result.push({
+      key: current.toISOString(),
+
+      date: current.toISOString().split('T')[0],
+
+      label: current.toLocaleDateString('en-US', {
+        weekday: 'short',
+        day: '2-digit',
+      }),
+    })
+
+    current.setDate(current.getDate() + 1)
+  }
+
+  return result
+})
+
+const availabilityHours = ['08', '09', '10', '11', '12', '13', '14', '15', '16']
+
+const availabilityFilter = ref({
+  start_date: '',
+  end_date: '',
+  therapist_id: null,
+})
+
+const appliedAvailabilityFilter = ref({
+  start_date: '',
+  end_date: '',
+  therapist_id: null,
+})
+
+const therapistsGrid = ref([])
+
+const availabilitySessions = ref([])
 
 const daysOfWeek = [
   {
@@ -446,6 +611,30 @@ const timeSlots = [
   },
 ]
 
+const getCellKey = (day, hour) => {
+  return `${day.substring(0, 3)}-${hour}`
+}
+
+const getCellColor = (therapist, day, hour) => {
+  if (hour === '12') {
+    return '#fff3cd'
+  }
+
+  const weekday = new Date(day.date).getDay()
+
+  if (weekday === 0 || weekday === 6) {
+    return '#9fc5e8'
+  }
+
+  const session = getSessionInfo(therapist.id, day, hour)
+
+  if (session) {
+    return '#f4cccc'
+  }
+
+  return '#d9ead3'
+}
+
 const goBack = () => {
   router.back()
 }
@@ -477,6 +666,18 @@ const headers = [
     align: 'center',
   },
 ]
+
+const getSessionInfo = (therapistId, day, hour) => {
+  return availabilitySessions.value.find((session) => {
+    const therapistMatch = session.therapist_id === therapistId
+
+    const dateMatch = session.therapy_date === day.date
+
+    const hourMatch = session.start_time.startsWith(hour)
+
+    return therapistMatch && dateMatch && hourMatch
+  })
+}
 
 const targetSessions = computed(() => {
   return (
@@ -547,6 +748,22 @@ const fetchSessions = async () => {
   }
 }
 
+const fetchAvailability = async () => {
+  try {
+    const res = await api.get('/therapy-sessions/availability', {
+      params: {
+        start_date: availabilityFilter.value.start_date,
+        end_date: availabilityFilter.value.end_date,
+        therapist_id: availabilityFilter.value.therapist_id,
+      },
+    })
+    therapistsGrid.value = res.data.therapists
+    availabilitySessions.value = res.data.sessions
+  } catch (err) {
+    console.error(err)
+  }
+}
+
 // FORMAT DATE
 const formatDate = (date) => {
   if (!date) return '-'
@@ -555,6 +772,69 @@ const formatDate = (date) => {
     day: '2-digit',
     year: 'numeric',
   })
+}
+
+const applyAvailabilityFilter = async () => {
+  const start = new Date(availabilityFilter.value.start_date)
+
+  const end = new Date(availabilityFilter.value.end_date)
+
+  const diff = (end - start) / (1000 * 60 * 60 * 24)
+
+  if (diff > 6) {
+    snackbarText.value = 'Maximum range is 7 days'
+
+    snackbarColor.value = 'error'
+
+    snackbar.value = true
+
+    return
+  }
+  appliedAvailabilityFilter.value = {
+    ...availabilityFilter.value,
+  }
+  await fetchAvailability()
+}
+
+const previousAvailabilityDay = () => {
+  const d = new Date(availabilityDate.value)
+
+  d.setDate(d.getDate() - 1)
+
+  availabilityDate.value = d
+}
+
+const nextAvailabilityDay = () => {
+  const d = new Date(availabilityDate.value)
+
+  d.setDate(d.getDate() + 1)
+
+  availabilityDate.value = d
+}
+
+const formatAvailabilityDate = () => {
+  return availabilityDate.value.toLocaleDateString('en-ID', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+const getAvailabilityColor = (status) => {
+  if (status === 'available') return 'success'
+
+  if (status === 'occupied') return 'error'
+
+  return 'grey'
+}
+
+const getAvailabilityLabel = (status) => {
+  if (status === 'available') return 'A'
+
+  if (status === 'occupied') return 'O'
+
+  return 'B'
 }
 
 const getStatusColor = (id) => {
@@ -584,6 +864,10 @@ const saveSchedule = async () => {
     saving.value = true
 
     if (editingSession.value) {
+      const selectedSlot = timeSlots.find((slot) => slot.start === form.value.time_slot)
+
+      form.value.start_time = selectedSlot.start_time
+      form.value.end_time = selectedSlot.end_time
       await api.put(`/therapy-sessions/${editingSession.value.id}`, {
         therapist_id: form.value.therapist_id,
         therapy_date: form.value.therapy_date,
@@ -652,6 +936,10 @@ const saveSchedule = async () => {
 const editSession = (item) => {
   editingSession.value = item
 
+  const selectedSlot =
+    timeSlots.find((slot) => slot.start === item.start_time && slot.end === item.end_time)?.start ||
+    null
+
   form.value = {
     therapist_id: item.therapist_id,
 
@@ -661,11 +949,13 @@ const editSession = (item) => {
 
     end_time: item.end_time,
 
+    time_slot: selectedSlot,
+
     notes: item.notes || '',
 
     days: [],
+
     start_date: '',
-    time_slot: null,
   }
 }
 
@@ -728,6 +1018,19 @@ onMounted(async () => {
   loading.value = true
 
   await Promise.all([fetchRegistration(), fetchTherapists(), fetchSessions()])
+  const today = new Date()
+
+  const endDate = new Date()
+
+  endDate.setDate(today.getDate() + 6)
+
+  availabilityFilter.value = {
+    start_date: today.toISOString().split('T')[0],
+
+    end_date: endDate.toISOString().split('T')[0],
+
+    therapist_id: null,
+  }
 
   loading.value = false
 })
@@ -742,5 +1045,64 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.availability-grid {
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.availability-grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  padding: 4px;
+  font-size: 12px;
+}
+
+.availability-grid td {
+  border: 1px solid #ddd;
+  padding: 4px;
+  font-size: 12px;
+}
+
+.therapist-name {
+  vertical-align: top;
+  text-align: left;
+
+  white-space: nowrap;
+
+  width: 1%;
+
+  padding-top: 8px;
+
+  font-weight: 600;
+}
+
+.slot-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  justify-content: flex-start;
+}
+
+.slot-hour {
+  width: 24px;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.slot-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.availability-grid-wrapper {
+  overflow: auto;
+  max-height: 600px;
 }
 </style>
