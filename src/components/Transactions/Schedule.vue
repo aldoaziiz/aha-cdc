@@ -144,6 +144,8 @@
           </v-row>
         </v-card-text>
 
+        <v-progress-linear v-if="availabilityLoading" indeterminate color="primary" />
+
         <v-card-text class="pa-0">
           <div class="availability-grid-wrapper">
             <table class="availability-grid">
@@ -224,7 +226,7 @@
 
       <!-- FORM -->
       <v-card elevation="1" class="mb-4 rounded-lg">
-        <v-card-title>{{ editingSession ? 'Edit Schedule' : 'Generate Schedule' }}</v-card-title>
+        <v-card-title>Generate Sessions</v-card-title>
         <v-divider></v-divider>
 
         <v-card-text>
@@ -244,7 +246,7 @@
               </v-col>
 
               <!-- DATE -->
-              <v-col v-if="!editingSession" cols="12" md="6">
+              <v-col cols="12" md="6">
                 <v-text-field
                   v-model="form.start_date"
                   label="Start Date"
@@ -254,33 +256,8 @@
                 />
               </v-col>
 
-              <v-col v-if="editingSession" cols="12" md="4">
-                <v-text-field
-                  v-model="form.therapy_date"
-                  label="Date"
-                  type="date"
-                  variant="outlined"
-                  :rules="requiredRule"
-                />
-              </v-col>
-
-              <v-col v-if="editingSession" cols="12">
-                <v-radio-group v-model="form.time_slot" label="Session Time">
-                  <v-radio
-                    v-for="slot in timeSlots"
-                    :key="slot.title"
-                    :label="slot.label"
-                    :value="slot.start"
-                  />
-                </v-radio-group>
-              </v-col>
-
-              <v-col v-if="editingSession" cols="12">
-                <div class="text-caption text-warning">Use only for approved reschedules.</div>
-              </v-col>
-
               <!-- day name -->
-              <v-col v-if="!editingSession" cols="12">
+              <v-col cols="12">
                 <div class="text-subtitle-2 mb-2">Days</div>
 
                 <div class="d-flex flex-wrap ga-4">
@@ -295,15 +272,12 @@
                   />
                 </div>
 
-                <div
-                  v-if="!editingSession && form.days.length === 0"
-                  class="text-error text-caption mt-1"
-                >
+                <div v-if="form.days.length === 0" class="text-error text-caption mt-1">
                   Please select at least one day.
                 </div>
               </v-col>
 
-              <v-col v-if="!editingSession" cols="12">
+              <v-col cols="12">
                 <div class="text-subtitle-2 mb-2">Session Time</div>
 
                 <v-radio-group v-model="form.time_slot" :rules="requiredRule" hide-details="auto">
@@ -327,7 +301,6 @@
 
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="cancelEdit">Cancel</v-btn>
 
           <v-btn
             @click="saveSchedule"
@@ -336,7 +309,7 @@
             :loading="saving"
             :disabled="saving"
           >
-            {{ editingSession ? 'Update Schedule' : 'Generate Sessions' }}
+            Generate Sessions
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -381,6 +354,12 @@
       </v-row>
 
       <!-- SESSION HISTORY -->
+
+      <v-row class="mb-4">
+        <v-btn @click="sessionDialog = true" color="success" prepend-icon="mdi-plus">
+          {{ editingSessionId ? 'Edit Session' : 'Add Session' }}
+        </v-btn>
+      </v-row>
       <v-card elevation="1" class="rounded-lg">
         <v-card-title>Therapy Sessions</v-card-title>
         <v-divider></v-divider>
@@ -425,10 +404,9 @@
               </template>
 
               <v-list>
-                <v-list-item :disabled="!!item.activity" @click="editSession(item)">
+                <v-list-item :disabled="!!item.activity" @click="openEditSession(item)">
                   <v-list-item-title>Edit</v-list-item-title>
                 </v-list-item>
-
                 <v-list-item :disabled="!!item.activity" @click="deleteSession(item)">
                   <v-list-item-title>Delete</v-list-item-title>
                 </v-list-item>
@@ -454,6 +432,56 @@
       <div class="text-body-2 text-medium-emphasis mt-2">Please wait a moment</div>
     </v-card>
   </v-dialog>
+
+  <v-dialog v-model="sessionDialog" max-width="600">
+    <v-card>
+      <v-card-title>Add Session</v-card-title>
+      <v-card-text class="pt-4">
+        <v-select
+          class="mb-2"
+          v-model="sessionForm.therapist_id"
+          :items="therapists"
+          item-title="name"
+          item-value="id"
+          label="Therapist"
+          variant="outlined"
+        />
+
+        <v-text-field
+          class="mb-2"
+          v-model="sessionForm.therapy_date"
+          type="date"
+          label="Date"
+          variant="outlined"
+        />
+
+        <v-select
+          v-model="sessionForm.session_time"
+          :items="timeSlots.filter((slot) => !slot.disabled)"
+          item-title="label"
+          item-value="label"
+          label="Session Time"
+          variant="outlined"
+        />
+
+        <v-textarea
+          class="mb-2"
+          v-model="sessionForm.notes"
+          label="Notes"
+          rows="2"
+          variant="outlined"
+        />
+      </v-card-text>
+
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="closeSessionDialog">Cancel</v-btn>
+        <v-btn color="primary" @click="saveSession">
+          {{ editingSessionId ? 'Update Session' : 'Save Session' }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -473,8 +501,17 @@ const loading = ref(true)
 const saving = ref(false)
 const formRef = ref(null)
 const deleting = ref(false)
-const editingSession = ref(null)
 const availabilityDate = ref(new Date())
+const availabilityLoading = ref(false)
+const sessionDialog = ref(false)
+const editingSessionId = ref(null)
+
+const sessionForm = ref({
+  therapist_id: null,
+  therapy_date: '',
+  session_time: null,
+  notes: '',
+})
 
 const weekDates = computed(() => {
   const result = []
@@ -518,6 +555,19 @@ const appliedAvailabilityFilter = ref({
   end_date: '',
   therapist_id: null,
 })
+
+const closeSessionDialog = () => {
+  editingSessionId.value = null
+
+  sessionDialog.value = false
+
+  sessionForm.value = {
+    therapist_id: null,
+    therapy_date: '',
+    session_time: null,
+    notes: '',
+  }
+}
 
 const therapistsGrid = ref([])
 
@@ -749,6 +799,8 @@ const fetchSessions = async () => {
 }
 
 const fetchAvailability = async () => {
+  availabilityLoading.value = true
+
   try {
     const res = await api.get('/therapy-sessions/availability', {
       params: {
@@ -757,10 +809,14 @@ const fetchAvailability = async () => {
         therapist_id: availabilityFilter.value.therapist_id,
       },
     })
+
     therapistsGrid.value = res.data.therapists
+
     availabilitySessions.value = res.data.sessions
   } catch (err) {
     console.error(err)
+  } finally {
+    availabilityLoading.value = false
   }
 }
 
@@ -849,59 +905,34 @@ const getStatusColor = (id) => {
 // ======================
 
 const saveSchedule = async () => {
-  if (!editingSession.value && form.value.days.length === 0) {
-    snackbarText.value = 'Please select at least one day'
-    snackbarColor.value = 'error'
-    snackbar.value = true
-
-    return
-  }
   const { valid } = await formRef.value.validate()
 
   if (!valid) return
 
   try {
     saving.value = true
+    const slot = timeSlots.find((s) => s.start === form.value.time_slot)
 
-    if (editingSession.value) {
-      const selectedSlot = timeSlots.find((slot) => slot.start === form.value.time_slot)
+    await api.post('/therapy-sessions/generate', {
+      registration_id: route.params.id,
 
-      form.value.start_time = selectedSlot.start_time
-      form.value.end_time = selectedSlot.end_time
-      await api.put(`/therapy-sessions/${editingSession.value.id}`, {
-        therapist_id: form.value.therapist_id,
-        therapy_date: form.value.therapy_date,
-        start_time: form.value.start_time,
-        end_time: form.value.end_time,
-        notes: form.value.notes,
-      })
+      therapist_id: form.value.therapist_id,
 
-      snackbarText.value = 'Schedule updated successfully'
-    } else {
-      const slot = timeSlots.find((s) => s.start === form.value.time_slot)
+      days: form.value.days,
 
-      await api.post('/therapy-sessions/generate', {
-        registration_id: route.params.id,
+      start_date: form.value.start_date,
 
-        therapist_id: form.value.therapist_id,
+      start_time: slot.start,
 
-        days: form.value.days,
+      end_time: slot.end,
 
-        start_date: form.value.start_date,
+      notes: form.value.notes,
+    })
 
-        start_time: slot.start,
-
-        end_time: slot.end,
-
-        notes: form.value.notes,
-      })
-
-      snackbarText.value = 'Sessions generated successfully'
-    }
+    snackbarText.value = 'Sessions generated successfully'
 
     snackbarColor.value = 'success'
     snackbar.value = true
-    editingSession.value = null
 
     form.value = {
       therapist_id: null,
@@ -922,9 +953,7 @@ const saveSchedule = async () => {
 
     await fetchSessions()
   } catch (err) {
-    snackbarText.value =
-      err.response?.data?.message ||
-      (editingSession.value ? 'Failed to update schedule' : 'Failed to create schedule')
+    snackbarText.value = err.response?.data?.message || 'Failed to generate schedule'
 
     snackbarColor.value = 'error'
     snackbar.value = true
@@ -933,30 +962,76 @@ const saveSchedule = async () => {
   }
 }
 
-const editSession = (item) => {
-  editingSession.value = item
+const saveSession = async () => {
+  try {
+    const selectedSlot = timeSlots.find((slot) => slot.label === sessionForm.value.session_time)
 
-  const selectedSlot =
-    timeSlots.find((slot) => slot.start === item.start_time && slot.end === item.end_time)?.start ||
-    null
+    const payload = {
+      registration_id: route.params.id,
 
-  form.value = {
+      therapist_id: sessionForm.value.therapist_id,
+
+      therapy_date: sessionForm.value.therapy_date,
+
+      start_time: selectedSlot.start,
+
+      end_time: selectedSlot.end,
+
+      notes: sessionForm.value.notes,
+    }
+
+    if (editingSessionId.value) {
+      await api.put(`/therapy-sessions/${editingSessionId.value}`, payload)
+    } else {
+      await api.post('/therapy-sessions', payload)
+    }
+
+    snackbarText.value = editingSessionId.value
+      ? 'Session updated successfully'
+      : 'Session created successfully'
+
+    snackbarColor.value = 'success'
+
+    snackbar.value = true
+
+    sessionForm.value = {
+      therapist_id: null,
+      therapy_date: '',
+      session_time: null,
+      notes: '',
+    }
+
+    editingSessionId.value = null
+    sessionDialog.value = false
+
+    await fetchSessions()
+  } catch (err) {
+    snackbarText.value = err.response?.data?.message || 'Failed to create session'
+
+    snackbarColor.value = 'error'
+
+    snackbar.value = true
+  }
+}
+
+const openEditSession = (item) => {
+  editingSessionId.value = item.id
+
+  const selectedSlot = timeSlots.find(
+    (slot) => slot.start === item.start_time && slot.end === item.end_time,
+  )
+
+  sessionForm.value = {
     therapist_id: item.therapist_id,
 
     therapy_date: item.therapy_date,
 
-    start_time: item.start_time,
+    session_time: selectedSlot?.label ?? null,
 
-    end_time: item.end_time,
-
-    time_slot: selectedSlot,
-
-    notes: item.notes || '',
-
-    days: [],
-
-    start_date: '',
+    notes: item.notes ?? '',
   }
+
+  sessionDialog.value = true
 }
 
 // ======================
@@ -988,25 +1063,6 @@ const deleteSession = async (item) => {
     snackbar.value = true
   } finally {
     deleting.value = false
-  }
-}
-
-const cancelEdit = () => {
-  editingSession.value = null
-
-  form.value = {
-    therapist_id: null,
-    therapy_date: '',
-
-    days: [],
-    start_date: '',
-
-    time_slot: null,
-
-    start_time: '',
-    end_time: '',
-
-    notes: '',
   }
 }
 
