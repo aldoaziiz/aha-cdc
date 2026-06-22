@@ -66,11 +66,6 @@
                         {{ session.registration?.child?.name }}
                       </div>
 
-                      <!-- PROGRAM -->
-                      <div class="text-body-2 text-grey mb-2">
-                        {{ session.registration?.program?.name }}
-                      </div>
-
                       <!-- CHIPS -->
                       <div class="d-flex flex-wrap ga-2">
                         <!-- DATE -->
@@ -125,15 +120,6 @@
 
               <div class="font-weight-medium text-body-1">
                 {{ selectedSessionData.registration?.child?.name }}
-              </div>
-            </v-col>
-
-            <!-- PROGRAM -->
-            <v-col cols="12" md="4">
-              <div class="text-caption text-grey mb-1">Program</div>
-
-              <div class="font-weight-medium text-body-1">
-                {{ selectedSessionData.registration?.program?.name }}
               </div>
             </v-col>
 

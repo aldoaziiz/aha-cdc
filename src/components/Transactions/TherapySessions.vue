@@ -81,47 +81,42 @@
         loading-text="Loading therapy sessions..."
         @update:options="onOptionsChange"
       >
-        <!-- DATE -->
+        <template v-slot:item.registration_number="{ item }">
+          <div>
+            <div>
+              {{ item.registration?.registration_number || '-' }}
+            </div>
+          </div>
+        </template>
+
+        <template v-slot:item.child="{ item }">
+          <div>
+            <div>
+              {{ item.registration?.child?.name || '-' }}
+            </div>
+          </div>
+        </template>
+
         <template v-slot:item.therapy_date="{ item }">
           {{ formatDate(item.therapy_date) }}
         </template>
 
-        <!-- TIME -->
         <template v-slot:item.time="{ item }">
           {{ item.start_time?.slice(0, 5) }}
           -
           {{ item.end_time?.slice(0, 5) }}
         </template>
 
-        <!-- CHILD -->
-        <template v-slot:item.child="{ item }">
-          <div>
-            <div class="font-weight-medium">
-              {{ item.registration?.child?.name || '-' }}
-            </div>
-
-            <div class="text-caption text-grey">
-              {{ item.registration?.registration_number || '-' }}
-            </div>
-          </div>
-        </template>
-
-        <!-- PROGRAM -->
-        <template v-slot:item.program="{ item }">
-          {{ item.registration?.program?.name || '-' }}
-        </template>
-
-        <!-- THERAPIST -->
         <template v-slot:item.therapist="{ item }">
           <div>
-            <div class="font-weight-medium">
-              {{ item.therapist?.name || '-' }}
-            </div>
-
-            <div v-if="item.therapist?.staff_role" class="text-caption text-grey">
-              {{ item.therapist.staff_role.name }}
-            </div>
+            {{ item.therapist?.name || '-' }}
           </div>
+        </template>
+
+        <template v-slot:item.activity_status="{ item }">
+          <v-chip size="small" :color="item.activity ? 'success' : 'warning'" variant="tonal">
+            {{ item.activity ? 'Posted' : 'Not Posted' }}
+          </v-chip>
         </template>
 
         <!-- ACTION -->
@@ -137,6 +132,13 @@
             <v-list density="compact">
               <v-list-item @click="viewRegistration(item)">
                 <v-list-item-title>View Schedule</v-list-item-title>
+              </v-list-item>
+
+              <v-list-item
+                v-if="!item.activity && item.therapy_date < new Date().toISOString().split('T')[0]"
+                @click="allowLateActivity(item)"
+              >
+                <v-list-item-title>Allow Late Activity</v-list-item-title>
               </v-list-item>
 
               <v-list-item @click="deleteSession(item)">
@@ -223,11 +225,12 @@ const filters = ref({
 // ======================
 
 const headers = [
+  { title: 'Reg No.', key: 'registration_number' },
+  { title: 'Child', key: 'child' },
   { title: 'Date', key: 'therapy_date' },
   { title: 'Time', key: 'time' },
-  { title: 'Child', key: 'child' },
-  { title: 'Program', key: 'program' },
   { title: 'Therapist', key: 'therapist' },
+  { title: 'Activity Status', key: 'activity_status' },
   { title: 'Notes', key: 'notes' },
   {
     title: '',
@@ -421,6 +424,34 @@ const viewRegistration = async (item) => {
     setTimeout(() => {
       pageActionLoading.value = false
     }, 300)
+  }
+}
+
+// ======================
+// ALLOW LATE ACTIVITY
+// ======================
+
+const allowLateActivity = async (item) => {
+  if (!confirm('Allow therapist to post this activity?')) {
+    return
+  }
+
+  try {
+    await api.put(`/therapy-sessions/${item.id}/allow-late-activity`)
+
+    snackbarText.value = 'Late activity allowed'
+
+    snackbarColor.value = 'success'
+
+    snackbar.value = true
+
+    await fetchSessions()
+  } catch (err) {
+    snackbarText.value = 'Failed to allow late activity'
+
+    snackbarColor.value = 'error'
+
+    snackbar.value = true
   }
 }
 
