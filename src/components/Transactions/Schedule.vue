@@ -357,7 +357,7 @@
 
       <v-row class="mb-4">
         <v-btn @click="sessionDialog = true" color="success" prepend-icon="mdi-plus">
-          {{ editingSessionId ? 'Edit Session' : 'Add Session' }}
+          Add Session
         </v-btn>
       </v-row>
       <v-card elevation="1" class="rounded-lg">
