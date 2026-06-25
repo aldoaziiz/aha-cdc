@@ -294,7 +294,7 @@ const canManageActivity = computed(() => {
 // ======================
 
 const storageUrl = (path) => {
-  return `${import.meta.env.VITE_R2_URL}/${path}`
+  return `${import.meta.env.VITE_STORAGE_URL}/${path}`
 }
 
 const openImage = (path) => {

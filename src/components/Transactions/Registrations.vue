@@ -560,7 +560,7 @@ const receiptUrl = computed(() => {
     return null
   }
 
-  return `${import.meta.env.VITE_R2_URL}/${selectedBilling.value.payment_receipt}`
+  return `${import.meta.env.VITE_STORAGE_URL}/${selectedBilling.value.payment_receipt}`
 })
 
 const openReceipt = () => {
