@@ -131,8 +131,8 @@ const updateGuardian = async () => {
       id_number: form.value.id_number,
       name: form.value.name,
       phone: form.value.phone,
-      occupation: form.occupation,
-      social_media: form.social_media,
+      occupation: form.value.occupation,
+      social_media: form.value.social_media,
       email: form.value.email,
       address: form.value.address,
     })
