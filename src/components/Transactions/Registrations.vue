@@ -559,7 +559,7 @@ const receiptUrl = computed(() => {
   if (!selectedBilling.value?.payment_receipt) {
     return null
   }
-
+  console.log('VITE_STORAGE_URL', import.meta.env.VITE_STORAGE_URL)
   return `${import.meta.env.VITE_STORAGE_URL}/${selectedBilling.value.payment_receipt}`
 })
 
