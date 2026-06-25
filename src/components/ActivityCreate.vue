@@ -66,6 +66,10 @@
                         {{ session.registration?.child?.name }}
                       </div>
 
+                      <div class="text-h6 mb-1">
+                        {{ session.registration?.registration_number }}
+                      </div>
+
                       <!-- CHIPS -->
                       <div class="d-flex flex-wrap ga-2">
                         <!-- DATE -->
@@ -120,6 +124,14 @@
 
               <div class="font-weight-medium text-body-1">
                 {{ selectedSessionData.registration?.child?.name }}
+              </div>
+            </v-col>
+
+            <v-col cols="12" md="4">
+              <div class="text-caption text-grey mb-1">Reg. No.</div>
+
+              <div class="font-weight-medium text-body-1">
+                {{ selectedSessionData.registration?.registration_number }}
               </div>
             </v-col>
 

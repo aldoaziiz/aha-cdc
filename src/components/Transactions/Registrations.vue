@@ -407,7 +407,7 @@
         <v-btn variant="text" @click="billingDialog = false">Close</v-btn>
 
         <v-btn color="primary" prepend-icon="mdi-file-pdf-box" @click="downloadPdf">
-          Download PDF
+          Download Invoice
         </v-btn>
 
         <!-- UNPAID -->
@@ -559,12 +559,10 @@ const receiptUrl = computed(() => {
   if (!selectedBilling.value?.payment_receipt) {
     return null
   }
-  console.log('VITE_STORAGE_URL', import.meta.env.VITE_STORAGE_URL)
   return `${import.meta.env.VITE_STORAGE_URL}/${selectedBilling.value.payment_receipt}`
 })
 
 const openReceipt = () => {
-  console.log(receiptUrl.value)
   if (!receiptUrl.value) return
 
   window.open(receiptUrl.value, '_blank')

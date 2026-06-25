@@ -317,7 +317,7 @@
       <!-- SUMMARY -->
       <v-row class="mb-4">
         <v-col cols="12" md="4">
-          <v-card>
+          <v-card :color="targetCardColor">
             <v-card-text>
               <div class="text-caption">Target Sessions</div>
 
@@ -329,7 +329,7 @@
         </v-col>
 
         <v-col cols="12" md="4">
-          <v-card>
+          <v-card :color="generatedCardColor">
             <v-card-text>
               <div class="text-caption">Generated</div>
 
@@ -341,7 +341,7 @@
         </v-col>
 
         <v-col cols="12" md="4">
-          <v-card>
+          <v-card :color="remainingCardColor">
             <v-card-text>
               <div class="text-caption">Remaining</div>
 
@@ -356,10 +356,11 @@
       <!-- SESSION HISTORY -->
 
       <v-row class="mb-4">
-        <v-btn @click="sessionDialog = true" color="success" prepend-icon="mdi-plus">
+        <v-btn @click="sessionDialog = true" color="primary" prepend-icon="mdi-plus">
           Add Session
         </v-btn>
       </v-row>
+
       <v-card elevation="1" class="rounded-lg">
         <v-card-title>Therapy Sessions</v-card-title>
         <v-divider></v-divider>
@@ -744,6 +745,38 @@ const generatedSessions = computed(() => {
 
 const remainingSessions = computed(() => {
   return targetSessions.value - generatedSessions.value
+})
+
+const targetCardColor = computed(() => {
+  return '#64AF64'
+})
+
+const generatedCardColor = computed(() => {
+  if (generatedSessions.value > targetSessions.value) {
+    return '#E6611D'
+  }
+
+  if (generatedSessions.value < targetSessions.value) {
+    return '#FFD039'
+  }
+
+  if (generatedSessions.value === targetSessions.value) {
+    return '#64AF64'
+  }
+
+  return ''
+})
+
+const remainingCardColor = computed(() => {
+  if (remainingSessions.value > 0) {
+    return '#FFD039'
+  }
+
+  if (remainingSessions.value < 0) {
+    return '#E6611D'
+  }
+
+  return '#64AF64'
 })
 
 // ======================
