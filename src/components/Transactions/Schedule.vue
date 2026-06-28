@@ -543,7 +543,7 @@ const weekDates = computed(() => {
   return result
 })
 
-const availabilityHours = ['08', '09', '10', '11', '12', '13', '14', '15', '16']
+const availabilityHours = ['08', '09', '10', '11', '12', '13', '14', '15', '16', '17']
 
 const availabilityFilter = ref({
   start_date: '',
@@ -658,6 +658,12 @@ const timeSlots = [
     label: '16:00 - 17:00',
     start: '16:00',
     end: '17:00',
+    disabled: false,
+  },
+  {
+    label: '17:00 - 18:00',
+    start: '17:00',
+    end: '18:00',
     disabled: false,
   },
 ]
