@@ -46,6 +46,18 @@
             </v-col>
 
             <v-col cols="12" md="6">
+              <v-select
+                v-model="form.payer_id"
+                :items="payers"
+                item-title="name"
+                item-value="id"
+                label="Payer"
+                variant="outlined"
+                :rules="[rules.required]"
+              />
+            </v-col>
+
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.session_count"
                 label="Session Count"
@@ -129,6 +141,7 @@ const snackbarText = ref('')
 const snackbarColor = ref('success')
 const clinics = ref([])
 const programCategories = ref([])
+const payers = ref([])
 const formRef = ref()
 
 const rules = {
@@ -138,6 +151,7 @@ const rules = {
 const form = ref({
   clinic_id: null,
   program_category_id: null,
+  payer_id: null,
   order_number: null,
   name: '',
   description: '',
@@ -161,6 +175,7 @@ const fetchMasterData = async () => {
 
     clinics.value = res.data.clinics || []
     programCategories.value = res.data.program_categories || []
+    payers.value = res.data.payers || []
   } catch (err) {
     console.error('Error loading master data:', err)
 
@@ -184,6 +199,7 @@ const createProgram = async () => {
     await api.post('/programs', {
       clinic_id: form.value.clinic_id,
       program_category_id: form.value.program_category_id,
+      payer_id: form.value.payer_id,
       order_number: form.value.order_number,
       name: form.value.name,
       description: form.value.description,

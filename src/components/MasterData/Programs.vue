@@ -73,6 +73,9 @@
               <template v-slot:item.clinic="{ item }">
                 {{ item.clinic?.name || '-' }}
               </template>
+              <template v-slot:item.payer="{ item }">
+                {{ item.payer?.name || '-' }}
+              </template>
               <template v-slot:item.category="{ item }">
                 {{ item.category?.name || '-' }}
               </template>
@@ -151,6 +154,14 @@
             <v-col cols="12" md="6">
               <div class="detail-label">Category</div>
               <div class="detail-value">{{ selectedProgram.category?.name || '-' }}</div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-label">Session Count</div>
+              <div class="detail-value">{{ selectedProgram.session_count || '-' }}</div>
+            </v-col>
+            <v-col cols="12" md="6">
+              <div class="detail-label">Payer</div>
+              <div class="detail-value">{{ selectedProgram.payer?.name || '-' }}</div>
             </v-col>
             <v-col cols="12" md="6">
               <div class="detail-label">Price</div>
@@ -236,6 +247,7 @@ const headers = [
   { title: 'List Number', key: 'order_number' },
   { title: 'Name', key: 'name' },
   { title: 'Session', key: 'session_count' },
+  { title: 'Payer', key: 'payer' },
   { title: 'Price', key: 'price' },
   { title: 'Clinic', key: 'clinic' },
   { title: 'Category', key: 'category' },

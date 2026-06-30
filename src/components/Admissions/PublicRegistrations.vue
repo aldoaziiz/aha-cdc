@@ -239,6 +239,19 @@
 
               <v-col cols="12" md="6">
                 <v-autocomplete
+                  v-model="form.registration.payer_id"
+                  :items="payers"
+                  item-title="name"
+                  item-value="id"
+                  label="Payment"
+                  :rules="[rules.required]"
+                  :disabled="!form.registration.clinic_id || !form.registration.program_category_id"
+                  clearable
+                />
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <v-autocomplete
                   v-model="form.registration.program_ids"
                   :items="filteredPrograms"
                   item-title="name"
@@ -247,6 +260,11 @@
                   :rules="[rules.required]"
                   multiple
                   chips
+                  :disabled="
+                    !form.registration.clinic_id ||
+                    !form.registration.program_category_id ||
+                    !form.registration.payer_id
+                  "
                   clearable
                 >
                   <template #item="{ props, item }">
@@ -256,18 +274,6 @@
                     />
                   </template>
                 </v-autocomplete>
-              </v-col>
-
-              <v-col cols="12" md="6">
-                <v-autocomplete
-                  v-model="form.registration.payer_id"
-                  :items="payers"
-                  item-title="name"
-                  item-value="id"
-                  label="Payment"
-                  :rules="[rules.required]"
-                  clearable
-                />
               </v-col>
             </v-row>
           </v-card-text>
@@ -375,17 +381,18 @@ const age = computed(() => {
 
 const filteredPrograms = computed(() => {
   const clinicId = form.value.registration.clinic_id
-
   const categoryId = form.value.registration.program_category_id
+  const payerId = form.value.registration.payer_id
 
-  if (!clinicId || !categoryId) {
+  if (!clinicId || !categoryId || !payerId) {
     return []
   }
 
   return programs.value.filter(
     (program) =>
       Number(program.clinic_id) === Number(clinicId) &&
-      Number(program.program_category_id) === Number(categoryId),
+      Number(program.program_category_id) === Number(categoryId) &&
+      Number(program.payer_id) === Number(payerId),
   )
 })
 
@@ -485,6 +492,7 @@ const submitForm = async () => {
 watch(
   () => form.value.registration.program_category_id,
   () => {
+    form.value.registration.payer_id = null
     form.value.registration.program_id = null
     form.value.registration.program_ids = []
   },
@@ -494,6 +502,15 @@ watch(
   () => form.value.registration.clinic_id,
   () => {
     form.value.registration.program_category_id = null
+    form.value.registration.payer_id = null
+    form.value.registration.program_id = null
+    form.value.registration.program_ids = []
+  },
+)
+
+watch(
+  () => form.value.registration.payer_id,
+  () => {
     form.value.registration.program_id = null
     form.value.registration.program_ids = []
   },

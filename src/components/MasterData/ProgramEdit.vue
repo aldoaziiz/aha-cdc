@@ -54,6 +54,18 @@
             </v-col>
 
             <v-col cols="12" md="6">
+              <v-select
+                v-model="form.payer_id"
+                :items="payers"
+                item-title="name"
+                item-value="id"
+                label="Payer"
+                variant="outlined"
+                :rules="[rules.required]"
+              />
+            </v-col>
+
+            <v-col cols="12" md="6">
               <v-text-field
                 v-model="form.session_count"
                 label="Session Count"
@@ -138,6 +150,7 @@ const snackbarText = ref('')
 const snackbarColor = ref('success')
 const clinics = ref([])
 const programCategories = ref([])
+const payers = ref([])
 const saveLoading = ref(false)
 const formRef = ref()
 
@@ -148,6 +161,7 @@ const rules = {
 const form = ref({
   clinic_id: null,
   program_category_id: null,
+  payer_id: null,
   order_number: null,
   name: '',
   description: '',
@@ -171,6 +185,7 @@ const fetchMasterData = async () => {
 
     clinics.value = res.data.clinics || []
     programCategories.value = res.data.program_categories || []
+    payers.value = res.data.payers || []
   } catch (err) {
     console.error('Error loading master data:', err)
   }
@@ -183,6 +198,7 @@ const fetchProgram = async () => {
     form.value = {
       clinic_id: res.data.clinic?.id ?? null,
       program_category_id: res.data.category?.id ?? null,
+      payer_id: res.data.payer?.id ?? null,
       order_number: res.data.order_number ?? null,
       name: res.data.name ?? '',
       description: res.data.description ?? '',
@@ -212,6 +228,7 @@ const updateProgram = async () => {
     await api.put(`/programs/${route.params.id}`, {
       clinic_id: form.value.clinic_id,
       program_category_id: form.value.program_category_id,
+      payer_id: form.value.payer_id,
       order_number: form.value.order_number,
       name: form.value.name,
       description: form.value.description,
