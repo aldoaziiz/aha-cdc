@@ -232,19 +232,6 @@
         <v-card-text>
           <v-form ref="formRef">
             <v-row>
-              <!-- THERAPIST -->
-              <v-col cols="12" md="6">
-                <v-select
-                  v-model="form.therapist_id"
-                  :items="therapists"
-                  item-title="name"
-                  item-value="id"
-                  label="Therapist"
-                  variant="outlined"
-                  :rules="requiredRule"
-                />
-              </v-col>
-
               <!-- DATE -->
               <v-col cols="12" md="6">
                 <v-text-field
@@ -255,40 +242,60 @@
                   :rules="requiredRule"
                 />
               </v-col>
+              <v-divider></v-divider>
 
-              <!-- day name -->
+              <!-- weekly schedule -->
               <v-col cols="12">
-                <div class="text-subtitle-2 mb-2">Days</div>
+                <div class="overflow-x-auto">
+                  <v-table density="comfortable" class="schedule-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 10%">Day</th>
+                        <th style="width: 10%">Enable</th>
+                        <th style="width: 40%">Therapist</th>
+                        <th style="width: 30%">Session Time</th>
+                      </tr>
+                    </thead>
 
-                <div class="d-flex flex-wrap ga-4">
-                  <v-checkbox
-                    v-for="day in daysOfWeek"
-                    :key="day.value"
-                    v-model="form.days"
-                    :label="day.label"
-                    :value="day.value"
-                    hide-details
-                    density="compact"
-                  />
+                    <tbody>
+                      <tr v-for="schedule in form.schedule_configs" :key="schedule.day">
+                        <td>
+                          {{ weekDays.find((d) => d.day === schedule.day)?.label }}
+                        </td>
+
+                        <td class="text-center">
+                          <v-checkbox v-model="schedule.enabled" hide-details />
+                        </td>
+
+                        <td>
+                          <v-autocomplete
+                            v-model="schedule.therapist_id"
+                            :items="therapists"
+                            item-title="name"
+                            item-value="id"
+                            variant="outlined"
+                            density="comfortable"
+                            hide-details
+                            :disabled="!schedule.enabled"
+                          />
+                        </td>
+
+                        <td>
+                          <v-select
+                            v-model="schedule.time_slot"
+                            :items="timeSlots"
+                            item-title="label"
+                            item-value="id"
+                            variant="outlined"
+                            density="comfortable"
+                            hide-details
+                            :disabled="!schedule.enabled"
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </v-table>
                 </div>
-
-                <div v-if="form.days.length === 0" class="text-error text-caption mt-1">
-                  Please select at least one day.
-                </div>
-              </v-col>
-
-              <v-col cols="12">
-                <div class="text-subtitle-2 mb-2">Session Time</div>
-
-                <v-radio-group v-model="form.time_slot" :rules="requiredRule" hide-details="auto">
-                  <v-radio
-                    v-for="slot in timeSlots"
-                    :key="slot.start"
-                    :label="slot.label"
-                    :value="slot.start"
-                    :disabled="slot.disabled"
-                  />
-                </v-radio-group>
               </v-col>
 
               <!-- NOTES -->
@@ -486,7 +493,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 
@@ -699,15 +706,89 @@ const goBack = () => {
 const requiredRule = [(v) => !!v || 'This field is required']
 
 const form = ref({
-  therapist_id: null,
-  days: [],
   start_date: '',
-  time_slot: null,
+
+  schedule_configs: [
+    {
+      day: 1,
+      enabled: false,
+      therapist_id: null,
+      time_slot: null,
+    },
+    {
+      day: 2,
+      enabled: false,
+      therapist_id: null,
+      time_slot: null,
+    },
+    {
+      day: 3,
+      enabled: false,
+      therapist_id: null,
+      time_slot: null,
+    },
+    {
+      day: 4,
+      enabled: false,
+      therapist_id: null,
+      time_slot: null,
+    },
+    {
+      day: 5,
+      enabled: false,
+      therapist_id: null,
+      time_slot: null,
+    },
+    {
+      day: 6,
+      enabled: false,
+      therapist_id: null,
+      time_slot: null,
+    },
+    {
+      day: 0,
+      enabled: false,
+      therapist_id: null,
+      time_slot: null,
+    },
+  ],
+
   therapy_date: '',
   start_time: '',
   end_time: '',
   notes: '',
 })
+
+const weekDays = [
+  {
+    day: 1,
+    label: 'Monday',
+  },
+  {
+    day: 2,
+    label: 'Tuesday',
+  },
+  {
+    day: 3,
+    label: 'Wednesday',
+  },
+  {
+    day: 4,
+    label: 'Thursday',
+  },
+  {
+    day: 5,
+    label: 'Friday',
+  },
+  {
+    day: 6,
+    label: 'Saturday',
+  },
+  {
+    day: 0,
+    label: 'Sunday',
+  },
+]
 
 const headers = [
   { title: 'Date', key: 'therapy_date' },
@@ -948,24 +1029,54 @@ const saveSchedule = async () => {
 
   if (!valid) return
 
+  const enabledSchedules = form.value.schedule_configs.filter((schedule) => schedule.enabled)
+
+  if (!enabledSchedules.length) {
+    snackbarText.value = 'Please select at least one day.'
+
+    snackbarColor.value = 'warning'
+
+    snackbar.value = true
+
+    return
+  }
+
+  for (const schedule of enabledSchedules) {
+    if (!schedule.therapist_id) {
+      snackbarText.value = `Please select therapist for ${weekDays.find((d) => d.day === schedule.day)?.label}.`
+
+      snackbarColor.value = 'warning'
+
+      snackbar.value = true
+
+      return
+    }
+
+    if (!schedule.time_slot) {
+      snackbarText.value = `Please select session time for ${weekDays.find((d) => d.day === schedule.day)?.label}.`
+
+      snackbarColor.value = 'warning'
+
+      snackbar.value = true
+
+      return
+    }
+  }
+
   try {
     saving.value = true
-    const slot = timeSlots.find((s) => s.start === form.value.time_slot)
-
     await api.post('/therapy-sessions/generate', {
       registration_id: route.params.id,
-
-      therapist_id: form.value.therapist_id,
-
-      days: form.value.days,
-
       start_date: form.value.start_date,
-
-      start_time: slot.start,
-
-      end_time: slot.end,
-
       notes: form.value.notes,
+
+      schedule_configs: form.value.schedule_configs
+        .filter((schedule) => schedule.enabled)
+        .map((schedule) => ({
+          day: schedule.day,
+          therapist_id: schedule.therapist_id,
+          time_slot: schedule.time_slot,
+        })),
     })
 
     snackbarText.value = 'Sessions generated successfully'
@@ -1105,6 +1216,21 @@ const deleteSession = async (item) => {
   }
 }
 
+watch(
+  () => form.value.schedule_configs,
+  (configs) => {
+    ;(configs ?? []).forEach((schedule) => {
+      if (!schedule.enabled) {
+        schedule.therapist_id = null
+        schedule.time_slot = null
+      }
+    })
+  },
+  {
+    deep: true,
+  },
+)
+
 // ======================
 // INIT
 // ======================
@@ -1199,5 +1325,23 @@ onMounted(async () => {
 .availability-grid-wrapper {
   overflow: auto;
   max-height: 600px;
+}
+
+.overflow-x-auto {
+  overflow-x: auto;
+}
+
+.schedule-table {
+  min-width: 900px;
+}
+
+.schedule-table td,
+.schedule-table th {
+  vertical-align: middle;
+}
+
+.schedule-table td {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
 }
 </style>
