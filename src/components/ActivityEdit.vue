@@ -169,6 +169,21 @@
             class="mb-6"
           />
 
+          <v-progress-linear
+            v-if="loading"
+            :model-value="uploadProgress"
+            color="primary"
+            height="8"
+            rounded
+            class="mb-4"
+          />
+
+          <div v-if="loading" class="text-center text-body-2 text-medium-emphasis mb-4">
+            Uploading video... {{ uploadProgress }}%
+            <br />
+            Please do not close this page until the upload is complete.
+          </div>
+
           <!-- ACTION -->
           <div class="d-flex justify-end ga-3">
             <v-btn variant="tonal" @click="goBack">Cancel</v-btn>
@@ -182,7 +197,7 @@
               :disabled="loading"
               @click="updateActivity"
             >
-              {{ loading ? 'Updating Activity...' : 'Update Activity' }}
+              {{ loading ? `Uploading... ${uploadProgress}%` : 'Update' }}
             </v-btn>
           </div>
         </v-card-text>
@@ -245,6 +260,8 @@ const existingPhotos = ref([])
 const existingVideo = ref(null)
 
 const loading = ref(false)
+
+const uploadProgress = ref(0)
 
 const isLoading = ref(true)
 
@@ -342,6 +359,7 @@ const updateActivity = async () => {
   }
 
   try {
+    uploadProgress.value = 0
     loading.value = true
 
     loadingText.value = 'Updating Activity...'
@@ -374,17 +392,21 @@ const updateActivity = async () => {
     // API
     // ======================
 
-    await api.post(
-      `/activities/${route.params.id}`,
-
-      payload,
-
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+    await api.post(`/activities/${route.params.id}`, payload, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
       },
-    )
+
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total) {
+          uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+        }
+      },
+    })
+
+    uploadProgress.value = 100
+
+    await new Promise((resolve) => setTimeout(resolve, 500))
 
     showSnackbar('Activity updated successfully')
 
@@ -403,6 +425,7 @@ const updateActivity = async () => {
     )
   } finally {
     loading.value = false
+    uploadProgress.value = 0
   }
 }
 

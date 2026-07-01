@@ -224,6 +224,20 @@
         </v-card-text>
 
         <!-- ACTION -->
+        <v-progress-linear
+          v-if="loading"
+          :model-value="uploadProgress"
+          color="primary"
+          height="8"
+          rounded
+          class="mb-4"
+        />
+
+        <div v-if="loading" class="text-center text-body-2 text-medium-emphasis mb-4">
+          Uploading video... {{ uploadProgress }}%
+          <br />
+          Please do not close this page until the upload is complete.
+        </div>
         <v-card-actions class="px-6 pb-6">
           <v-spacer />
 
@@ -238,7 +252,7 @@
             :disabled="loading"
             @click="saveActivity"
           >
-            {{ loading ? 'Uploading Activity...' : 'Save Activity' }}
+            {{ loading ? `Uploading... ${uploadProgress}%` : 'Save' }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -291,6 +305,8 @@ const debouncedSearch = ref('')
 const loading = ref(false)
 
 const pageLoading = ref(true)
+
+const uploadProgress = ref(0)
 
 const uploadLoadingText = ref('Uploading Activity...')
 
@@ -418,7 +434,7 @@ const saveActivity = async () => {
   // VIDEO LIMIT
   // ======================
 
-  const maxVideoSize = 50 * 1024 * 1024
+  const maxVideoSize = 75 * 1024 * 1024
 
   if (form.value.video && form.value.video.size > maxVideoSize) {
     alert('Video max size is 50MB')
@@ -427,6 +443,7 @@ const saveActivity = async () => {
   }
 
   try {
+    uploadProgress.value = 0
     loading.value = true
 
     uploadLoadingText.value = 'Uploading Activity...'
@@ -467,7 +484,15 @@ const saveActivity = async () => {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total) {
+          uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+        }
+      },
     })
+
+    uploadProgress.value = 100
 
     alert('Activity created successfully')
 
@@ -479,6 +504,7 @@ const saveActivity = async () => {
 
     selectedSession.value = null
 
+    await new Promise((resolve) => setTimeout(resolve, 500))
     await router.push('/activity')
   } catch (err) {
     console.error(err)
@@ -486,6 +512,7 @@ const saveActivity = async () => {
     alert(err.response?.data?.message || 'Failed to create activity')
   } finally {
     loading.value = false
+    uploadProgress.value = 0
   }
 }
 
