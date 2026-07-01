@@ -350,10 +350,10 @@ const updateActivity = async () => {
   // VIDEO LIMIT
   // ======================
 
-  const maxVideoSize = 50 * 1024 * 1024
+  const maxVideoSize = 75 * 1024 * 1024
 
   if (form.value.video && form.value.video.size > maxVideoSize) {
-    showSnackbar('Video max size is 50MB', 'error')
+    showSnackbar('Video max size is 75 MB', 'error')
 
     return
   }

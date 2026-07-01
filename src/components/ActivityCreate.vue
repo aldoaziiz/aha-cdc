@@ -437,7 +437,7 @@ const saveActivity = async () => {
   const maxVideoSize = 75 * 1024 * 1024
 
   if (form.value.video && form.value.video.size > maxVideoSize) {
-    alert('Video max size is 50MB')
+    alert('Video max size is 75 MB')
 
     return
   }
