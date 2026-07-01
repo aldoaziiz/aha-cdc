@@ -395,8 +395,12 @@
 
           <!-- STATUS -->
           <template #item.status="{ item }">
-            <v-chip size="small" :color="item.activity ? 'success' : 'primary'" variant="tonal">
-              {{ item.activity ? 'Completed' : 'Scheduled' }}
+            <v-chip
+              size="small"
+              :color="getStatusColor(item.therapy_session_status?.name)"
+              variant="tonal"
+            >
+              {{ item.therapy_session_status?.name }}
             </v-chip>
           </template>
 
@@ -414,6 +418,9 @@
               <v-list>
                 <v-list-item :disabled="!!item.activity" @click="openEditSession(item)">
                   <v-list-item-title>Edit</v-list-item-title>
+                </v-list-item>
+                <v-list-item v-if="item.therapy_session_status?.id === 1" @click="markAlpha(item)">
+                  <v-list-item-title>Mark as Alpha</v-list-item-title>
                 </v-list-item>
                 <v-list-item :disabled="!!item.activity" @click="deleteSession(item)">
                   <v-list-item-title>Delete</v-list-item-title>
@@ -1013,11 +1020,20 @@ const getAvailabilityLabel = (status) => {
   return 'B'
 }
 
-const getStatusColor = (id) => {
-  if (id === 1) return 'warning' // Unpaid (kuning)
-  if (id === 2) return 'info' // Waiting
-  if (id === 3) return 'green' // Paid
-  return 'grey'
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'Scheduled':
+      return 'primary'
+
+    case 'Completed':
+      return 'success'
+
+    case 'Alpha':
+      return 'error'
+
+    default:
+      return 'grey'
+  }
 }
 
 // ======================
@@ -1182,6 +1198,27 @@ const openEditSession = (item) => {
   }
 
   sessionDialog.value = true
+}
+
+const markAlpha = async (session) => {
+  if (!confirm('Mark this session as Alpha?')) {
+    return
+  }
+
+  try {
+    await api.patch(`/therapy-sessions/${session.id}/mark-alpha`)
+
+    await fetchSessions()
+
+    snackbarText.value = 'Session marked as Alpha.'
+    snackbarColor.value = 'success'
+    snackbar.value = true
+  } catch (error) {
+    snackbarText.value = error.response?.data?.message ?? 'Failed to mark session as Alpha.'
+
+    snackbarColor.value = 'error'
+    snackbar.value = true
+  }
 }
 
 // ======================
