@@ -113,9 +113,14 @@
           </div>
         </template>
 
-        <template v-slot:item.activity_status="{ item }">
-          <v-chip size="small" :color="item.activity ? 'success' : 'warning'" variant="tonal">
-            {{ item.activity ? 'Posted' : 'Not Posted' }}
+        <!-- STATUS -->
+        <template #item.status="{ item }">
+          <v-chip
+            size="small"
+            :color="getStatusColor(item.therapy_session_status?.name)"
+            variant="tonal"
+          >
+            {{ item.therapy_session_status?.name }}
           </v-chip>
         </template>
 
@@ -132,6 +137,14 @@
             <v-list density="compact">
               <v-list-item @click="viewRegistration(item)">
                 <v-list-item-title>View Schedule</v-list-item-title>
+              </v-list-item>
+
+              <v-list-item :disabled="!!item.activity" @click="openEditSession(item)">
+                <v-list-item-title>Edit</v-list-item-title>
+              </v-list-item>
+
+              <v-list-item v-if="item.therapy_session_status?.id === 1" @click="markAlpha(item)">
+                <v-list-item-title>Mark as Alpha</v-list-item-title>
               </v-list-item>
 
               <v-list-item
@@ -163,6 +176,56 @@
       <div class="text-h6 font-weight-medium mt-6">Deleting Session...</div>
 
       <div class="text-body-2 text-medium-emphasis mt-2">Please wait a moment</div>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="sessionDialog" max-width="600">
+    <v-card>
+      <v-card-title>Add Session</v-card-title>
+      <v-card-text class="pt-4">
+        <v-select
+          class="mb-2"
+          v-model="sessionForm.therapist_id"
+          :items="therapists"
+          item-title="name"
+          item-value="id"
+          label="Therapist"
+          variant="outlined"
+        />
+
+        <v-text-field
+          class="mb-2"
+          v-model="sessionForm.therapy_date"
+          type="date"
+          label="Date"
+          variant="outlined"
+        />
+
+        <v-select
+          v-model="sessionForm.session_time"
+          :items="timeSlots.filter((slot) => !slot.disabled)"
+          item-title="label"
+          item-value="label"
+          label="Session Time"
+          variant="outlined"
+        />
+
+        <v-textarea
+          class="mb-2"
+          v-model="sessionForm.notes"
+          label="Notes"
+          rows="2"
+          variant="outlined"
+        />
+      </v-card-text>
+
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="closeSessionDialog">Cancel</v-btn>
+        <v-btn color="primary" @click="saveSession">
+          {{ editingSessionId ? 'Update Session' : 'Save Session' }}
+        </v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 
@@ -212,6 +275,16 @@ const snackbarColor = ref('success')
 const deleting = ref(false)
 const pageActionLoading = ref(false)
 const resettingFilters = ref(false)
+const sessionDialog = ref(false)
+const editingSessionId = ref(null)
+
+const sessionForm = ref({
+  registration_id: null,
+  therapist_id: null,
+  therapy_date: '',
+  session_time: null,
+  notes: '',
+})
 
 const pageActionText = ref('Loading...')
 
@@ -230,7 +303,7 @@ const headers = [
   { title: 'Date', key: 'therapy_date' },
   { title: 'Time', key: 'time' },
   { title: 'Therapist', key: 'therapist' },
-  { title: 'Activity Status', key: 'activity_status' },
+  { title: 'Session Status', key: 'status' },
   { title: 'Notes', key: 'notes' },
   {
     title: '',
@@ -239,6 +312,99 @@ const headers = [
     align: 'center',
   },
 ]
+
+const timeSlots = [
+  {
+    label: '08:00 - 09:00',
+    start: '08:00',
+    end: '09:00',
+    disabled: false,
+  },
+  {
+    label: '09:00 - 10:00',
+    start: '09:00',
+    end: '10:00',
+    disabled: false,
+  },
+  {
+    label: '10:00 - 11:00',
+    start: '10:00',
+    end: '11:00',
+    disabled: false,
+  },
+  {
+    label: '11:00 - 12:00',
+    start: '11:00',
+    end: '12:00',
+    disabled: false,
+  },
+  {
+    label: '12:00 - 13:00 (Break)',
+    start: '12:00',
+    end: '13:00',
+    disabled: true,
+  },
+  {
+    label: '13:00 - 14:00',
+    start: '13:00',
+    end: '14:00',
+    disabled: false,
+  },
+  {
+    label: '14:00 - 15:00',
+    start: '14:00',
+    end: '15:00',
+    disabled: false,
+  },
+  {
+    label: '15:00 - 16:00',
+    start: '15:00',
+    end: '16:00',
+    disabled: false,
+  },
+  {
+    label: '16:00 - 17:00',
+    start: '16:00',
+    end: '17:00',
+    disabled: false,
+  },
+  {
+    label: '17:00 - 18:00',
+    start: '17:00',
+    end: '18:00',
+    disabled: false,
+  },
+]
+
+const closeSessionDialog = () => {
+  sessionDialog.value = false
+
+  editingSessionId.value = null
+
+  sessionForm.value = {
+    registration_id: null,
+    therapist_id: null,
+    therapy_date: '',
+    session_time: null,
+    notes: '',
+  }
+}
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'Scheduled':
+      return 'primary'
+
+    case 'Completed':
+      return 'success'
+
+    case 'Alpha':
+      return 'error'
+
+    default:
+      return 'grey'
+  }
+}
 
 // ======================
 // FETCH SESSIONS
@@ -455,6 +621,95 @@ const allowLateActivity = async (item) => {
   }
 }
 
+const openEditSession = (item) => {
+  editingSessionId.value = item.id
+
+  const selectedSlot = timeSlots.find(
+    (slot) => slot.start === item.start_time.slice(0, 5) && slot.end === item.end_time.slice(0, 5),
+  )
+
+  sessionForm.value = {
+    registration_id: item.registration_id,
+    therapist_id: item.therapist_id,
+
+    therapy_date: item.therapy_date,
+
+    session_time: selectedSlot?.label ?? null,
+
+    notes: item.notes ?? '',
+  }
+
+  sessionDialog.value = true
+}
+
+const saveSession = async () => {
+  try {
+    const selectedSlot = timeSlots.find((slot) => slot.label === sessionForm.value.session_time)
+
+    const payload = {
+      registration_id: sessionForm.value.registration_id,
+
+      therapist_id: sessionForm.value.therapist_id,
+
+      therapy_date: sessionForm.value.therapy_date,
+
+      start_time: selectedSlot.start,
+
+      end_time: selectedSlot.end,
+
+      notes: sessionForm.value.notes,
+    }
+
+    await api.put(`/therapy-sessions/${editingSessionId.value}`, payload)
+
+    snackbarText.value = 'Session updated successfully'
+
+    snackbarColor.value = 'success'
+
+    snackbar.value = true
+
+    sessionForm.value = {
+      registration_id: null,
+      therapist_id: null,
+      therapy_date: '',
+      session_time: null,
+      notes: '',
+    }
+
+    editingSessionId.value = null
+    sessionDialog.value = false
+
+    await fetchSessions()
+  } catch (err) {
+    snackbarText.value = err.response?.data?.message || 'Failed to create session'
+
+    snackbarColor.value = 'error'
+
+    snackbar.value = true
+  }
+}
+
+const markAlpha = async (session) => {
+  if (!confirm('Mark this session as Alpha?')) {
+    return
+  }
+
+  try {
+    await api.patch(`/therapy-sessions/${session.id}/mark-alpha`)
+
+    await fetchSessions()
+
+    snackbarText.value = 'Session marked as Alpha.'
+    snackbarColor.value = 'success'
+    snackbar.value = true
+  } catch (error) {
+    snackbarText.value = error.response?.data?.message ?? 'Failed to mark session as Alpha.'
+
+    snackbarColor.value = 'error'
+    snackbar.value = true
+  }
+}
+
 // ======================
 // DELETE SESSION
 // ======================
@@ -491,8 +746,8 @@ const deleteSession = async (item) => {
 // INIT
 // ======================
 
-onMounted(() => {
-  fetchTherapists()
+onMounted(async () => {
+  await fetchTherapists()
 })
 </script>
 

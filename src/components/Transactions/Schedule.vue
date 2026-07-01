@@ -1184,7 +1184,7 @@ const openEditSession = (item) => {
   editingSessionId.value = item.id
 
   const selectedSlot = timeSlots.find(
-    (slot) => slot.start === item.start_time && slot.end === item.end_time,
+    (slot) => slot.start === item.start_time.slice(0, 5) && slot.end === item.end_time.slice(0, 5),
   )
 
   sessionForm.value = {
