@@ -497,6 +497,62 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <v-dialog v-model="conflictDialog" max-width="800">
+    <v-card>
+      <v-card-title class="text-h6">Schedule Conflicts</v-card-title>
+
+      <v-card-text>
+        <v-alert type="warning" variant="tonal" class="mb-4">
+          Ada konflik jadwal sesi terapi. Mohon cek kembali jadwal yang anda buat. Pastikan jadwal
+          yang anda pilih tidak konflik dengan jadwal di bawah ini.
+        </v-alert>
+
+        <v-table density="comfortable">
+          <thead>
+            <tr>
+              <th>Date</th>
+
+              <th>Time</th>
+
+              <th>Therapist</th>
+
+              <th>Child</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr v-for="(item, index) in conflictSchedules" :key="index">
+              <td>
+                <div>{{ formatDay(item.therapy_date) }}</div>
+                <div class="text-grey">
+                  {{ formatDate(item.therapy_date) }}
+                </div>
+              </td>
+
+              <td>
+                {{ item.time_slot }}
+              </td>
+
+              <td>
+                {{ item.therapist_name }}
+              </td>
+
+              <td>
+                {{ item.child_name }}
+              </td>
+            </tr>
+          </tbody>
+        </v-table>
+      </v-card-text>
+
+      <v-card-actions>
+        <v-spacer />
+
+        <v-btn color="primary" @click="conflictDialog = false">Close</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
@@ -520,6 +576,9 @@ const availabilityDate = ref(new Date())
 const availabilityLoading = ref(false)
 const sessionDialog = ref(false)
 const editingSessionId = ref(null)
+const conflictDialog = ref(false)
+
+const conflictSchedules = ref([])
 
 const sessionForm = ref({
   therapist_id: null,
@@ -1020,6 +1079,12 @@ const getAvailabilityLabel = (status) => {
   return 'B'
 }
 
+const formatDay = (date) => {
+  return new Date(date).toLocaleDateString('id-ID', {
+    weekday: 'long',
+  })
+}
+
 const getStatusColor = (status) => {
   switch (status) {
     case 'Scheduled':
@@ -1119,9 +1184,26 @@ const saveSchedule = async () => {
 
     await fetchSessions()
   } catch (err) {
-    snackbarText.value = err.response?.data?.message || 'Failed to generate schedule'
+    // ======================
+    // CONFLICTS
+    // ======================
+
+    if (err.response?.data?.conflicts) {
+      conflictSchedules.value = err.response.data.conflicts
+
+      conflictDialog.value = true
+
+      return
+    }
+
+    // ======================
+    // OTHER ERRORS
+    // ======================
+
+    snackbarText.value = err.response?.data?.message || 'Failed to generate sessions'
 
     snackbarColor.value = 'error'
+
     snackbar.value = true
   } finally {
     saving.value = false
