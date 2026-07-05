@@ -1,105 +1,30 @@
 <template>
-  <v-container class="fill-height d-flex flex-column justify-center" max-width="1100">
-    <div>
-      <v-img class="mb-4 font-weight-bold" height="150" src="@/assets/logo.png" />
+  <v-container fluid class="fill-height d-flex align-center justify-center">
+    <v-card max-width="650" width="100%" rounded="xl" elevation="2" class="text-center pa-10">
+      <!-- Icon -->
+      <v-avatar size="90" color="orange-lighten-5" class="mb-6">
+        <v-icon size="48" color="orange-darken-2">mdi-tools</v-icon>
+      </v-avatar>
 
-      <div class="mb-8 text-center">
-        <div class="text-body-medium font-weight-light mb-n1">Welcome to</div>
-        <div class="text-display-medium font-weight-bold">Report</div>
+      <!-- Title -->
+      <div class="text-h4 font-weight-bold mb-4">Coming Soon</div>
+
+      <!-- Description -->
+      <div class="text-body-1 text-medium-emphasis mb-8">
+        This feature is currently under development and will be available in a future update.
       </div>
 
-      <v-row>
-        <v-col cols="12">
-          <v-card
-            class="py-4"
-            color="surface-variant"
-            image="https://cdn.vuetifyjs.com/docs/images/one/create/feature.png"
-            rounded="lg"
-            variant="tonal"
-          >
-            <template #prepend>
-              <v-avatar
-                class="ml-2 mr-4"
-                icon="mdi-rocket-launch-outline"
-                size="60"
-                variant="tonal"
-              />
-            </template>
+      <v-divider class="mb-6" />
 
-            <template #image>
-              <v-img position="top right" />
-            </template>
+      <div class="text-body-2 text-medium-emphasis">
+        Thank you for your patience as we continue improving AHA! Child Development Center.
+      </div>
 
-            <template #title>
-              <div class="my-title my-uppercase text-headline-medium font-weight-bold">
-                Get started
-              </div>
-            </template>
-
-            <template #subtitle>
-              <div class="text-body-large">
-                Change this page by updating
-                <v-kbd>
-                  {{ `
-                  <HelloWorld />
-                  ` }}
-                </v-kbd>
-                in
-                <v-kbd>components/HelloWorld.vue</v-kbd>
-                .
-              </div>
-            </template>
-          </v-card>
-        </v-col>
-
-        <v-col v-for="link in links" :key="link.href" cols="6">
-          <v-card
-            append-icon="mdi-open-in-new"
-            class="py-4"
-            color="surface-variant"
-            :href="link.href"
-            rel="noopener noreferrer"
-            rounded="lg"
-            :subtitle="link.subtitle"
-            target="_blank"
-            :title="link.title"
-            variant="tonal"
-          >
-            <template #prepend>
-              <v-avatar class="ml-2 mr-4" :icon="link.icon" size="60" variant="tonal" />
-            </template>
-          </v-card>
-        </v-col>
-      </v-row>
-    </div>
+      <div class="mt-8 text-caption text-disabled">Version 1.0.0</div>
+    </v-card>
   </v-container>
 </template>
 
-<script setup lang="ts">
-const links = [
-  {
-    href: 'https://vuetifyjs.com/',
-    icon: 'mdi-text-box-outline',
-    subtitle: 'Learn about all things Vuetify in our documentation.',
-    title: 'Documentation',
-  },
-  {
-    href: 'https://vuetifyjs.com/introduction/why-vuetify/#feature-guides',
-    icon: 'mdi-star-circle-outline',
-    subtitle: 'Explore available framework Features.',
-    title: 'Features',
-  },
-  {
-    href: 'https://vuetifyjs.com/components/all',
-    icon: 'mdi-widgets-outline',
-    subtitle: 'Discover components in the API Explorer.',
-    title: 'Components',
-  },
-  {
-    href: 'https://discord.vuetifyjs.com',
-    icon: 'mdi-account-group-outline',
-    subtitle: 'Connect with Vuetify developers.',
-    title: 'Community',
-  },
-]
+<script setup>
+// No script needed
 </script>
