@@ -73,7 +73,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import type { VForm } from 'vuetify/components'
 import { useAuthStore } from '@/stores/auth'
@@ -137,6 +137,16 @@ const handleLogin = async () => {
     isLoading.value = false
   }
 }
+
+onMounted(() => {
+  const message = sessionStorage.getItem('login_message')
+
+  if (message) {
+    showSnackbar(message, 'warning')
+
+    sessionStorage.removeItem('login_message')
+  }
+})
 </script>
 
 <style scoped>

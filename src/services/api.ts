@@ -50,7 +50,13 @@ api.interceptors.response.use(
       // ======================
 
       if (!publicPages.includes(currentPath)) {
+        sessionStorage.setItem(
+          'login_message',
+          error.response?.data?.message ?? 'Your session has expired. Please login again.',
+        )
+
         localStorage.removeItem('token')
+        localStorage.removeItem('user')
 
         window.location.href = '/login'
       }
