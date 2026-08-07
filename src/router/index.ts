@@ -26,8 +26,8 @@ import Activity from '@/components/Activity.vue'
 import ActivityCreate from '@/components/ActivityCreate.vue'
 import ActivityEdit from '@/components/ActivityEdit.vue'
 
-// report
-import Report from '@/components/Report.vue'
+// reports
+import TherapistReport from '@/components/Reports/TherapistReport.vue'
 
 // help and support
 import HelpSupport from '@/components/HelpSupport.vue'
@@ -189,11 +189,20 @@ const routes: RouteRecordRaw[] = [
     meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin', 'therapist'] },
   },
 
-  // report
+  // reports
+  {
+    path: '/reports/therapists',
+    name: 'therapist-report',
+    component: TherapistReport,
+    meta: {
+      layout: 'app',
+      requiresAuth: true,
+      allowedRoles: ['admin'],
+    },
+  },
   {
     path: '/report',
-    component: Report,
-    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin', 'therapist', 'guardian'] },
+    redirect: '/reports/therapists',
   },
 
   // help support

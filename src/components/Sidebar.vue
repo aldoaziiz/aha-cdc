@@ -113,18 +113,19 @@
         <v-list-item-title>Activity</v-list-item-title>
       </v-list-item>
 
-      <!-- report -->
-      <v-list-item
-        v-if="authStore.isAdmin"
-        @click="setActiveMenu('Report')"
-        :active="activeMenu === 'Report'"
-        to="/report"
-      >
-        <template v-slot:prepend>
-          <v-icon>mdi-chart-bar</v-icon>
+      <!-- reports -->
+      <v-list-group v-if="authStore.isAdmin">
+        <template v-slot:activator="{ props }">
+          <v-list-item v-bind="props" title="Reports" prepend-icon="mdi-chart-bar"></v-list-item>
         </template>
-        <v-list-item-title>Report</v-list-item-title>
-      </v-list-item>
+
+        <v-list-item
+          @click="setActiveMenu('TherapistReport')"
+          :active="activeMenu === 'TherapistReport'"
+          title="Therapist"
+          to="/reports/therapists"
+        ></v-list-item>
+      </v-list-group>
     </v-list>
 
     <v-divider class="my-4"></v-divider>
