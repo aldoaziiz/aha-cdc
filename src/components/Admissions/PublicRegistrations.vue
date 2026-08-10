@@ -401,7 +401,13 @@ const filteredPrograms = computed(() => {
 ========================= */
 
 const rules = {
-  required: (v) => !!v || 'Field is required',
+  required: (v) => {
+    if (Array.isArray(v)) {
+      return v.length > 0 || 'Field is required'
+    }
+
+    return !!v || 'Field is required'
+  },
 }
 
 /* =========================
