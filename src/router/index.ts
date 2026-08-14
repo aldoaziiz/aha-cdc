@@ -48,7 +48,7 @@ const routes: RouteRecordRaw[] = [
     meta: {
       layout: 'app',
       requiresAuth: true,
-      allowedRoles: ['admin', 'guardian', 'therapist', 'staff'],
+      allowedRoles: ['admin', 'guardian', 'therapist', 'staff', 'guest'],
     },
   },
 
@@ -176,7 +176,11 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/activity',
     component: Activity,
-    meta: { layout: 'app', requiresAuth: true, allowedRoles: ['admin', 'therapist', 'guardian'] },
+    meta: {
+      layout: 'app',
+      requiresAuth: true,
+      allowedRoles: ['admin', 'therapist', 'guardian', 'guest'],
+    },
   },
   {
     path: '/activity/create',
@@ -197,7 +201,7 @@ const routes: RouteRecordRaw[] = [
     meta: {
       layout: 'app',
       requiresAuth: true,
-      allowedRoles: ['admin'],
+      allowedRoles: ['admin', 'guest', 'therapist'],
     },
   },
   {

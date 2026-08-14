@@ -44,7 +44,7 @@
           <!-- SCROLL -->
           <div class="session-scroll">
             <!-- SESSION LIST -->
-            <div class="session-list">
+            <div v-if="filteredSessions.length" class="session-list">
               <v-card
                 v-for="session in filteredSessions"
                 :key="session.id"
@@ -108,6 +108,16 @@
                 </v-card-text>
               </v-card>
             </div>
+
+            <div v-else class="py-10 text-center">
+              <v-icon size="48" color="success" class="mb-3">mdi-check-circle-outline</v-icon>
+
+              <div class="text-h6 font-weight-medium">All activities are complete</div>
+
+              <div class="text-body-2 text-medium-emphasis mt-1">
+                There are no therapy sessions waiting for activity documentation.
+              </div>
+            </div>
           </div>
         </v-card-text>
       </v-card>
@@ -170,7 +180,7 @@
       </v-card>
 
       <!-- FORM -->
-      <v-card elevation="1" class="rounded-xl">
+      <v-card v-if="sessions.length" elevation="1" class="rounded-xl">
         <v-card-title>Activity Documentation</v-card-title>
 
         <v-card-text>

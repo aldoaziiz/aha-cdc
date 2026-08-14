@@ -6,14 +6,14 @@
 
     <div class="d-flex flex-wrap justify-space-between align-center ga-4 mb-6">
       <div>
-        <h1 class="text-h4 font-weight-bold mb-1">Therapist Monthly Report</h1>
+        <h1 class="text-h4 font-weight-bold mb-1">Therapy Monthly Report</h1>
 
         <div class="text-body-2 text-medium-emphasis">
-          Review therapist session assignments and completion status by month.
+          Review therapy sessions, attendance status, and activity documentation by month.
         </div>
       </div>
 
-      <div class="d-flex ga-2">
+      <!-- <div class="d-flex ga-2">
         <v-btn
           variant="outlined"
           prepend-icon="mdi-file-excel-outline"
@@ -25,7 +25,7 @@
         <v-btn variant="outlined" prepend-icon="mdi-file-pdf-box" @click="showComingSoon('PDF')">
           Export PDF
         </v-btn>
-      </div>
+      </div> -->
     </div>
 
     <!-- ====================== -->
@@ -37,7 +37,7 @@
 
       <v-row>
         <!-- Month -->
-        <v-col cols="12" sm="6" md="3">
+        <v-col cols="12" sm="6" md="2">
           <v-select
             v-model="filters.month"
             :items="months"
@@ -63,7 +63,7 @@
         </v-col>
 
         <!-- Therapist -->
-        <v-col cols="12" sm="6" md="4">
+        <v-col v-if="!authStore.isTherapist" cols="12" sm="6" md="3">
           <v-select
             v-model="filters.therapistId"
             :items="therapists"
@@ -76,8 +76,23 @@
           />
         </v-col>
 
+        <!-- Child -->
+        <v-col cols="12" sm="6" md="3">
+          <v-autocomplete
+            v-model="filters.childId"
+            :items="children"
+            item-title="name"
+            item-value="id"
+            label="Child"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            clearable
+          />
+        </v-col>
+
         <!-- Buttons -->
-        <v-col cols="12" sm="6" md="3" class="d-flex align-center ga-2">
+        <v-col cols="12" md="2" class="d-flex align-center ga-2">
           <v-btn color="primary" prepend-icon="mdi-filter-outline" @click="applyFilter">
             Apply Filter
           </v-btn>
@@ -213,6 +228,19 @@
           </v-chip>
         </template>
 
+        <!-- Details -->
+        <template #item.details="{ item }">
+          <v-btn
+            size="small"
+            variant="tonal"
+            color="primary"
+            prepend-icon="mdi-eye-outline"
+            @click="openDetails(item)"
+          >
+            View Details
+          </v-btn>
+        </template>
+
         <!-- Empty State -->
         <template #no-data>
           <div class="py-12 text-center">
@@ -231,6 +259,198 @@
     </v-card>
 
     <!-- ====================== -->
+    <!-- DETAILS DIALOG -->
+    <!-- ====================== -->
+
+    <v-dialog v-model="detailsDialog" max-width="900" scrollable>
+      <v-card v-if="selectedSession" rounded="xl">
+        <!-- HEADER -->
+        <v-card-title class="d-flex align-center pa-6">
+          <div>
+            <div class="text-h6 font-weight-bold">Therapy Details</div>
+
+            <div class="text-body-2 text-medium-emphasis mt-1">
+              {{ selectedSession.registration_number }}
+            </div>
+          </div>
+
+          <v-spacer />
+
+          <v-btn icon="mdi-close" variant="text" @click="closeDetails" />
+        </v-card-title>
+
+        <v-divider />
+
+        <v-card-text class="pa-6">
+          <!-- ====================== -->
+          <!-- SESSION INFORMATION -->
+          <!-- ====================== -->
+
+          <div class="text-subtitle-1 font-weight-bold mb-4">Session Information</div>
+
+          <v-row class="mb-4">
+            <v-col cols="12" sm="6" md="4">
+              <div class="detail-label">Child</div>
+
+              <div class="detail-value">
+                {{ selectedSession.child_name }}
+              </div>
+            </v-col>
+
+            <v-col cols="12" sm="6" md="4">
+              <div class="detail-label">Therapist</div>
+
+              <div class="detail-value">
+                {{ selectedSession.therapist_name }}
+              </div>
+            </v-col>
+
+            <v-col cols="12" sm="6" md="4">
+              <div class="detail-label">Status</div>
+
+              <v-chip :color="getStatusColor(selectedSession.status)" size="small" variant="tonal">
+                {{ selectedSession.status }}
+              </v-chip>
+            </v-col>
+
+            <v-col cols="12" sm="6" md="4">
+              <div class="detail-label">Therapy Date</div>
+
+              <div class="detail-value">
+                {{ formatDate(selectedSession.therapy_date) }}
+              </div>
+            </v-col>
+
+            <v-col cols="12" sm="6" md="4">
+              <div class="detail-label">Therapy Time</div>
+
+              <div class="detail-value">
+                {{ formatTime(selectedSession.start_time) }}
+                -
+                {{ formatTime(selectedSession.end_time) }}
+              </div>
+            </v-col>
+          </v-row>
+
+          <v-divider class="my-5" />
+
+          <!-- ====================== -->
+          <!-- PROGRAM INFORMATION -->
+          <!-- ====================== -->
+
+          <div class="text-subtitle-1 font-weight-bold mb-4">Program Information</div>
+
+          <!-- Program Category -->
+          <div class="mb-5">
+            <div class="detail-label mb-1">Program Category</div>
+
+            <div v-if="selectedSession.program_categories?.length" class="detail-value">
+              {{ formatProgramCategories(selectedSession.program_categories) }}
+            </div>
+
+            <div v-else class="text-body-2 text-medium-emphasis">-</div>
+          </div>
+
+          <!-- Programs -->
+          <div>
+            <div class="detail-label mb-2">Programs</div>
+
+            <ul v-if="selectedSession.programs?.length" class="program-list">
+              <li v-for="program in selectedSession.programs" :key="program.id">
+                {{ program.name }}
+              </li>
+            </ul>
+
+            <div v-else class="text-body-2 text-medium-emphasis">
+              No programs found for this registration.
+            </div>
+          </div>
+
+          <v-divider class="my-5" />
+
+          <!-- ====================== -->
+          <!-- ACTIVITY -->
+          <!-- ====================== -->
+
+          <div class="text-subtitle-1 font-weight-bold mb-4">Activity Documentation</div>
+
+          <template v-if="selectedSession.activity">
+            <!-- Caption -->
+            <div class="mb-6">
+              <div class="detail-label mb-2">Caption</div>
+
+              <div v-if="selectedSession.activity.caption" class="activity-caption">
+                {{ selectedSession.activity.caption }}
+              </div>
+
+              <div v-else class="text-body-2 text-medium-emphasis">No caption available.</div>
+            </div>
+
+            <!-- Photos -->
+            <div class="mb-6">
+              <div class="detail-label mb-3">Photos</div>
+
+              <v-row v-if="selectedSession.activity.photos?.length">
+                <v-col
+                  v-for="photo in selectedSession.activity.photos"
+                  :key="photo.id"
+                  cols="6"
+                  sm="4"
+                  md="3"
+                >
+                  <a
+                    :href="storageUrl(photo.photo)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="activity-photo-link"
+                  >
+                    <v-img :src="storageUrl(photo.photo)" height="160" cover rounded="lg">
+                      <template #placeholder>
+                        <div class="d-flex align-center justify-center fill-height">
+                          <v-progress-circular indeterminate size="24" />
+                        </div>
+                      </template>
+                    </v-img>
+                  </a>
+                </v-col>
+              </v-row>
+
+              <div v-else class="text-body-2 text-medium-emphasis">No photos uploaded.</div>
+            </div>
+
+            <!-- Video -->
+            <div>
+              <div class="detail-label mb-3">Video</div>
+
+              <video
+                v-if="selectedSession.activity.video"
+                controls
+                preload="none"
+                class="activity-video"
+              >
+                <source :src="storageUrl(selectedSession.activity.video)" type="video/mp4" />
+              </video>
+
+              <div v-else class="text-body-2 text-medium-emphasis">No video uploaded.</div>
+            </div>
+          </template>
+
+          <v-alert v-else type="info" variant="tonal" density="comfortable">
+            No activity documentation available for this therapy session.
+          </v-alert>
+        </v-card-text>
+
+        <v-divider />
+
+        <v-card-actions class="pa-4">
+          <v-spacer />
+
+          <v-btn variant="text" @click="closeDetails">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- ====================== -->
     <!-- SNACKBAR -->
     <!-- ====================== -->
 
@@ -247,6 +467,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import api from '@/services/api'
+import { useAuthStore } from '@/stores/auth'
 
 // ======================
 // TYPES
@@ -258,8 +479,31 @@ interface Therapist {
   status_id?: number
 }
 
+interface ReportProgramCategory {
+  id: number
+  name: string
+}
+
+interface ReportProgram {
+  id: number
+  name: string
+}
+
+interface ActivityPhoto {
+  id: number
+  photo: string
+}
+
+interface SessionActivity {
+  id: number
+  caption: string | null
+  video: string | null
+  photos: ActivityPhoto[]
+}
+
 interface TherapySession {
   id: number
+  registration_id: number
   registration_number: string
   child_name: string
   therapist_name: string
@@ -267,6 +511,11 @@ interface TherapySession {
   start_time: string
   end_time: string
   status: string
+
+  program_categories: ReportProgramCategory[]
+  programs: ReportProgram[]
+
+  activity: SessionActivity | null
 }
 
 interface TableOptions {
@@ -277,6 +526,15 @@ interface TableOptions {
     order?: 'asc' | 'desc'
   }>
 }
+
+interface Child {
+  id: number | null
+  name: string
+  status_id?: number
+}
+
+// state
+const authStore = useAuthStore()
 
 // ======================
 // CURRENT DATE
@@ -295,6 +553,7 @@ const filters = reactive({
   month: currentMonth,
   year: currentYear,
   therapistId: null as number | null,
+  childId: null as number | null,
 })
 
 const months = [
@@ -318,6 +577,13 @@ const therapists = ref<Therapist[]>([
   {
     id: null,
     name: 'All Therapists',
+  },
+])
+
+const children = ref<Child[]>([
+  {
+    id: null,
+    name: 'All Children',
   },
 ])
 
@@ -367,11 +633,34 @@ const headers = [
     key: 'status',
     sortable: true,
   },
+  {
+    title: 'Details',
+    key: 'details',
+    sortable: false,
+  },
 ]
 
 const sessions = ref<TherapySession[]>([])
 const totalItems = ref(0)
 const loading = ref(false)
+
+// ======================
+// DETAILS
+// ======================
+
+const detailsDialog = ref(false)
+
+const selectedSession = ref<TherapySession | null>(null)
+
+const openDetails = (session: TherapySession) => {
+  selectedSession.value = session
+  detailsDialog.value = true
+}
+
+const closeDetails = () => {
+  detailsDialog.value = false
+  selectedSession.value = null
+}
 
 const table = reactive({
   page: 1,
@@ -400,6 +689,10 @@ const loadReport = async () => {
     // null means All Therapists
     if (filters.therapistId !== null) {
       params.therapist_id = filters.therapistId
+    }
+
+    if (filters.childId !== null) {
+      params.child_id = filters.childId
     }
 
     const response = await api.get('/reports/therapists', {
@@ -440,6 +733,21 @@ const loadReport = async () => {
         name: therapist.status_id === 2 ? `${therapist.name} (Inactive)` : therapist.name,
 
         status_id: therapist.status_id,
+      })),
+    ]
+
+    children.value = [
+      {
+        id: null,
+        name: 'All Children',
+      },
+
+      ...(data.children ?? []).map((child: Child) => ({
+        id: child.id,
+
+        name: child.status_id === 2 ? `${child.name} (Inactive)` : child.name,
+
+        status_id: child.status_id,
       })),
     ]
   } catch (error: any) {
@@ -489,6 +797,7 @@ const resetFilter = () => {
   filters.month = currentMonth
   filters.year = currentYear
   filters.therapistId = null
+  filters.childId = null
 
   table.page = 1
   table.sortBy = 'therapy_date'
@@ -543,6 +852,22 @@ const getStatusColor = (status: string) => {
 }
 
 // ======================
+// STORAGE URL
+// ======================
+
+const storageUrl = (path: string | null | undefined) => {
+  if (!path) return ''
+
+  return `${import.meta.env.VITE_STORAGE_URL}/${path}`
+}
+
+const formatProgramCategories = (categories: ReportProgramCategory[]) => {
+  if (!categories?.length) return '-'
+
+  return categories.map((category) => category.name).join(', ')
+}
+
+// ======================
 // SNACKBAR
 // ======================
 
@@ -555,5 +880,40 @@ const snackbar = reactive({
 <style scoped>
 .therapist-report-table :deep(th) {
   white-space: nowrap;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  color: rgba(var(--v-theme-on-surface), 0.6);
+  margin-bottom: 4px;
+}
+
+.detail-value {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.activity-caption {
+  white-space: pre-wrap;
+  line-height: 1.7;
+}
+
+.activity-photo-link {
+  display: block;
+  text-decoration: none;
+}
+
+.activity-video {
+  display: block;
+  width: 100%;
+  max-height: 480px;
+  border-radius: 12px;
+  background: #000;
+}
+
+.program-list {
+  margin: 0;
+  padding-left: 20px;
+  line-height: 1.8;
 }
 </style>

@@ -9,7 +9,11 @@
     <v-list dense nav>
       <v-list-item
         v-if="
-          authStore.isAdmin || authStore.isGuardian || authStore.isTherapist || authStore.isStaff
+          authStore.isAdmin ||
+          authStore.isGuardian ||
+          authStore.isTherapist ||
+          authStore.isStaff ||
+          authStore.isGuest
         "
         @click="setActiveMenu('Dashboard')"
         :active="activeMenu === 'Dashboard'"
@@ -102,7 +106,9 @@
 
       <!-- activity -->
       <v-list-item
-        v-if="authStore.isAdmin || authStore.isGuardian || authStore.isTherapist"
+        v-if="
+          authStore.isAdmin || authStore.isGuardian || authStore.isTherapist || authStore.isGuest
+        "
         @click="setActiveMenu('Activity')"
         :active="activeMenu === 'Activity'"
         to="/activity"
@@ -114,7 +120,7 @@
       </v-list-item>
 
       <!-- reports -->
-      <v-list-group v-if="authStore.isAdmin">
+      <v-list-group v-if="authStore.isAdmin || authStore.isGuest || authStore.isTherapist">
         <template v-slot:activator="{ props }">
           <v-list-item v-bind="props" title="Reports" prepend-icon="mdi-chart-bar"></v-list-item>
         </template>
@@ -122,7 +128,7 @@
         <v-list-item
           @click="setActiveMenu('TherapistReport')"
           :active="activeMenu === 'TherapistReport'"
-          title="Therapist"
+          title="Therapy"
           to="/reports/therapists"
         ></v-list-item>
       </v-list-group>
