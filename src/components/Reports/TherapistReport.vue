@@ -386,6 +386,45 @@
               <div v-else class="text-body-2 text-medium-emphasis">No caption available.</div>
             </div>
 
+            <!-- Action Types -->
+            <div class="mb-6">
+              <div class="detail-label mb-2">Tindakan</div>
+
+              <div
+                v-if="selectedSession.activity.action_types?.length"
+                class="d-flex flex-wrap ga-2"
+              >
+                <v-chip
+                  v-for="actionType in selectedSession.activity.action_types"
+                  :key="actionType.id"
+                  size="small"
+                  variant="tonal"
+                >
+                  {{ actionType.name }}
+                </v-chip>
+              </div>
+
+              <div v-else class="text-body-2 text-medium-emphasis">No action selected.</div>
+            </div>
+
+            <!-- Document -->
+            <div class="mb-6">
+              <div class="detail-label mb-2">Document</div>
+
+              <v-btn
+                v-if="selectedSession.activity.document"
+                variant="tonal"
+                prepend-icon="mdi-file-pdf-box"
+                :href="storageUrl(selectedSession.activity.document)"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View PDF
+              </v-btn>
+
+              <div v-else class="text-body-2 text-medium-emphasis">No document uploaded.</div>
+            </div>
+
             <!-- Photos -->
             <div class="mb-6">
               <div class="detail-label mb-3">Photos</div>
@@ -494,10 +533,17 @@ interface ActivityPhoto {
   photo: string
 }
 
+interface ActivityActionType {
+  id: number
+  name: string
+}
+
 interface SessionActivity {
   id: number
   caption: string | null
   video: string | null
+  document: string | null
+  action_types: ActivityActionType[]
   photos: ActivityPhoto[]
 }
 
