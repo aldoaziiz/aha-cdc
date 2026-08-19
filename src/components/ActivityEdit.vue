@@ -99,6 +99,50 @@
             class="mb-4"
           />
 
+          <!-- ACTION TYPES -->
+          <div class="mb-6">
+            <div class="text-subtitle-1 font-weight-medium mb-3">Tindakan</div>
+
+            <div v-if="actionTypes.length" class="d-flex flex-wrap ga-4">
+              <v-checkbox
+                v-for="actionType in actionTypes"
+                :key="actionType.id"
+                v-model="form.action_type_ids"
+                :label="actionType.name"
+                :value="actionType.id"
+                hide-details
+                density="comfortable"
+              />
+            </div>
+
+            <div v-else class="text-body-2 text-medium-emphasis">No action types available.</div>
+          </div>
+
+          <!-- EXISTING DOCUMENT -->
+          <div v-if="existingDocument" class="mb-4">
+            <div class="text-subtitle-1 font-weight-medium mb-3">Existing Document</div>
+
+            <v-btn
+              variant="tonal"
+              prepend-icon="mdi-file-pdf-box"
+              :href="storageUrl(existingDocument)"
+              target="_blank"
+            >
+              View PDF
+            </v-btn>
+          </div>
+
+          <!-- REPLACE DOCUMENT -->
+          <v-file-input
+            v-model="form.document"
+            label="Replace PDF Document"
+            variant="outlined"
+            prepend-icon="mdi-file-pdf-box"
+            accept="application/pdf"
+            show-size
+            class="mb-6"
+          />
+
           <!-- EXISTING PHOTOS -->
           <div v-if="existingPhotos.length" class="mb-6">
             <div class="text-subtitle-1 font-weight-medium mb-3">Existing Photos</div>
@@ -179,7 +223,7 @@
           />
 
           <div v-if="loading" class="text-center text-body-2 text-medium-emphasis mb-4">
-            Uploading video... {{ uploadProgress }}%
+            Uploading activity... {{ uploadProgress }}%
             <br />
             Please do not close this page until the upload is complete.
           </div>
@@ -259,6 +303,10 @@ const existingPhotos = ref([])
 
 const existingVideo = ref(null)
 
+const existingDocument = ref(null)
+
+const actionTypes = ref([])
+
 const loading = ref(false)
 
 const uploadProgress = ref(0)
@@ -274,9 +322,13 @@ const loadingText = ref('Updating Activity...')
 const form = ref({
   caption: '',
 
+  action_type_ids: [],
+
   photos: [],
 
   video: null,
+
+  document: null,
 })
 
 // ======================
@@ -310,7 +362,23 @@ const goBack = async () => {
 }
 
 // ======================
-// FETCH
+// FETCH ACTION TYPES
+// ======================
+
+const fetchActionTypes = async () => {
+  try {
+    const res = await api.get('/activity-action-types')
+
+    actionTypes.value = res.data.data ?? []
+  } catch (err) {
+    console.error(err)
+
+    showSnackbar('Failed to load action types', 'error')
+  }
+}
+
+// ======================
+// FETCH ACTIVITY
 // ======================
 
 const fetchActivity = async () => {
@@ -327,9 +395,13 @@ const fetchActivity = async () => {
 
     form.value.caption = activity.caption || ''
 
+    form.value.action_type_ids = (activity.action_types ?? []).map((actionType) => actionType.id)
+
     existingPhotos.value = activity.photos || []
 
     existingVideo.value = activity.video || null
+
+    existingDocument.value = activity.document || null
   } catch (err) {
     console.error(err)
 
@@ -358,6 +430,24 @@ const updateActivity = async () => {
     return
   }
 
+  // ======================
+  // DOCUMENT VALIDATION
+  // ======================
+
+  const maxDocumentSize = 10 * 1024 * 1024
+
+  if (form.value.document && form.value.document.type !== 'application/pdf') {
+    showSnackbar('Document must be a PDF file', 'error')
+
+    return
+  }
+
+  if (form.value.document && form.value.document.size > maxDocumentSize) {
+    showSnackbar('Document max size is 10 MB', 'error')
+
+    return
+  }
+
   try {
     uploadProgress.value = 0
     loading.value = true
@@ -371,11 +461,29 @@ const updateActivity = async () => {
     payload.append('caption', form.value.caption || '')
 
     // ======================
+    // ACTION TYPES
+    // ======================
+
+    if (form.value.action_type_ids?.length) {
+      form.value.action_type_ids.forEach((id) => {
+        payload.append('action_type_ids[]', id)
+      })
+    }
+
+    // ======================
     // VIDEO
     // ======================
 
     if (form.value.video) {
       payload.append('video', form.value.video)
+    }
+
+    // ======================
+    // DOCUMENT
+    // ======================
+
+    if (form.value.document) {
+      payload.append('document', form.value.document)
     }
 
     // ======================
@@ -516,7 +624,7 @@ const deleteExistingVideo = async () => {
 // ======================
 
 onMounted(async () => {
-  await fetchActivity()
+  await Promise.all([fetchActionTypes(), fetchActivity()])
 })
 </script>
 

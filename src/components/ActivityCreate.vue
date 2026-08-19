@@ -200,6 +200,40 @@
               />
             </v-col>
 
+            <!-- ACTION TYPES -->
+            <v-col cols="12">
+              <div class="text-subtitle-1 font-weight-medium mb-3">Tindakan</div>
+
+              <div v-if="actionTypes.length" class="d-flex flex-wrap ga-4">
+                <v-checkbox
+                  v-for="actionType in actionTypes"
+                  :key="actionType.id"
+                  v-model="form.action_type_ids"
+                  :label="actionType.name"
+                  :value="actionType.id"
+                  hide-details
+                  density="comfortable"
+                />
+              </div>
+
+              <div v-else class="text-body-2 text-medium-emphasis">No action types available.</div>
+            </v-col>
+
+            <!-- DOCUMENT -->
+            <v-col cols="12">
+              <div class="text-subtitle-1 font-weight-medium mb-3">Document</div>
+
+              <v-file-input
+                v-model="form.document"
+                :multiple="false"
+                prepend-icon="mdi-file-pdf-box"
+                variant="outlined"
+                label="Upload PDF"
+                accept="application/pdf"
+                show-size
+              />
+            </v-col>
+
             <!-- PHOTOS -->
             <v-col cols="12">
               <div class="text-subtitle-1 font-weight-medium mb-3">Photos</div>
@@ -244,7 +278,7 @@
         />
 
         <div v-if="loading" class="text-center text-body-2 text-medium-emphasis mb-4">
-          Uploading video... {{ uploadProgress }}%
+          Uploading activity... {{ uploadProgress }}%
           <br />
           Please do not close this page until the upload is complete.
         </div>
@@ -320,10 +354,14 @@ const uploadProgress = ref(0)
 
 const uploadLoadingText = ref('Uploading Activity...')
 
+const actionTypes = ref([])
+
 const form = ref({
   caption: '',
+  action_type_ids: [],
   photos: [],
   video: null,
+  document: null,
 })
 
 // ======================
@@ -364,6 +402,20 @@ const fetchSessions = async () => {
     console.error(err)
   } finally {
     pageLoading.value = false
+  }
+}
+
+// ======================
+// FETCH ACTION TYPES
+// ======================
+
+const fetchActionTypes = async () => {
+  try {
+    const res = await api.get('/activity-action-types')
+
+    actionTypes.value = res.data.data ?? []
+  } catch (err) {
+    console.error('Failed to load activity action types:', err)
   }
 }
 
@@ -452,6 +504,24 @@ const saveActivity = async () => {
     return
   }
 
+  // ======================
+  // DOCUMENT VALIDATION
+  // ======================
+
+  const maxDocumentSize = 10 * 1024 * 1024
+
+  if (form.value.document && form.value.document.type !== 'application/pdf') {
+    alert('Document must be a PDF file')
+
+    return
+  }
+
+  if (form.value.document && form.value.document.size > maxDocumentSize) {
+    alert('Document max size is 10 MB')
+
+    return
+  }
+
   try {
     uploadProgress.value = 0
     loading.value = true
@@ -469,11 +539,29 @@ const saveActivity = async () => {
     payload.append('caption', form.value.caption || '')
 
     // ======================
+    // ACTION TYPES
+    // ======================
+
+    if (form.value.action_type_ids?.length) {
+      form.value.action_type_ids.forEach((id) => {
+        payload.append('action_type_ids[]', id)
+      })
+    }
+
+    // ======================
     // VIDEO
     // ======================
 
     if (form.value.video) {
       payload.append('video', form.value.video)
+    }
+
+    // ======================
+    // DOCUMENT
+    // ======================
+
+    if (form.value.document) {
+      payload.append('document', form.value.document)
     }
 
     // ======================
@@ -508,8 +596,10 @@ const saveActivity = async () => {
 
     form.value = {
       caption: '',
+      action_type_ids: [],
       photos: [],
       video: null,
+      document: null,
     }
 
     selectedSession.value = null
@@ -532,6 +622,7 @@ const saveActivity = async () => {
 
 onMounted(() => {
   fetchSessions()
+  fetchActionTypes()
 })
 
 // ======================

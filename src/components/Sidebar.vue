@@ -131,6 +131,14 @@
           title="Therapy"
           to="/reports/therapists"
         ></v-list-item>
+
+        <v-list-item
+          v-if="authStore.isAdmin"
+          @click="setActiveMenu('ActivitySummaryReport')"
+          :active="activeMenu === 'ActivitySummaryReport'"
+          title="Activity Summary"
+          to="/reports/activity-summary"
+        ></v-list-item>
       </v-list-group>
     </v-list>
 

@@ -28,6 +28,7 @@ import ActivityEdit from '@/components/ActivityEdit.vue'
 
 // reports
 import TherapistReport from '@/components/Reports/TherapistReport.vue'
+import ActivitySummaryReport from '@/components/Reports/ActivitySummaryReport.vue'
 
 // help and support
 import HelpSupport from '@/components/HelpSupport.vue'
@@ -202,6 +203,16 @@ const routes: RouteRecordRaw[] = [
       layout: 'app',
       requiresAuth: true,
       allowedRoles: ['admin', 'guest', 'therapist'],
+    },
+  },
+  {
+    path: '/reports/activity-summary',
+    name: 'activity-summary-report',
+    component: ActivitySummaryReport,
+    meta: {
+      layout: 'app',
+      requiresAuth: true,
+      allowedRoles: ['admin'],
     },
   },
   {
